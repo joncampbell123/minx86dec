@@ -5,6 +5,15 @@ _start:
 	db 0x2e
 	lodsb
 
+	bsf	ax,bx
+	bsf	cx,[si]
+	bsf	dx,[ebx]
+	bsf	edx,eax
+	bsr	ax,bx
+	bsr	cx,[si]
+	bsr	dx,[ebx]
+	bsr	edx,eax
+
 	scasb
 	scasw
 	scasd

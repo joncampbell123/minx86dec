@@ -88,6 +88,9 @@ enum {
 	MXOP_STOS,		/* STOS */
 	MXOP_LODS,		/* LODS */
 	MXOP_SCAS,		/* SCAS */
+/* 0x44-0x47 */
+	MXOP_BSF,		/* BSF */
+	MXOP_BSR,		/* BSR */
 
 	MXOP_LAST
 };

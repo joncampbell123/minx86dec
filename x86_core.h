@@ -364,6 +364,21 @@ decode_next:
 					ins->argc = 0;
 					break;
 # endif
+# if core_level >= 3
+				COVER_2(0xBC):
+					ins->opcode = MXOP_BSF + (second_byte & 1);
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = data32wordsize;
+						d->regtype = MX86_RT_REG;
+						d->reg = mrm.f.reg;
+						s->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm(mrm,s,isaddr32);
+					}
+					break;
+# endif
 				default:
 					break;
 			};

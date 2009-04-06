@@ -93,6 +93,9 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"STOS",
 	"LODS",
 	"SCAS",
+/* 0x44-0x47 */
+	"BSF",
+	"BSR",
 
 	NULL
 };
