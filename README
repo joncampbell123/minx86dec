@@ -1,0 +1,8 @@
+Minimalist 80x86 decompiler library.
+Use for any program or tool you write to decompile opcodes.
+Written in plain C for speed and lightness.
+
+core8086.c             8086/8088 decoding engine
+core286.c              286 decoding engine
+core386.c              386 decoding engine
+
