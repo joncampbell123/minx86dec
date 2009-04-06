@@ -2,6 +2,9 @@
 org 0
 
 _start:
+	; test: this seems to crash our decompiler!
+	db 0x8e, 0x70, 0xe9
+
 	db 0x2e
 	lodsb
 

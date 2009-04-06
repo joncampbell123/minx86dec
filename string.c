@@ -19,7 +19,7 @@ const char *regnames[9][17] = {
 
 const char *sregnames[8] = {
 	"ES",	"CS",	"SS",	"DS",
-	NULL,	NULL,	NULL,	NULL
+	"",	"",	"",	""
 };
 
 const char *memptrsizes[17] = {
