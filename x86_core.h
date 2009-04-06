@@ -336,7 +336,7 @@ decode_next:
 			};
 			} break;
 #endif
-#if core_level >= 2
+#if core_level >= 1
 		case 0x62:
 			ins->opcode = MXOP_BOUND;
 			ins->argc = 2; {
@@ -351,6 +351,8 @@ decode_next:
 				decode_rm(mrm,mp,isaddr32);
 			}
 			break;
+#endif
+#if core_level >= 2
 		case 0x63:
 			ins->opcode = MXOP_ARPL;
 			ins->argc = 2; {
