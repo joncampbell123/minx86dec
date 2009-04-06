@@ -73,6 +73,20 @@ enum {
 	MXOP_SMSW,		/* SMSW */
 	MXOP_VERR,		/* VERR */
 	MXOP_VERW,		/* VERW */
+/* 0x38-0x3B */
+	MXOP_INS,		/* INS */
+	MXOP_OUTS,		/* OUTS */
+	MXOP_ENTER,		/* ENTER */
+	MXOP_LEAVE,		/* LEAVE */
+/* 0x3C-0x3F */
+	MXOP_PUSHA,		/* PUSHA */
+	MXOP_POPA,		/* POPA */
+	MXOP_PUSHAD,		/* PUSHAD */
+	MXOP_POPAD,		/* POPAD */
+/* 0x40-0x43 */
+	MXOP_MOVS,		/* MOVS */
+	MXOP_STOS,		/* STOS */
+	MXOP_LODS,		/* LODS */
 
 	MXOP_LAST
 };

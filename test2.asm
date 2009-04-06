@@ -2,6 +2,47 @@
 org 0
 
 _start:
+	db 0x2e
+	lodsb
+
+	lodsb
+	lodsw
+	lodsd
+	a32 lodsb
+	a32 lodsw
+	a32 lodsd
+	stosb
+	stosw
+	stosd
+	a32 stosb
+	a32 stosw
+	a32 stosd
+	movsb
+	movsw
+	movsd
+	a32 movsb
+	a32 movsw
+	a32 movsd
+	pusha
+	popa
+	pushad
+	popad
+	enter 1,2
+	leave
+	enter 400,20
+	leave
+	insb
+	insw
+	insd
+	a32 insb
+	a32 insw
+	a32 insd
+	outsb
+	outsw
+	outsd
+	a32 outsb
+	a32 outsw
+	a32 outsd
 	nop
 	arpl	si,bx
 	arpl	[si],cx

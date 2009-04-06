@@ -78,6 +78,20 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"SMSW",
 	"VERR",
 	"VERW",
+/* 0x38-0x3B */
+	"INS",
+	"OUTS",
+	"ENTER",
+	"LEAVE",
+/* 0x3C-0x3F */
+	"PUSHA",
+	"POPA",
+	"PUSHAD",
+	"POPAD",
+/* 0x40-0x43 */
+	"MOVS",
+	"STOS",
+	"LODS",
 
 	NULL
 };

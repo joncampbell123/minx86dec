@@ -122,6 +122,39 @@ decode_next:
 				decode_rm(mrm,rm,isaddr32);
 			} break;
 
+		COVER_2(0xA4):
+			ins->opcode = MXOP_MOVS;
+			ins->argc = 2; {
+				struct minx86dec_argv *d = &ins->argv[0];
+				struct minx86dec_argv *s = &ins->argv[1];
+				d->size = s->size = (first_byte & 1) ? data32wordsize : 1;
+				d->regtype = s->regtype = MX86_RT_NONE;
+				s->segment = seg_can_override(MX86_SEG_DS);
+				d->segment = MX86_SEG_ES;
+				d->scalar = s->scalar = 0;
+				d->memregs = s->memregs = 1;
+				d->memref_base = s->memref_base = 0;
+				d->memregsz = s->memregsz = addr32wordsize;
+				s->memreg[0] = MX86_REG_ESI;
+				d->memreg[0] = MX86_REG_EDI;
+			}
+			break;
+
+		COVER_4(0xAA):
+			ins->opcode = MXOP_LODS - ((first_byte >> 1) & 1);
+			ins->argc = 1; {
+				struct minx86dec_argv *r = &ins->argv[0];
+				r->size = (first_byte & 1) ? data32wordsize : 1;
+				r->regtype = MX86_RT_NONE;
+				r->segment = first_byte & 2 ? MX86_SEG_ES : seg_can_override(MX86_SEG_DS);
+				r->scalar = 0;
+				r->memregs = 1;
+				r->memref_base = 0;
+				r->memregsz = addr32wordsize;
+				r->memreg[0] = (first_byte & 2) ? MX86_REG_EDI : MX86_REG_ESI;
+			}
+			break;
+
 		case 0x8C: case 0x8E: /* mov r/m, seg reg */
 			ins->opcode = MXOP_MOV;
 			ins->argc = 2; {
@@ -350,6 +383,37 @@ decode_next:
 				mp->segment = seg_can_override(MX86_SEG_DS);
 				decode_rm(mrm,mp,isaddr32);
 			}
+			break;
+		COVER_4(0x6C):
+			ins->opcode = MXOP_INS + ((first_byte >> 1) & 1);
+			ins->argc = 1; {
+				struct minx86dec_argv *r = &ins->argv[0];
+				r->size = (first_byte & 1) ? data32wordsize : 1;
+				r->regtype = MX86_RT_NONE;
+				r->segment = seg_can_override(MX86_SEG_DS);
+				r->scalar = 0;
+				r->memregs = 1;
+				r->memref_base = 0;
+				r->memregsz = addr32wordsize;
+				r->memreg[0] = (first_byte & 2) ? MX86_REG_ESI : MX86_REG_EDI;
+			}
+			break;
+		COVER_2(0xC8):
+			ins->opcode = MXOP_ENTER + (first_byte & 1);
+			ins->argc = first_byte == 0xC8 ? 2 : 0;
+			if (ins->argc) { /* ENTER */
+				struct minx86dec_argv *a = &ins->argv[0];
+				struct minx86dec_argv *b = &ins->argv[1];
+				a->size = 16;
+				b->size = 8;
+				a->regtype = b->regtype = MX86_RT_IMM;
+				a->value = fetch_u16();
+				b->value = fetch_u8();
+			}
+			break;
+		COVER_2(0x60):
+			ins->opcode = MXOP_PUSHA + (first_byte & 1) + (isdata32 ? 2 : 0);
+			ins->argc = 0;
 			break;
 #endif
 #if core_level >= 2
