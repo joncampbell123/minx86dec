@@ -140,8 +140,8 @@ decode_next:
 			}
 			break;
 
-		COVER_4(0xAA):
-			ins->opcode = MXOP_LODS - ((first_byte >> 1) & 1);
+		COVER_4(0xAA): COVER_2(0xAE):
+			ins->opcode = MXOP_STOS + ((first_byte - 0xAA) >> 1);
 			ins->argc = 1; {
 				struct minx86dec_argv *r = &ins->argv[0];
 				r->size = (first_byte & 1) ? data32wordsize : 1;

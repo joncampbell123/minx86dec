@@ -5,6 +5,12 @@ _start:
 	db 0x2e
 	lodsb
 
+	scasb
+	scasw
+	scasd
+	a32 scasb
+	a32 scasw
+	a32 scasd
 	lodsb
 	lodsw
 	lodsd

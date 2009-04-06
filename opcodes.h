@@ -87,6 +87,7 @@ enum {
 	MXOP_MOVS,		/* MOVS */
 	MXOP_STOS,		/* STOS */
 	MXOP_LODS,		/* LODS */
+	MXOP_SCAS,		/* SCAS */
 
 	MXOP_LAST
 };

@@ -92,6 +92,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"MOVS",
 	"STOS",
 	"LODS",
+	"SCAS",
 
 	NULL
 };
