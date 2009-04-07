@@ -96,6 +96,8 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x44-0x47 */
 	"BSF",
 	"BSR",
+	"AAM",
+	"AAD",
 
 	NULL
 };

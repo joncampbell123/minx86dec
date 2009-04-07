@@ -2,7 +2,7 @@ TOP=`pwd`
 
 CFLAGS=-I. -I.. -g3 -O0
 
-all: test-headers decode8086 decode286 decode386 decode486 test1.bin test2.bin
+all: test-headers decode8086 decode286 decode386 decode486 test1.bin test2.bin test3.bin
 
 test-headers: test-headers.o
 	gcc -o $@ $<
@@ -30,5 +30,8 @@ test1.bin: test1.asm
 	nasm -O5 -o $@ -f bin $<
 
 test2.bin: test2.asm
+	nasm -O5 -o $@ -f bin $<
+
+test3.bin: test3.asm
 	nasm -O5 -o $@ -f bin $<
 

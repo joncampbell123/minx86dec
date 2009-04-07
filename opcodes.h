@@ -91,6 +91,8 @@ enum {
 /* 0x44-0x47 */
 	MXOP_BSF,		/* BSF */
 	MXOP_BSR,		/* BSR */
+	MXOP_AAM,		/* AAM */
+	MXOP_AAD,		/* AAD */
 
 	MXOP_LAST
 };

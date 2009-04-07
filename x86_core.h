@@ -202,6 +202,15 @@ decode_next:
 			ins->argc = 0;
 			break;
 
+		COVER_2(0xD4):
+			ins->opcode = MXOP_AAM+(first_byte&1);
+			ins->argc = 1; {
+				struct minx86dec_argv *im = &ins->argv[0];
+				im->size = 1;
+				im->regtype = MX86_RT_IMM;
+				im->value = fetch_u8();
+			} break;
+
 		case 0x26: case 0x2E: case 0x36: case 0x3E: /* segment overrides */
 			ins->segment = (first_byte >> 3) & 3;
 			if (--patience) goto decode_next;
