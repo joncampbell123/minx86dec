@@ -155,3 +155,43 @@ call1:	call	dword call1			; E8 id              CALL rel32
 	call	far dword [si]			; FF /3              CALL r/m48
 	call	far dword [edi]			; FF /3              CALL r/m48
 
+;	cbw					; 98                 CBW
+;	cwde					; 98                 CWDE
+;	clc					; F8                 CLC
+;	cld					; FC                 CLD
+;	clflush					; 0F AE /7           CLFLUSH
+;	cli					; FA                 CLI
+;	clts					; 0F 06              CLTS
+;	cmc					; F5                 CMC
+
+;	cmova					; 0F 47 /r           CMOVA
+;	cmovae					; 0F 43 /r           CMOVAE
+;	cmovb					; 0F 42 /r           CMOVB
+;	cmovbe					; 0F 46 /r           CMOVBE
+;	cmovc					; 0F 42 /r           CMOVC
+;	cmove					; 0F 44 /r           CMOVE
+;	cmovg					; 0F 4F /r           CMOVG
+;	cmovge					; 0F 4D /r           CMOVGE
+;	cmovl					; 0F 4C /r           CMOVL
+;	cmovle					; 0F 4E /r           CMOVLE
+;	cmovna					; 0F 46 /r           CMOVNA
+;	cmovnae					; 0F 42 /r           CMOVNAE
+;	cmovnb					; 0F 43 /r           CMOVNB
+;	cmovnbe					; 0F 47 /r           CMOVNBE
+;	cmovnc					; 0F 43 /r           CMOVNC
+;	cmovne					; 0F 45 /r           CMOVNE
+;	cmovng					; 0F 4E /r           CMOVNG
+;	cmovnge					; 0F 4C /r           CMOVNGE
+;	cmovnl					; 0F 4D /r           CMOVNL
+;	cmovnle					; 0F 4F /r           CMOVNLE
+;	cmovno					; 0F 41 /r           CMOVNO
+;	cmovnp					; 0F 4B /r           CMOVNP
+;	cmovns					; 0F 49 /r           CMOVNS
+;	cmovnz					; 0F 45 /r           CMOVNZ
+;	cmovo					; 0F 40 /r           CMOVO
+;	cmovp					; 0F 4A /r           CMOVP
+;	cmovpe					; 0F 4A /r           CMOVPE
+;	cmovpo					; 0F 4B /r           CMOVPO
+;	cmovs					; 0F 48 /r           CMOVS
+;	cmovz					; 0F 44 /r           CMOVZ
+
