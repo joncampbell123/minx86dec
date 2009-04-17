@@ -182,6 +182,20 @@ decode_next:
 				decode_rm(mrm,rm,isaddr32);
 			} break;
 
+		case 0xE8:
+			ins->opcode = MXOP_CALL;
+			ins->argc = 1; {
+				struct minx86dec_argv *mref = &ins->argv[0];
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				mref->size = mref->memregsz = data32wordsize;
+				mref->regtype = MX86_RT_IMM;
+				/* address is RELATIVE to instruction pointer! */
+				if (isdata32)
+					mref->value = (fetch_u32() + curp + 4) & 0xFFFFFFFFUL;
+				else
+					mref->value = (fetch_u16() + curp + 2) & 0xFFFFUL;
+			} break;
+
 		case 0x06: case 0x07: /* PUSH/POP ES */
 		case 0x0E: /* PUSH/POP CS */
 #if core_level == 0 /* 8086 only: 0x0F is POP CS (pop stack into CS!). Later CPUs use this as a prefix for other instructions */
@@ -278,6 +292,37 @@ decode_next:
 				a->regtype = r->regtype = MX86_RT_REG;
 				a->reg = MX86_REG_AX;
 				r->reg = first_byte & 7;
+			} break;
+
+		case 0x9A:
+			ins->opcode = MXOP_CALL_FAR;
+			ins->argc = 1; {
+				struct minx86dec_argv *mref = &ins->argv[0];
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				mref->size = mref->memregsz = data32wordsize + 2;
+				mref->regtype = MX86_RT_IMM;
+				mref->segment = MX86_SEG_IMM;
+				/* address is RELATIVE to instruction pointer! */
+				if (isdata32)	mref->value = fetch_u32();
+				else		mref->value = fetch_u16();
+				mref->segval = fetch_u16();
+			} break;
+
+		/* group 0xFE-0xFF */
+		COVER_2(0xFE):
+			{
+				union x86_mrm mrm = fetch_modregrm();
+				switch (mrm.f.reg) {
+					case 2: case 3:
+						ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
+						ins->argc = 1; {
+						struct minx86dec_argv *where = &ins->argv[0];
+						where->size = where->memregsz = data32wordsize + 2;
+						where->segment = seg_can_override(MX86_SEG_DS);
+						where->regtype = MX86_RT_NONE;
+						decode_rm(mrm,where,isaddr32);
+					} break;
+				}
 			} break;
 
 		/* MOV a,imm */

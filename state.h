@@ -51,6 +51,7 @@ enum {	MX86_XMM0=0,	MX86_XMM1,	MX86_XMM2,	MX86_XMM3,
 
 /* segment registers */
 enum {	MX86_SEG_ES=0,	MX86_SEG_CS,	MX86_SEG_SS,	MX86_SEG_DS };
+#define MX86_SEG_IMM -2
 
 /* REP modes */
 enum {	MX86_REP_NONE=0,MX86_REP,	MX86_REPZ,	MX86_REPNZ };
@@ -68,6 +69,7 @@ enum {	MX86_RT_NONE=0,	/* not a register reference */
 /* decoded instruction operand (32-bit or 16-bit) */
 struct minx86dec_argv {
 	int				segment;	/* which segment */
+	uint16_t			segval;		/* segment value (if segment == -2) */
 	unsigned int			size;		/* size of the operand (1=byte 2=word 4=dword etc) */
 	int				regtype;	/* type of register (0 if memory ref) */
 	int				reg;

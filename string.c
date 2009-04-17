@@ -47,6 +47,8 @@ static void minx86dec_memref_print(struct minx86dec_argv *a,char *output) {
 
 	if (a->segment >= 0)
 		output += sprintf(output,"%s:",sregnames[a->segment]);
+	else if (a->segment == MX86_SEG_IMM)
+		output += sprintf(output,"0x%04X:",a->segval);
 
 	output += sprintf(output,"%s[",memptrsizes[a->size]);
 
@@ -92,6 +94,9 @@ void minx86dec_regprint(struct minx86dec_argv *a,char *output) {
 			minx86dec_memref_print(a,output);
 			break;
 		case MX86_RT_IMM:
+			if (a->segment == MX86_SEG_IMM)
+				output += sprintf(output,"0x%04X:",a->segval);
+
 			sprintf(output,"0x%X",a->value);
 			break;
 		case MX86_RT_REG:

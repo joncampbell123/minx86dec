@@ -93,6 +93,9 @@ enum {
 	MXOP_BSR,		/* BSR */
 	MXOP_AAM,		/* AAM */
 	MXOP_AAD,		/* AAD */
+/* 0x48-0x4B */
+	MXOP_CALL,		/* CALL */
+	MXOP_CALL_FAR,		/* CALL [far] */
 
 	MXOP_LAST
 };

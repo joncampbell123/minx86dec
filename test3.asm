@@ -41,25 +41,25 @@ _start:
 	add	al,2				; 04 ib
 	add	ax,1234				; 05 iw
 	add	eax,12345678			; 05 iw
-	add	bl,2				; 80 /0 ib           ADC r/m8,imm8     r/m = reg
-	add	byte [bx+si+4],2		; 80 /0 ib           ADC r/m8,imm8     r/m = mem
-	add	cx,1234				; 81 /0 iw           ADC r/m16,imm16   r/m = reg
-	add	word [bx+si+4],1234		; 81 /0 iw           ADC r/m16,imm16   r/m = mem
-	add	edx,12345678			; 81 /0 id           ADC r/m32,imm32   r/m = reg
-	add	dword [bx+si+4],12345678	; 81 /0 id           ADC r/m32,imm32   r/m = mem
-	add	bx,byte 2			; 83 /0 ib           ADC r/m16,imm8    r/m = reg   imm8 = sign extended byte
-	add	word [bx+si+4],byte 8		; 83 /0 ib           ADC r/m16,imm8    r/m = mem   imm8 = sign extended byte
-	add	ebx,byte -4			; 83 /0 ib           ADC r/m32,imm8    r/m = reg   imm8 = sign extended byte
-	add	dword [bx+si+4],byte 8		; 83 /0 ib           ADC r/m32,imm8    r/m = mem   imm8 = sign extended byte
-	add	bl,bh				; 00 /r              ADC r/m8, r8
-	add	byte [bx+si+4],bl		; 00 /r              ADC r/m8, r8
-	add	bx,cx				; 01 /r	             ADC r/m16, r16
-	add	word [bx+si+4],bx		; 01 /r              ADC r/m16, r16
-	add	ebx,ecx				; 01 /r              ADC r/m32, r32
-	add	dword [bx+si+4],ebx		; 01 /r              ADC r/m32, r32
-	add	bl,byte [bx+si+4]		; 02 /r              ADC r8, r/m8
-	add	bx,word [bx+si+4]		; 03 /r              ADC r16, r/m16
-	add	ebx,dword [bx+si+4]		; 03 /r	             ADC r32, r/m32
+	add	bl,2				; 80 /0 ib           ADD r/m8,imm8     r/m = reg
+	add	byte [bx+si+4],2		; 80 /0 ib           ADD r/m8,imm8     r/m = mem
+	add	cx,1234				; 81 /0 iw           ADD r/m16,imm16   r/m = reg
+	add	word [bx+si+4],1234		; 81 /0 iw           ADD r/m16,imm16   r/m = mem
+	add	edx,12345678			; 81 /0 id           ADD r/m32,imm32   r/m = reg
+	add	dword [bx+si+4],12345678	; 81 /0 id           ADD r/m32,imm32   r/m = mem
+	add	bx,byte 2			; 83 /0 ib           ADD r/m16,imm8    r/m = reg   imm8 = sign extended byte
+	add	word [bx+si+4],byte 8		; 83 /0 ib           ADD r/m16,imm8    r/m = mem   imm8 = sign extended byte
+	add	ebx,byte -4			; 83 /0 ib           ADD r/m32,imm8    r/m = reg   imm8 = sign extended byte
+	add	dword [bx+si+4],byte 8		; 83 /0 ib           ADD r/m32,imm8    r/m = mem   imm8 = sign extended byte
+	add	bl,bh				; 00 /r              ADD r/m8, r8
+	add	byte [bx+si+4],bl		; 00 /r              ADD r/m8, r8
+	add	bx,cx				; 01 /r	             ADD r/m16, r16
+	add	word [bx+si+4],bx		; 01 /r              ADD r/m16, r16
+	add	ebx,ecx				; 01 /r              ADD r/m32, r32
+	add	dword [bx+si+4],ebx		; 01 /r              ADD r/m32, r32
+	add	bl,byte [bx+si+4]		; 02 /r              ADD r8, r/m8
+	add	bx,word [bx+si+4]		; 03 /r              ADD r16, r/m16
+	add	ebx,dword [bx+si+4]		; 03 /r	             ADD r32, r/m32
 
 ;	addpd	xmm1,xmm2			; 66 0F 58 /r        ADDPD xmm1, xmm2/m128
 ;	addpd	xmm1,[bx+si]			; 66 0F 58 /r        ADDPD xmm1, xmm2/m128
@@ -75,23 +75,83 @@ _start:
 	and	al,2				; 24 ib
 	and	ax,1234				; 25 iw
 	and	eax,12345678			; 25 iw
-	and	bl,2				; 80 /4 ib           ADC r/m8,imm8     r/m = reg
-	and	byte [bx+si+4],2		; 80 /4 ib           ADC r/m8,imm8     r/m = mem
-	and	cx,1234				; 81 /4 iw           ADC r/m16,imm16   r/m = reg
-	and	word [bx+si+4],1234		; 81 /4 iw           ADC r/m16,imm16   r/m = mem
-	and	edx,12345678			; 81 /4 id           ADC r/m32,imm32   r/m = reg
-	and	dword [bx+si+4],12345678	; 81 /4 id           ADC r/m32,imm32   r/m = mem
-	and	bx,byte 2			; 83 /4 ib           ADC r/m16,imm8    r/m = reg   imm8 = sign extended byte
-	and	word [bx+si+4],byte 8		; 83 /4 ib           ADC r/m16,imm8    r/m = mem   imm8 = sign extended byte
-	and	ebx,byte -4			; 83 /4 ib           ADC r/m32,imm8    r/m = reg   imm8 = sign extended byte
-	and	dword [bx+si+4],byte 8		; 83 /4 ib           ADC r/m32,imm8    r/m = mem   imm8 = sign extended byte
-	and	bl,bh				; 20 /r              ADC r/m8, r8
-	and	byte [bx+si+4],bl		; 20 /r              ADC r/m8, r8
-	and	bx,cx				; 21 /r	             ADC r/m16, r16
-	and	word [bx+si+4],bx		; 21 /r              ADC r/m16, r16
-	and	ebx,ecx				; 21 /r              ADC r/m32, r32
-	and	dword [bx+si+4],ebx		; 21 /r              ADC r/m32, r32
-	and	bl,byte [bx+si+4]		; 22 /r              ADC r8, r/m8
-	and	bx,word [bx+si+4]		; 23 /r              ADC r16, r/m16
-	and	ebx,dword [bx+si+4]		; 23 /r	             ADC r32, r/m32
+	and	bl,2				; 80 /4 ib           AND r/m8,imm8     r/m = reg
+	and	byte [bx+si+4],2		; 80 /4 ib           AND r/m8,imm8     r/m = mem
+	and	cx,1234				; 81 /4 iw           AND r/m16,imm16   r/m = reg
+	and	word [bx+si+4],1234		; 81 /4 iw           AND r/m16,imm16   r/m = mem
+	and	edx,12345678			; 81 /4 id           AND r/m32,imm32   r/m = reg
+	and	dword [bx+si+4],12345678	; 81 /4 id           AND r/m32,imm32   r/m = mem
+	and	bx,byte 2			; 83 /4 ib           AND r/m16,imm8    r/m = reg   imm8 = sign extended byte
+	and	word [bx+si+4],byte 8		; 83 /4 ib           AND r/m16,imm8    r/m = mem   imm8 = sign extended byte
+	and	ebx,byte -4			; 83 /4 ib           AND r/m32,imm8    r/m = reg   imm8 = sign extended byte
+	and	dword [bx+si+4],byte 8		; 83 /4 ib           AND r/m32,imm8    r/m = mem   imm8 = sign extended byte
+	and	bl,bh				; 20 /r              AND r/m8, r8
+	and	byte [bx+si+4],bl		; 20 /r              AND r/m8, r8
+	and	bx,cx				; 21 /r	             AND r/m16, r16
+	and	word [bx+si+4],bx		; 21 /r              AND r/m16, r16
+	and	ebx,ecx				; 21 /r              AND r/m32, r32
+	and	dword [bx+si+4],ebx		; 21 /r              AND r/m32, r32
+	and	bl,byte [bx+si+4]		; 22 /r              AND r8, r/m8
+	and	bx,word [bx+si+4]		; 23 /r              AND r16, r/m16
+	and	ebx,dword [bx+si+4]		; 23 /r	             AND r32, r/m32
+
+;      andps	xmm1,xmm2			; 66 0F 54 /r        ANDPD xmm1, xmm2/m128
+;      andps	xmm1,xmm2			; 0F 54 /r           ANDPS xmm1, xmm2/m128
+;     andnpd	xmm1,xmm2			; 66 0F 55 /r        ANDNPD xmm1, xmm2/m128
+;     andnps	xmm1,xmm2			; 0F 55 /r           ANDNPS xmm1, xmm2/m128
+
+	arpl	ax,bx				; 63 /r              ARPL r/m16, r16
+	arpl	[si],bx				; 63 /r              ARPL r/m16, r16
+
+;    blendpd	xmm1,xmm2			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
+;    blendps	xmm1,xmm2			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+;   blendvpd	xmm1,xmm2			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
+;   blendvps	xmm1,xmm2			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
+
+	bound	ax,[si]				; 62 /r              BOUND r16, m16
+	bound	ebx,[eax]			; 62 /r              BOUND r32, m32
+
+	bsf	ax,bx				; 0F BC /r           BSF r16, r/m16
+	bsf	ax,[si]				; 0F BC /r           BSF r16, r/m16
+	bsf	eax,ecx				; 0F BC /r           BSF r32, r/m32
+	bsr	cx,dx				; 0F BD /r           BSR r16, r/m16
+	bsr	cx,[si]				; 0F BD /r           BSR r16, r/m16
+	bsr	ebx,edx				; 0F BC /r           BSR r32, r/m32
+
+;      bswap	eax				; 0F C8+rd           BSWAP r32
+
+;         bt	ax,bx				; 0F A3 ??           BT r/m16, r16
+;         bt    ecx,edx				; 0F A3 ??           BT r/m32, r32
+;         bt    si,1				; 0F BA /4 ib        BT r/m16, imm8
+;         bt    edi,4				; 0F BA /4 ib        BT r/m32, imm8
+
+;        btc	ax,bx				; 0F BB ??           BTC r/m16, r16
+;        btc	esi,edi				; 0F BB ??           BTC r/m32, r32
+;        btc	cx,1				; 0F BA /7 ib        BTC r/m16, imm8
+;        btc	edx,8				; 0F BA /7 ib        BTC r/m32, imm8
+
+;        btr	ax,bx				; 0F B3 ??           BTR r/m16, r16
+;        btr	esi,edi				; 0F B3 ??           BTR r/m32, r32
+;        btr	cx,1				; 0F BA /6 ib        BTR r/m16, imm8
+;        btr	edx,8				; 0F BA /6 ib        BTR r/m32, imm8
+
+;        bts	ax,bx				; 0F AB ??           BTS r/m16, r16
+;        bts	esi,edi				; 0F AB ??           BTS r/m32, r32
+;        bts	cx,1				; 0F BA /5 ib        BTS r/m16, imm8
+;        bts	edx,8				; 0F BA /5 ib        BTS r/m32, imm8
+
+	call	call1				; E8 iw              CALL rel16
+call1:	call	dword call1			; E8 id              CALL rel32
+
+	call	0x1234:0x5678			; 9A iw_ofs:iw_seg   CALL seg:offset
+	call	0x1234:dword 0x56789ABC		; 9A id_ofs:iw_seg   CALL seg:offset
+
+	call	bx				; FF /2              CALL r/m16
+	call	word [si]			; FF /2              CALL r/m16
+	call	dword [ebx]			; FF /2              CALL r/m32
+
+	call	far word [si]			; FF /3              CALL r/m32
+	call	far word [ebx]			; FF /3              CALL r/m32
+	call	far dword [si]			; FF /3              CALL r/m48
+	call	far dword [edi]			; FF /3              CALL r/m48
 
