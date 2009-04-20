@@ -108,6 +108,8 @@ enum {
 	MXOP_ANDPD,		/* ANDPD */
 	MXOP_ANDNPS,		/* ANDPS */
 	MXOP_ANDNPD,		/* ANDPD */
+/* 0x54-0x57 */
+	MXOP_BSWAP,		/* BSWAP */
 
 	MXOP_LAST
 };

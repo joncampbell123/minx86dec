@@ -102,11 +102,12 @@ _start:
      andnpd	xmm1,xmm2			; 66 0F 55 /r        ANDNPD xmm1, xmm2/m128
      andnps	xmm1,xmm2			; 0F 55 /r           ANDNPS xmm1, xmm2/m128
 
-	arpl	ax,bx				; 63 /r              ARPL r/m16, r16
-	arpl	[si],bx				; 63 /r              ARPL r/m16, r16
+       arpl	ax,bx				; 63 /r              ARPL r/m16, r16
+       arpl	[si],bx				; 63 /r              ARPL r/m16, r16
 
-;    blendpd	xmm1,xmm2			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
-;    blendps	xmm1,xmm2			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+; THE FOLLOWING INSTRUCTIONS ARE NOT YET RECOGNIZED BY NASM
+;    blendpd	xmm1,xmm2,2			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
+;    blendps	xmm1,xmm2,3			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
 ;   blendvpd	xmm1,xmm2			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
 ;   blendvps	xmm1,xmm2			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
 
@@ -120,7 +121,8 @@ _start:
 	bsr	cx,[si]				; 0F BD /r           BSR r16, r/m16
 	bsr	ebx,edx				; 0F BC /r           BSR r32, r/m32
 
-;      bswap	eax				; 0F C8+rd           BSWAP r32
+      bswap	eax				; 0F C8+rd           BSWAP r32
+      bswap	ebx				; 0F C8+rd           BSWAP r32
 
 ;         bt	ax,bx				; 0F A3 ??           BT r/m16, r16
 ;         bt    ecx,edx				; 0F A3 ??           BT r/m32, r32

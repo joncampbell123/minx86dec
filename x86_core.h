@@ -488,6 +488,15 @@ decode_next:
 					break;
 # endif
 # if core_level >= 4 /* --------------------- 486 or higher ---------------------- */
+				COVER_8(0xC8):
+					ins->opcode = MXOP_BSWAP;
+					ins->argc = 1; {
+						struct minx86dec_argv *r = &ins->argv[0];
+						r->size = data32wordsize;
+						r->regtype = MX86_RT_REG;
+						r->reg = second_byte & 7;
+					}
+					break;
 # endif
 # if core_level >= 5 /* --------------------- pentium or higher ------------------ */
 #  if sse_level >= 1 /* SSE instructions */

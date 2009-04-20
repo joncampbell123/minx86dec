@@ -113,6 +113,8 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"ANDPD",
 	"ANDNPS",
 	"ANDNPD",
+/* 0x54-0x57 */
+	"BSWAP",
 
 	NULL
 };
