@@ -100,7 +100,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"AAD",
 /* 0x48-0x4B */
 	"CALL",
-	"CALLF",	/* we made this up */
+	"CALL FAR",	/* we made this up */
 
 	NULL
 };

@@ -10,6 +10,7 @@ void minx86dec_decode486(struct minx86dec_state *state,struct minx86dec_instruct
 #define core_level 4
 #define isdata32 ins->data32
 #define isaddr32 ins->addr32
+#define fpu_level 4
 
 	/* default to 8086-style invalid opcode (apparently there was no invalid opcode exception?) */
 	ins->data32 = state->data32;
