@@ -54,7 +54,7 @@ enum {	MX86_SEG_ES=0,	MX86_SEG_CS,	MX86_SEG_SS,	MX86_SEG_DS };
 #define MX86_SEG_IMM -2
 
 /* REP modes */
-enum {	MX86_REP_NONE=0,MX86_REP,	MX86_REPZ,	MX86_REPNZ };
+enum {	MX86_REP_NONE=0,MX86_REPE,	MX86_REPNE };	/* NOTE: REP = REPE */
 
 /* register type */
 enum {	MX86_RT_NONE=0,	/* not a register reference */

@@ -101,6 +101,18 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x48-0x4B */
 	"CALL",
 	"CALL FAR",	/* we made this up */
+	"ADDPS",
+	"ADDPD",
+/* 0x4C-0x4F */
+	"ADDSD",
+	"ADDSS",
+	"ADDSUBPD",
+	"ADDSUBPS",
+/* 0x50-0x53 */
+	"ANDPS",
+	"ANDPD",
+	"ANDNPS",
+	"ANDNPD",
 
 	NULL
 };

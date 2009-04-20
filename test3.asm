@@ -61,16 +61,18 @@ _start:
 	add	bx,word [bx+si+4]		; 03 /r              ADD r16, r/m16
 	add	ebx,dword [bx+si+4]		; 03 /r	             ADD r32, r/m32
 
-;	addpd	xmm1,xmm2			; 66 0F 58 /r        ADDPD xmm1, xmm2/m128
-;	addpd	xmm1,[bx+si]			; 66 0F 58 /r        ADDPD xmm1, xmm2/m128
-;	addps	xmm1,xmm2			; 0F 58 /r           ADDPS xmm1, xmm2/m128
-;	addps	xmm1,[bx+si]			; 0F 58 /r           ADDPS xmm1, xmm2/m128
-;	addsd	xmm1,xmm2			; F2 0F 58 /r        ADDSD xmm1, xmm2/m128
-;	addsd	xmm1,[bx+si]			; F2 0F 58 /r        ADDSD xmm1, xmm2/m128
-;	addss	xmm1,xmm2			; F3 0F 58 /r        ADDSS xmm1, xmm2/m128
-;	addss	xmm1,[bx+si]			; F3 0F 58 /r        ADDSS xmm1, xmm2/m128
-;    addsubpd	xmm1,xmm2			; 66 0F D0 /r        ADDSUBPD xmm1, xmm2/m128
-;    addsubps	xmm1,xmm2			; F2 0F D0 /r        ADDSUBPS xmm1, xmm2/m128
+      addpd	xmm1,xmm2			; 66 0F 58 /r        ADDPD xmm1, xmm2/m128
+      addpd	xmm1,[bx+si]			; 66 0F 58 /r        ADDPD xmm1, xmm2/m128
+      addps	xmm1,xmm2			; 0F 58 /r           ADDPS xmm1, xmm2/m128
+      addps	xmm1,[bx+si]			; 0F 58 /r           ADDPS xmm1, xmm2/m128
+      addsd	xmm1,xmm2			; F2 0F 58 /r        ADDSD xmm1, xmm2/m128
+      addsd	xmm1,[bx+si]			; F2 0F 58 /r        ADDSD xmm1, xmm2/m128
+      addss	xmm1,xmm2			; F3 0F 58 /r        ADDSS xmm1, xmm2/m128
+      addss	xmm1,[bx+si]			; F3 0F 58 /r        ADDSS xmm1, xmm2/m128
+   addsubpd	xmm1,xmm2			; 66 0F D0 /r        ADDSUBPD xmm1, xmm2/m128
+   addsubpd	xmm1,[bx+si]			; 66 0F D0 /r        ADDSUBPD xmm1, xmm2/m128
+   addsubps	xmm1,xmm2			; F2 0F D0 /r        ADDSUBPS xmm1, xmm2/m128
+   addsubps	xmm1,[bx+si]			; F2 0F D0 /r        ADDSUBPS xmm1, xmm2/m128
 
 	and	al,2				; 24 ib
 	and	ax,1234				; 25 iw
@@ -95,10 +97,10 @@ _start:
 	and	bx,word [bx+si+4]		; 23 /r              AND r16, r/m16
 	and	ebx,dword [bx+si+4]		; 23 /r	             AND r32, r/m32
 
-;      andps	xmm1,xmm2			; 66 0F 54 /r        ANDPD xmm1, xmm2/m128
-;      andps	xmm1,xmm2			; 0F 54 /r           ANDPS xmm1, xmm2/m128
-;     andnpd	xmm1,xmm2			; 66 0F 55 /r        ANDNPD xmm1, xmm2/m128
-;     andnps	xmm1,xmm2			; 0F 55 /r           ANDNPS xmm1, xmm2/m128
+      andpd	xmm1,xmm2			; 66 0F 54 /r        ANDPD xmm1, xmm2/m128
+      andps	xmm1,xmm2			; 0F 54 /r           ANDPS xmm1, xmm2/m128
+     andnpd	xmm1,xmm2			; 66 0F 55 /r        ANDNPD xmm1, xmm2/m128
+     andnps	xmm1,xmm2			; 0F 55 /r           ANDNPS xmm1, xmm2/m128
 
 	arpl	ax,bx				; 63 /r              ARPL r/m16, r16
 	arpl	[si],bx				; 63 /r              ARPL r/m16, r16

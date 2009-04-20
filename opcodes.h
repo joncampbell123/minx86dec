@@ -96,6 +96,18 @@ enum {
 /* 0x48-0x4B */
 	MXOP_CALL,		/* CALL */
 	MXOP_CALL_FAR,		/* CALL [far] */
+	MXOP_ADDPS,		/* ADDPS */
+	MXOP_ADDPD,		/* ADDPD */
+/* 0x4C-0x4F */
+	MXOP_ADDSD,		/* ADDSD */
+	MXOP_ADDSS,		/* ADDSS */
+	MXOP_ADDSUBPD,		/* ADDSUBPD */
+	MXOP_ADDSUBPS,		/* ADDSUBPS */
+/* 0x50-0x53 */
+	MXOP_ANDPS,		/* ANDPS */
+	MXOP_ANDPD,		/* ANDPD */
+	MXOP_ANDNPS,		/* ANDPS */
+	MXOP_ANDNPD,		/* ANDPD */
 
 	MXOP_LAST
 };

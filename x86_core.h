@@ -26,6 +26,55 @@
 #define COVER_8(x) COVER_4(x): COVER_4(x+4)
 #define COVER_ROW(x) COVER_8(x): COVER_8(x+8)
 
+/* defaults */
+#ifndef core_level
+#  define core_level 0
+/* 0 = 8086
+ * 1 = 80186
+ * 2 = 286
+ * 3 = 386
+ * 4 = 486
+ * 5 = pentium or higher
+ * 6 = pentium II or higher */
+#endif
+
+#ifndef fpu_level
+#  define fpu_level -1
+/* 0 = 8087
+ * 2 = 287
+ * 3 = 387
+ * 4 = 487
+ * 5 = pentium or higher
+ * 6 = pentium II or higher */
+#endif
+
+#ifndef amd_3dnow
+#  define amd_3dnow -1
+/* 1 = 3dnow!
+ * 2 = 3dnow2! */
+#endif
+
+#ifndef sse_level
+#  define sse_level -1
+/* 1 = SSE
+ * 2 = SSE2
+ * 3 = SSE3
+ * 4 = SSE4 */
+#endif
+
+#ifndef pentium
+#  define pentium 0
+/* 1 = pentium/ppro
+ * 2 = pentium II
+ * 3 = pentium III
+ * 4 = pentium 4 */
+#endif
+
+#ifdef pentiumpro
+/* pentium == 1 -> pentium pro */
+#endif
+
+ins->rep = MX86_REP_NONE;
 decode_next:
 {
 	const uint8_t first_byte = *cip++;
@@ -325,6 +374,11 @@ decode_next:
 				}
 			} break;
 
+		/* REP/REPE/REPNE */
+		COVER_2(0xF2):
+			ins->rep = (first_byte & 1) + MX86_REPE;
+			goto decode_next;
+
 		/* MOV a,imm */
 		COVER_ROW(0xB0):
 			ins->opcode = MXOP_MOV;
@@ -343,7 +397,7 @@ decode_next:
 		case 0x0F: {
 			const uint8_t second_byte = *cip++;
 			switch (second_byte) {
-# if core_level >= 2
+# if core_level >= 2 /*------------- 286 or higher -----------------*/
 				case 0x00: /* LLDT */
 					{
 						union x86_mrm mrm = fetch_modregrm();
@@ -418,7 +472,7 @@ decode_next:
 					ins->argc = 0;
 					break;
 # endif
-# if core_level >= 3
+# if core_level >= 3 /* --------------------- 386 or higher ---------------------- */
 				COVER_2(0xBC):
 					ins->opcode = MXOP_BSF + (second_byte & 1);
 					ins->argc = 2; {
@@ -432,6 +486,63 @@ decode_next:
 						decode_rm(mrm,s,isaddr32);
 					}
 					break;
+# endif
+# if core_level >= 4 /* --------------------- 486 or higher ---------------------- */
+# endif
+# if core_level >= 5 /* --------------------- pentium or higher ------------------ */
+#  if sse_level >= 1 /* SSE instructions */
+				COVER_2(0x54):
+					ins->opcode = isdata32 + MXOP_ANDPS + ((second_byte & 1) << 1);
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = 16; /* 128 bit = 16 bytes */
+						d->reg = mrm.f.reg;
+						s->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
+					} break;
+				case 0x58:
+					ins->opcode = (ins->rep >= MX86_REPE ? (2 + ins->rep - MX86_REPE) : isdata32) + MXOP_ADDPS;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = 16; /* 128 bit = 16 bytes */
+						d->reg = mrm.f.reg;
+						s->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
+					} break;
+				case 0xD0:
+					{
+#   define PAIR(d,r)  ((d) + ((r) << 2))
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						unsigned char t = isdata32 + (ins->rep << 2);
+						unsigned char m = 0;
+						switch (t) {
+							case PAIR(1,MX86_REP_NONE):
+								ins->opcode = MXOP_ADDSUBPD;
+								m = 1;
+								break;
+							case PAIR(0,MX86_REPE):
+								ins->opcode = MXOP_ADDSUBPS;
+								m = 1;
+								break;
+						};
+						switch (m) {
+							case 1: { /* ADDSUBPD/S */
+								union x86_mrm mrm = fetch_modregrm();
+								ins->argc = 2;
+								d->size = s->size = 16; /* 128 bit = 16 bytes */
+								d->reg = mrm.f.reg;
+								s->segment = seg_can_override(MX86_SEG_DS);
+								decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
+								} break;
+						}
+#   undef PAIR
+					} break;
+#  endif
 # endif
 				default:
 					break;

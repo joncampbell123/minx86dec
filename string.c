@@ -106,13 +106,13 @@ void minx86dec_regprint(struct minx86dec_argv *a,char *output) {
 			strcpy(output,sregnames[a->reg]);
 			break;
 		case MX86_RT_ST:
-			sprintf(output,"st%d",a->reg);
+			sprintf(output,"st(%d)",a->reg);
 			break;
 		case MX86_RT_MMX:
-			sprintf(output,"mm%d",a->reg);
+			sprintf(output,"MM%d",a->reg);
 			break;
 		case MX86_RT_SSE:
-			sprintf(output,"xmm%d",a->reg);
+			sprintf(output,"XMM%d",a->reg);
 			break;
 	}
 }
