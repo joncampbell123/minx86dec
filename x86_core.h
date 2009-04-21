@@ -245,6 +245,16 @@ decode_next:
 					mref->value = (fetch_u16() + curp + 2) & 0xFFFFUL;
 			} break;
 
+		case 0xF8:
+			ins->opcode = MXOP_CLC;
+			ins->argc = 0;
+			break;
+
+		case 0xFC:
+			ins->opcode = MXOP_CLD;
+			ins->argc = 0;
+			break;
+
 		case 0x06: case 0x07: /* PUSH/POP ES */
 		case 0x0E: /* PUSH/POP CS */
 #if core_level == 0 /* 8086 only: 0x0F is POP CS (pop stack into CS!). Later CPUs use this as a prefix for other instructions */
@@ -343,6 +353,11 @@ decode_next:
 				r->reg = first_byte & 7;
 			} break;
 
+		case 0x98:
+			ins->opcode = isdata32 ? MXOP_CWDE : MXOP_CBW;
+			ins->argc = 0;
+			break;
+
 		case 0x9A:
 			ins->opcode = MXOP_CALL_FAR;
 			ins->argc = 1; {
@@ -378,6 +393,18 @@ decode_next:
 		COVER_2(0xF2):
 			ins->rep = (first_byte & 1) + MX86_REPE;
 			goto decode_next;
+
+		/* CMC */
+		case 0xF5:
+			ins->opcode = MXOP_CMC;
+			ins->argc = 0;
+			break;
+
+		/* CLI */
+		case 0xFA:
+			ins->opcode = MXOP_CLI;
+			ins->argc = 0;
+			break;
 
 		/* MOV a,imm */
 		COVER_ROW(0xB0):
@@ -484,8 +511,78 @@ decode_next:
 						d->reg = mrm.f.reg;
 						s->segment = seg_can_override(MX86_SEG_DS);
 						decode_rm(mrm,s,isaddr32);
-					}
-					break;
+					} break;
+				case 0xA3:
+					ins->opcode = MXOP_BT;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = data32wordsize;
+						s->regtype = MX86_RT_REG;
+						s->reg = mrm.f.reg;
+						d->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm(mrm,d,isaddr32);
+					} break;
+				case 0xAB:
+					ins->opcode = MXOP_BTS;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = data32wordsize;
+						s->regtype = MX86_RT_REG;
+						s->reg = mrm.f.reg;
+						d->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm(mrm,d,isaddr32);
+					} break;
+				case 0xB3:
+					ins->opcode = MXOP_BTR;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = data32wordsize;
+						s->regtype = MX86_RT_REG;
+						s->reg = mrm.f.reg;
+						d->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm(mrm,d,isaddr32);
+					} break;
+				case 0xBA: {
+						int m = -1;
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						switch (mrm.f.reg) {
+							case 4: ins->opcode = MXOP_BT; m = 0; break;
+							case 5: ins->opcode = MXOP_BTS; m = 0; break;
+							case 6: ins->opcode = MXOP_BTR; m = 0; break;
+							case 7: ins->opcode = MXOP_BTC; m = 0; break;
+						}
+						switch (m) {
+							case 0:	ins->argc = 2;
+								d->size = data32wordsize;
+								d->segment = seg_can_override(MX86_SEG_DS);
+								decode_rm(mrm,d,isaddr32);
+								s->regtype = MX86_RT_IMM;
+								s->size = 1;
+								s->value = fetch_u8();
+								break;
+						};
+					} break;
+				case 0xBB:
+					ins->opcode = MXOP_BTC;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = data32wordsize;
+						s->regtype = MX86_RT_REG;
+						s->reg = mrm.f.reg;
+						d->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm(mrm,d,isaddr32);
+					} break;
+
 # endif
 # if core_level >= 4 /* --------------------- 486 or higher ---------------------- */
 				COVER_8(0xC8):
@@ -551,6 +648,24 @@ decode_next:
 						}
 #   undef PAIR
 					} break;
+#  endif
+#  if sse_level >= 2 /* SSE2 */
+				case 0xAE: {
+					   int m = -1;
+					   struct minx86dec_argv *d = &ins->argv[0];
+					   struct minx86dec_argv *s = &ins->argv[1];
+					   union x86_mrm mrm = fetch_modregrm();
+					   switch (mrm.f.reg) {
+						   case 7: ins->opcode = MXOP_CLFLUSH; m = 0; break;
+					   }
+					   switch (m) {
+						   case 0:	ins->argc = 1;
+								d->size = data32wordsize;
+								d->segment = seg_can_override(MX86_SEG_DS);
+								decode_rm(mrm,d,isaddr32);
+								break;
+						   };
+					   } break;
 #  endif
 # endif
 				default:

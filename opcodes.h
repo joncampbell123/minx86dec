@@ -110,6 +110,19 @@ enum {
 	MXOP_ANDNPD,		/* ANDPD */
 /* 0x54-0x57 */
 	MXOP_BSWAP,		/* BSWAP */
+	MXOP_BT,		/* BT */
+	MXOP_BTC,		/* BTC */
+	MXOP_BTR,		/* BTR */
+/* 0x58-0x5B */
+	MXOP_BTS,		/* BTS */
+	MXOP_CBW,		/* CBW */
+	MXOP_CWDE,		/* CWDE */
+	MXOP_CLC,		/* CLC */
+/* 0x5C-0x5F */
+	MXOP_CLD,		/* CLD */
+	MXOP_CLFLUSH,		/* CLFLUSH */
+	MXOP_CLI,		/* CLI */
+	MXOP_CMC,		/* CMC */
 
 	MXOP_LAST
 };

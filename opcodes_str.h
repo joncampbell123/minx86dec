@@ -115,6 +115,19 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"ANDNPD",
 /* 0x54-0x57 */
 	"BSWAP",
+	"BT",
+	"BTC",
+	"BTR",
+/* 0x58-0x5B */
+	"BTS",
+	"CBW",
+	"CWDE",
+	"CLC",
+/* 0x5C-0x5F */
+	"CLD",
+	"CLFLUSH",
+	"CLI",
+	"CMC",
 
 	NULL
 };

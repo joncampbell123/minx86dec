@@ -124,25 +124,25 @@ _start:
       bswap	eax				; 0F C8+rd           BSWAP r32
       bswap	ebx				; 0F C8+rd           BSWAP r32
 
-;         bt	ax,bx				; 0F A3 ??           BT r/m16, r16
-;         bt    ecx,edx				; 0F A3 ??           BT r/m32, r32
-;         bt    si,1				; 0F BA /4 ib        BT r/m16, imm8
-;         bt    edi,4				; 0F BA /4 ib        BT r/m32, imm8
+         bt	ax,bx				; 0F A3 ??           BT r/m16, r16
+         bt	ecx,edx				; 0F A3 ??           BT r/m32, r32
+         bt	si,1				; 0F BA /4 ib        BT r/m16, imm8
+         bt	edi,4				; 0F BA /4 ib        BT r/m32, imm8
 
-;        btc	ax,bx				; 0F BB ??           BTC r/m16, r16
-;        btc	esi,edi				; 0F BB ??           BTC r/m32, r32
-;        btc	cx,1				; 0F BA /7 ib        BTC r/m16, imm8
-;        btc	edx,8				; 0F BA /7 ib        BTC r/m32, imm8
+	btc	ax,bx				; 0F BB ??           BTC r/m16, r16
+	btc	esi,edi				; 0F BB ??           BTC r/m32, r32
+	btc	cx,1				; 0F BA /7 ib        BTC r/m16, imm8
+	btc	edx,8				; 0F BA /7 ib        BTC r/m32, imm8
 
-;        btr	ax,bx				; 0F B3 ??           BTR r/m16, r16
-;        btr	esi,edi				; 0F B3 ??           BTR r/m32, r32
-;        btr	cx,1				; 0F BA /6 ib        BTR r/m16, imm8
-;        btr	edx,8				; 0F BA /6 ib        BTR r/m32, imm8
+	btr	ax,bx				; 0F B3 ??           BTR r/m16, r16
+	btr	esi,edi				; 0F B3 ??           BTR r/m32, r32
+	btr	cx,1				; 0F BA /6 ib        BTR r/m16, imm8
+	btr	edx,8				; 0F BA /6 ib        BTR r/m32, imm8
 
-;        bts	ax,bx				; 0F AB ??           BTS r/m16, r16
-;        bts	esi,edi				; 0F AB ??           BTS r/m32, r32
-;        bts	cx,1				; 0F BA /5 ib        BTS r/m16, imm8
-;        bts	edx,8				; 0F BA /5 ib        BTS r/m32, imm8
+	bts	ax,bx				; 0F AB ??           BTS r/m16, r16
+	bts	esi,edi				; 0F AB ??           BTS r/m32, r32
+	bts	cx,1				; 0F BA /5 ib        BTS r/m16, imm8
+	bts	edx,8				; 0F BA /5 ib        BTS r/m32, imm8
 
 	call	call1				; E8 iw              CALL rel16
 call1:	call	dword call1			; E8 id              CALL rel32
@@ -159,14 +159,14 @@ call1:	call	dword call1			; E8 id              CALL rel32
 	call	far dword [si]			; FF /3              CALL r/m48
 	call	far dword [edi]			; FF /3              CALL r/m48
 
-;	cbw					; 98                 CBW
-;	cwde					; 98                 CWDE
-;	clc					; F8                 CLC
-;	cld					; FC                 CLD
-;	clflush					; 0F AE /7           CLFLUSH
-;	cli					; FA                 CLI
-;	clts					; 0F 06              CLTS
-;	cmc					; F5                 CMC
+	cbw					; 98                 CBW
+	cwde					; 98                 CWDE
+	clc					; F8                 CLC
+	cld					; FC                 CLD
+	clflush	[bx+si]				; 0F AE /7           CLFLUSH
+	cli					; FA                 CLI
+	clts					; 0F 06              CLTS
+	cmc					; F5                 CMC
 
 ;	cmova					; 0F 47 /r           CMOVA
 ;	cmovae					; 0F 43 /r           CMOVAE
