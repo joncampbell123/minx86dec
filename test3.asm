@@ -199,3 +199,26 @@ call1:	call	dword call1			; E8 id              CALL rel32
 ;	cmovs					; 0F 48 /r           CMOVS
 ;	cmovz					; 0F 44 /r           CMOVZ
 
+	cmp	al,2				; 3C ib
+	cmp	ax,1234				; 3D iw
+	cmp	eax,12345678			; 3D iw
+	cmp	bl,2				; 80 /7 ib           AND r/m8,imm8     r/m = reg
+	cmp	byte [bx+si+4],2		; 80 /7 ib           AND r/m8,imm8     r/m = mem
+	cmp	cx,1234				; 81 /7 iw           AND r/m16,imm16   r/m = reg
+	cmp	word [bx+si+4],1234		; 81 /7 iw           AND r/m16,imm16   r/m = mem
+	cmp	edx,12345678			; 81 /7 id           AND r/m32,imm32   r/m = reg
+	cmp	dword [bx+si+4],12345678	; 81 /7 id           AND r/m32,imm32   r/m = mem
+	cmp	bx,byte 2			; 83 /7 ib           AND r/m16,imm8    r/m = reg   imm8 = sign extended byte
+	cmp	word [bx+si+4],byte 8		; 83 /7 ib           AND r/m16,imm8    r/m = mem   imm8 = sign extended byte
+	cmp	ebx,byte -4			; 83 /7 ib           AND r/m32,imm8    r/m = reg   imm8 = sign extended byte
+	cmp	dword [bx+si+4],byte 8		; 83 /7 ib           AND r/m32,imm8    r/m = mem   imm8 = sign extended byte
+	cmp	bl,bh				; 38 /r              AND r/m8, r8
+	cmp	byte [bx+si+4],bl		; 38 /r              AND r/m8, r8
+	cmp	bx,cx				; 39 /r	             AND r/m16, r16
+	cmp	word [bx+si+4],bx		; 39 /r              AND r/m16, r16
+	cmp	ebx,ecx				; 39 /r              AND r/m32, r32
+	cmp	dword [bx+si+4],ebx		; 39 /r              AND r/m32, r32
+	cmp	bl,byte [bx+si+4]		; 3A /r              AND r8, r/m8
+	cmp	bx,word [bx+si+4]		; 3B /r              AND r16, r/m16
+	cmp	ebx,dword [bx+si+4]		; 3B /r	             AND r32, r/m32
+
