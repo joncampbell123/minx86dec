@@ -128,6 +128,10 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"CLFLUSH",
 	"CLI",
 	"CMC",
+/* 0x60-0x63 */
+	"CMPPS",
+	"CMPPD",
+	"CMPS",
 
 	NULL
 };

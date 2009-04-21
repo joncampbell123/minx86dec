@@ -222,3 +222,12 @@ call1:	call	dword call1			; E8 id              CALL rel32
 	cmp	bx,word [bx+si+4]		; 3B /r              AND r16, r/m16
 	cmp	ebx,dword [bx+si+4]		; 3B /r	             AND r32, r/m32
 
+      cmppd	xmm1,xmm2,2			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
+      cmppd	xmm1,[bx+si],3			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
+      cmpps	xmm1,xmm2,4			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
+      cmpps	xmm1,[bx+si],5			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
+
+	cmpsb					; A6                 CMPSB
+	cmpsw					; A7                 CMPSW
+	cmpsd					; A7                 CMPSW
+

@@ -123,6 +123,10 @@ enum {
 	MXOP_CLFLUSH,		/* CLFLUSH */
 	MXOP_CLI,		/* CLI */
 	MXOP_CMC,		/* CMC */
+/* 0x60-0x63 */
+	MXOP_CMPPS,		/* CMPPS */
+	MXOP_CMPPD,		/* CMPPD */
+	MXOP_CMPS,		/* CMPS */
 
 	MXOP_LAST
 };
