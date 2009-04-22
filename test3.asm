@@ -243,3 +243,27 @@ call1:	call	dword call1			; E8 id              CALL rel32
   cmpxchg8b	[si]				; 0F C7 /1           CMPXCHG8B
   cmpxchg8b	[ebx]				; 0F C7 /1           CMPXCHG8B
 
+     comisd	xmm1,xmm2			; 66 0F 2F /r        COMISD
+     comiss	xmm1,xmm2			; 0F 2F /r           COMISS
+     
+      cpuid
+
+; NOT YET RECOGNIZED BY NASM
+;      crc32	eax,byte [bx+si]		; F2 0F 38 F0 /r     CRC32
+;      crc32	ebx,word [bx+si]		; F2 0F 38 F0 /r     CRC32
+;      crc32	ecx,dword [bx+si]		; F2 0F 38 F0 /r     CRC32
+
+   cvtdq2pd	xmm1,xmm2			; F3 0F E6
+   cvtdq2ps	xmm1,xmm2			; 0F 5B /r
+   cvtpd2dq	xmm1,xmm2			; F2 0F E6
+   cvtpd2pi	mm1,xmm2			; 66 0F 2D /r
+   cvtpd2ps	xmm1,xmm2			; 66 0F 5A /r
+   cvtpi2pd	xmm1,mm2			; 66 0F 2A /r
+   cvtpi2ps	xmm1,mm2			; 0F 2A /r
+   cvtps2dq	xmm1,xmm2			; 66 0F 5B /r
+   cvtps2pd	xmm1,xmm2			; 0F 5A /r
+   cvtps2pi	mm1,xmm2			; 0F 2D /r
+   cvtsd2si	eax,xmm2			; F2 0F 2D /r
+   cvtsd2ss	xmm1,xmm2			; F2 0F 5A /r
+   cvtsi2sd	xmm1,eax			; F2 0F 2A /r
+
