@@ -168,36 +168,36 @@ call1:	call	dword call1			; E8 id              CALL rel32
 	clts					; 0F 06              CLTS
 	cmc					; F5                 CMC
 
-;	cmova					; 0F 47 /r           CMOVA
-;	cmovae					; 0F 43 /r           CMOVAE
-;	cmovb					; 0F 42 /r           CMOVB
-;	cmovbe					; 0F 46 /r           CMOVBE
-;	cmovc					; 0F 42 /r           CMOVC
-;	cmove					; 0F 44 /r           CMOVE
-;	cmovg					; 0F 4F /r           CMOVG
-;	cmovge					; 0F 4D /r           CMOVGE
-;	cmovl					; 0F 4C /r           CMOVL
-;	cmovle					; 0F 4E /r           CMOVLE
-;	cmovna					; 0F 46 /r           CMOVNA
-;	cmovnae					; 0F 42 /r           CMOVNAE
-;	cmovnb					; 0F 43 /r           CMOVNB
-;	cmovnbe					; 0F 47 /r           CMOVNBE
-;	cmovnc					; 0F 43 /r           CMOVNC
-;	cmovne					; 0F 45 /r           CMOVNE
-;	cmovng					; 0F 4E /r           CMOVNG
-;	cmovnge					; 0F 4C /r           CMOVNGE
-;	cmovnl					; 0F 4D /r           CMOVNL
-;	cmovnle					; 0F 4F /r           CMOVNLE
-;	cmovno					; 0F 41 /r           CMOVNO
-;	cmovnp					; 0F 4B /r           CMOVNP
-;	cmovns					; 0F 49 /r           CMOVNS
-;	cmovnz					; 0F 45 /r           CMOVNZ
-;	cmovo					; 0F 40 /r           CMOVO
-;	cmovp					; 0F 4A /r           CMOVP
-;	cmovpe					; 0F 4A /r           CMOVPE
-;	cmovpo					; 0F 4B /r           CMOVPO
-;	cmovs					; 0F 48 /r           CMOVS
-;	cmovz					; 0F 44 /r           CMOVZ
+        cmovo   cx,[bx+si]                      ; 0F 40 /r           CMOVO
+        cmovno  cx,[bx+si]                      ; 0F 41 /r           CMOVNO
+        cmovnae cx,[bx+si]                      ; 0F 42 /r           CMOVNAE
+        cmovc   cx,[bx+si]                      ; 0F 42 /r           CMOVC
+        cmovb   cx,[bx+si]                      ; 0F 42 /r           CMOVB
+        cmovnb  cx,[bx+si]                      ; 0F 43 /r           CMOVNB
+        cmovnc  cx,[bx+si]                      ; 0F 43 /r           CMOVNC
+        cmovae  cx,[bx+si]                      ; 0F 43 /r           CMOVAE
+        cmovz   cx,[bx+si]                      ; 0F 44 /r           CMOVZ
+        cmove   cx,[bx+si]                      ; 0F 44 /r           CMOVE
+        cmovnz  cx,[bx+si]                      ; 0F 45 /r           CMOVNZ
+        cmovne  cx,[bx+si]                      ; 0F 45 /r           CMOVNE
+        cmovbe  cx,[bx+si]                      ; 0F 46 /r           CMOVBE
+        cmovna  cx,[bx+si]                      ; 0F 46 /r           CMOVNA
+        cmova   cx,[bx+si]                      ; 0F 47 /r           CMOVA
+        cmovnbe cx,[bx+si]                      ; 0F 47 /r           CMOVNBE
+        cmovs   cx,[bx+si]                      ; 0F 48 /r           CMOVS
+        cmovns  cx,[bx+si]                      ; 0F 49 /r           CMOVNS
+        cmovp   cx,[bx+si]                      ; 0F 4A /r           CMOVP
+        cmovpe  cx,[bx+si]                      ; 0F 4A /r           CMOVPE
+        cmovpo  cx,[bx+si]                      ; 0F 4B /r           CMOVPO
+        cmovnp  cx,[bx+si]                      ; 0F 4B /r           CMOVNP
+        cmovnge cx,[bx+si]                      ; 0F 4C /r           CMOVNGE
+        cmovl   cx,[bx+si]                      ; 0F 4C /r           CMOVL
+        cmovge  cx,[bx+si]                      ; 0F 4D /r           CMOVGE
+        cmovnl  cx,[bx+si]                      ; 0F 4D /r           CMOVNL
+        cmovle  cx,[bx+si]                      ; 0F 4E /r           CMOVLE
+        cmovng  cx,[bx+si]                      ; 0F 4E /r           CMOVNG
+        cmovnle cx,[bx+si]                      ; 0F 4F /r           CMOVNLE
+        cmovg   cx,[bx+si]                      ; 0F 4F /r           CMOVG
 
 	cmp	al,2				; 3C ib
 	cmp	ax,1234				; 3D iw
@@ -227,7 +227,19 @@ call1:	call	dword call1			; E8 id              CALL rel32
       cmpps	xmm1,xmm2,4			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
       cmpps	xmm1,[bx+si],5			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
 
-	cmpsb					; A6                 CMPSB
-	cmpsw					; A7                 CMPSW
-	cmpsd					; A7                 CMPSW
+      cmpsb					; A6                 CMPSB
+      cmpsw					; A7                 CMPSW
+      cmpsd					; A7                 CMPSW
+
+      cmpsd	xmm1,xmm2,2			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
+      cmpsd	xmm1,[bx+si],3			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
+      cmpss	xmm1,xmm2,4			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
+      cmpss	xmm1,[bx+si],5			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
+
+    cmpxchg	al,ah				; 0F B0 /r           CMPXCHG
+    cmpxchg	[bx+si],cx			; 0F B0 /r           CMPXCHG
+    cmpxchg     [ebx],esi			; 0F B0 /r           CMPXCHG
+
+  cmpxchg8b	[si]				; 0F C7 /1           CMPXCHG8B
+  cmpxchg8b	[ebx]				; 0F C7 /1           CMPXCHG8B
 

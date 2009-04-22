@@ -132,6 +132,31 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"CMPPS",
 	"CMPPD",
 	"CMPS",
+	"CMOVO",		/* 40 CMOVO -------------- CMOVcc set */
+/* 0x64-0x67 */
+	"CMOVNO",		/* 41 CMOVNO */
+	"CMOVC",		/* 42 CMOVC */
+	"CMOVNC",		/* 43 CMOVNC */
+	"CMOVZ",		/* 44 CMOVZ */
+/* 0x68-0x6B */
+	"CMOVNZ",		/* 45 CMOVNZ */
+	"CMOVBE",		/* 46 CMOVBE */
+	"CMOVA",		/* 47 CMOVA */
+	"CMOVS",		/* 48 CMOVS */
+/* 0x6C-0x6F */
+	"CMOVNS",		/* 49 CMOVNS */
+	"CMOVP",		/* 4A CMOVP */
+	"CMOVNP",		/* 4B CMOVNP */
+	"CMOVL",		/* 4C CMOVL */
+/* 0x70-0x73 */
+	"CMOVNL",		/* 4D CMOVNL */
+	"CMOVNG",		/* 4E CMOVNG */
+	"CMOVG",		/* 4F CMOVG */
+	"CMPSD",                /* CMPSD */
+/* 0x74-0x77 */
+	"CMPSS",                /* CMPSS */
+	"CMPXCHG",		/* CMPXCHG */
+	"CMPXCHG8B",		/* CMPXCHG8B */
 
 	NULL
 };

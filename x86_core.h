@@ -603,6 +603,18 @@ decode_next:
 
 # endif
 # if core_level >= 4 /* --------------------- 486 or higher ---------------------- */
+				COVER_2(0xB0):
+					ins->opcode = MXOP_CMPXCHG;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = (second_byte & 1) ? data32wordsize : 1;
+						s->regtype = MX86_RT_REG;
+						s->reg = mrm.f.reg;
+						d->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm(mrm,d,isaddr32);
+					} break;
 				COVER_8(0xC8):
 					ins->opcode = MXOP_BSWAP;
 					ins->argc = 1; {
@@ -614,6 +626,34 @@ decode_next:
 					break;
 # endif
 # if core_level >= 5 /* --------------------- pentium or higher ------------------ */
+#  if defined(pentiumpro) || pentium >= 2 /* Pentium Pro or higher */
+				COVER_ROW(0x40): /* CMOVcc */
+					ins->opcode = MXOP_CMOVO + second_byte - 0x40;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[1];
+						struct minx86dec_argv *s = &ins->argv[0];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = data32wordsize;
+						s->regtype = MX86_RT_REG;
+						s->reg = mrm.f.reg;
+						d->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm(mrm,d,isaddr32);
+					} break;
+				case 0xC7: {
+					struct minx86dec_argv *a = &ins->argv[0];
+					struct minx86dec_argv *b = &ins->argv[1];
+					union x86_mrm mrm = fetch_modregrm();
+					switch (mrm.f.reg) {
+						case 1:
+							ins->opcode = MXOP_CMPXCHG8B;
+							ins->argc = 1;
+							a->size = 8;
+							a->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,a,isaddr32);
+							break;
+					};
+					} break;
+#  endif
 #  if sse_level >= 1 /* SSE instructions */
 				COVER_2(0x54):
 					ins->opcode = isdata32 + MXOP_ANDPS + ((second_byte & 1) << 1);
@@ -638,7 +678,7 @@ decode_next:
 						decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
 					} break;
 				case 0xC2:
-					ins->opcode = MXOP_CMPPS + (isdata32 ? 1 : 0);
+					ins->opcode = (ins->rep >= MX86_REPE) ? (MXOP_CMPSD + ins->rep - MX86_REPE) : (MXOP_CMPPS + (isdata32 ? 1 : 0));
 					ins->argc = 3; {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
