@@ -157,6 +157,16 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"CMPSS",                /* CMPSS */
 	"CMPXCHG",		/* CMPXCHG */
 	"CMPXCHG8B",		/* CMPXCHG8B */
+	"BLENDPS",		/* BLENSPS */
+/* 0x78-0x7B */
+	"BLENDPD",		/* BLENDPD */
+	"BLENDVPS",		/* BLENDVPS */
+	"BLENDVPD",		/* BLENDVPD */
+	"CRC32",		/* CRC32 */
+/* 0x7C-0x7F */
+	"COMISS",		/* COMISS */
+	"COMISD",		/* COMISD */
+	"CPUID",		/* CPUID */
 
 	NULL
 };
