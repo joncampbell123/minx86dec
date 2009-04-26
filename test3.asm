@@ -105,14 +105,14 @@ _start:
        arpl	ax,bx				; 63 /r              ARPL r/m16, r16
        arpl	[si],bx				; 63 /r              ARPL r/m16, r16
 
-; THE FOLLOWING INSTRUCTIONS ARE NOT YET RECOGNIZED BY NASM
-;    blendpd	xmm1,xmm2,2			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
-;    blendps	xmm1,xmm2,3			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
-;   blendvpd	xmm1,xmm2			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
-;   blendvps	xmm1,xmm2			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
+; THE FOLLOWING INSTRUCTIONS ARE NOT RECOGNIZED UNLESS USING A RECENT NASM
+    blendpd	xmm1,xmm2,2			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
+    blendps	xmm1,xmm2,3			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+   blendvpd	xmm1,xmm2,xmm0			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
+   blendvps	xmm1,xmm2,xmm0			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
 
-	bound	ax,[si]				; 62 /r              BOUND r16, m16
-	bound	ebx,[eax]			; 62 /r              BOUND r32, m32
+      bound	ax,[si]				; 62 /r              BOUND r16, m16
+      bound	ebx,[eax]			; 62 /r              BOUND r32, m32
 
 	bsf	ax,bx				; 0F BC /r           BSF r16, r/m16
 	bsf	ax,[si]				; 0F BC /r           BSF r16, r/m16
@@ -248,10 +248,10 @@ call1:	call	dword call1			; E8 id              CALL rel32
      
       cpuid
 
-; NOT YET RECOGNIZED BY NASM
-;      crc32	eax,byte [bx+si]		; F2 0F 38 F0 /r     CRC32
-;      crc32	ebx,word [bx+si]		; F2 0F 38 F0 /r     CRC32
-;      crc32	ecx,dword [bx+si]		; F2 0F 38 F0 /r     CRC32
+; THESE NEED A RECENT NASM
+      crc32	eax,byte [bx+si]		; F2 0F 38 F0 /r     CRC32
+      crc32	ebx,word [bx+si]		; F2 0F 38 F0 /r     CRC32
+      crc32	ecx,dword [bx+si]		; F2 0F 38 F0 /r     CRC32
 
    cvtdq2pd	xmm1,xmm2			; F3 0F E6
    cvtdq2ps	xmm1,xmm2			; 0F 5B /r
