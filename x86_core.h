@@ -693,11 +693,11 @@ decode_next:
 						i->value = fetch_u8();
 					} break;
 				case 0x2A:
-					if (ins->rep == MX86_REPE) {
+					if (ins->rep >= MX86_REPE) {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
-						ins->opcode = MXOP_CVTSI2SD;
+						ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSI2SS : MXOP_CVTSI2SD;
 						ins->argc = 2;
 						d->size = 16;
 						s->size = 4; /* 128 bit = 16 bytes */
@@ -720,12 +720,36 @@ decode_next:
 						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_MMX);
 					}
 					break;
-				case 0x2D:
-					if (ins->rep == MX86_REPE) {
+				case 0x2C:
+					{
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
-						ins->opcode = MXOP_CVTSD2SI;
+						if (ins->rep >= MX86_REPE)
+							ins->opcode = MXOP_CVTTSD2SI + ins->rep - MX86_REPE;
+						else
+							ins->opcode = MXOP_CVTTPS2PI + (dataprefix32 & 1);
+						ins->argc = 2;
+						if (ins->rep >= MX86_REPE) {
+							d->size = 4;
+							d->regtype = MX86_RT_REG;
+						}
+						else {
+							d->size = 8;
+							d->regtype = MX86_RT_MMX;
+						}
+						s->size = 16; /* 128 bit = 16 bytes */
+						d->reg = mrm.f.reg;
+						s->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
+					}
+					break;
+				case 0x2D:
+					if (ins->rep >= MX86_REPE) {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSS2SI : MXOP_CVTSD2SI;
 						ins->argc = 2;
 						d->size = 4;
 						s->size = 16; /* 128 bit = 16 bytes */
@@ -760,11 +784,11 @@ decode_next:
 						decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
 					} break;
 				case 0x5A:
-					if (ins->rep == MX86_REPE) {
+					if (ins->rep >= MX86_REPE) {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
-						ins->opcode = MXOP_CVTSD2SS;
+						ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSS2SD : MXOP_CVTSD2SS;
 						ins->argc = 2;
 						d->size = 16;
 						s->size = 16; /* 128 bit = 16 bytes */
@@ -788,14 +812,20 @@ decode_next:
 					}
 					break;
 				case 0x5B:
-					if (ins->rep == MX86_REPE) {
-						/* ... fill in when defined */
-					}
-					else {
+					{
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
-						ins->opcode = MXOP_CVTDQ2PS + (dataprefix32 & 1);
+						if (ins->rep == MX86_REPNE) {
+							ins->opcode = MXOP_CVTTPS2DQ;
+						}
+						else if (ins->rep == MX86_REPE) {
+							/* not defined */
+							break;
+						}
+						else {
+							ins->opcode = MXOP_CVTDQ2PS + (dataprefix32 & 1);
+						}
 						ins->argc = 2;
 						d->size = 16;
 						s->size = 16; /* 128 bit = 16 bytes */
@@ -841,11 +871,17 @@ decode_next:
 #  endif
 #  if sse_level >= 2 /* SSE2 */
 				case 0xE6:
-					if (ins->rep >= MX86_REPE) {
+					{
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
-						ins->opcode = MXOP_CVTPD2DQ + ins->rep - MX86_REPE;
+						if (ins->rep >= MX86_REPE)
+							ins->opcode = MXOP_CVTPD2DQ + ins->rep - MX86_REPE;
+						else if (dataprefix32)
+							ins->opcode = MXOP_CVTTPD2DQ;
+						else
+							break;
+
 						ins->argc = 2;
 						d->size = 16;
 						s->size = 16; /* 128 bit = 16 bytes */

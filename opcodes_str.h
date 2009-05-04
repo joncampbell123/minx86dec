@@ -183,6 +183,18 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"CVTPS2DQ",		/* CVTPS2DQ */
 	"CVTPD2DQ",		/* CVTPD2DQ */
 	"CVTDQ2PD",		/* CVTDQ2PD */
+/* 0x8C-0x8F */
+	"CVTTPS2DQ",		/* CVTTPS2DQ */
+	"CVTTPD2DQ",		/* CVTTPD2DQ */
+	"CVTTPS2PI",		/* CVTTPS2PI */
+	"CVTTPD2PI",		/* CVTTPD2PI */
+/* 0x90-0x93 */
+	"CVTSI2SS",		/* CVTSI2SS */
+	"CVTSS2SD",		/* CVTSS2SD */
+	"CVTSS2SI",		/* CVTSS2SI */
+	"CVTTSD2SI",		/* CVTTSD2SI */
+/* 0x94-0x97 */
+	"CVTTSS2SI",		/* CVTTSS2SI */
 
 	NULL
 };

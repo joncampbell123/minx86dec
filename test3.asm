@@ -266,4 +266,13 @@ call1:	call	dword call1			; E8 id              CALL rel32
    cvtsd2si	eax,xmm2			; F2 0F 2D /r
    cvtsd2ss	xmm1,xmm2			; F2 0F 5A /r
    cvtsi2sd	xmm1,eax			; F2 0F 2A /r
+   cvtsi2ss	xmm1,ebx			; F3 0F 2A /r
+   cvtss2sd	xmm1,xmm2			; F3 0F 5A /r
+   cvtss2si	eax,xmm1			; F3 0F 2D /r
+  cvttpd2dq	xmm1,xmm2			; 66 0F E6
+  cvttpd2pi	mm1,xmm1			; 66 0F 2C /r
+  cvttps2dq	xmm1,xmm2			; F3 0F 5B /r
+  cvttps2pi	mm1,xmm2			; 0F 2C /r
+  cvttsd2si	eax,xmm1			; F2 0F 2C /r
+  cvttss2si	eax,xmm1			; F3 0F 2C /r
 
