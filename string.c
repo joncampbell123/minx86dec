@@ -88,6 +88,7 @@ static void minx86dec_memref_print(struct minx86dec_argv *a,char *output) {
 }
 
 void minx86dec_regprint(struct minx86dec_argv *a,char *output) {
+	char *x;
 	output[0] = 0;
 	switch (a->regtype) {
 		case MX86_RT_NONE:
@@ -100,7 +101,16 @@ void minx86dec_regprint(struct minx86dec_argv *a,char *output) {
 			sprintf(output,"0x%X",a->value);
 			break;
 		case MX86_RT_REG:
-			strcpy(output,regnames[a->size][a->reg]);
+			if (a->size >= 0 && a->size <= 8 && a->reg >= 0 && a->reg <= 16)
+				x = regnames[a->size][a->reg];
+			else
+				x = NULL;
+
+			if (x == NULL)
+				fprintf(stderr,"BUG: MX86_RT_REG with size=%d reg=%d which does not exist\n",
+					a->size,a->reg);
+
+			strcpy(output,x != NULL ? x : "(null)");
 			break;
 		case MX86_RT_SREG:
 			strcpy(output,sregnames[a->reg]);

@@ -167,6 +167,14 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"COMISS",		/* COMISS */
 	"COMISD",		/* COMISD */
 	"CPUID",		/* CPUID */
+	"CVTPI2PS",		/* CVTPI2PS */
+/* 0x80-0x83 */
+	"CVTPI2PD",		/* CVTPI2PD */
+	"CVTSI2SD",		/* CVTSI2SD */
+	"CVTPS2PI",		/* CVTPS2PI */
+	"CVTPD2PI",		/* CVTPD2PI */
+/* 0x84-0x87 */
+	"CVTSD2SI",		/* CVTSD2SI */
 
 	NULL
 };
