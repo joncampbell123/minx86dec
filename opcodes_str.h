@@ -175,6 +175,14 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"CVTPD2PI",		/* CVTPD2PI */
 /* 0x84-0x87 */
 	"CVTSD2SI",		/* CVTSD2SI */
+	"CVTPS2PD",		/* CVTPS2PD */
+	"CVTPD2PS",		/* CVTPD2PS */
+	"CVTSD2SS",		/* CVTSD2SS */
+/* 0x88-0x8B */
+	"CVTDQ2PS",		/* CVTDQ2PS */
+	"CVTPS2DQ",		/* CVTPS2DQ */
+	"CVTPD2DQ",		/* CVTPD2DQ */
+	"CVTDQ2PD",		/* CVTDQ2PD */
 
 	NULL
 };
