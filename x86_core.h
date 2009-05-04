@@ -656,7 +656,7 @@ decode_next:
 #  endif
 #  if sse_level >= 1 /* SSE instructions */
 				COVER_2(0x54):
-					ins->opcode = isdata32 + MXOP_ANDPS + ((second_byte & 1) << 1);
+					ins->opcode = dataprefix32 + MXOP_ANDPS + ((second_byte & 1) << 1);
 					ins->argc = 2; {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
@@ -667,7 +667,7 @@ decode_next:
 						decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
 					} break;
 				case 0x58:
-					ins->opcode = (ins->rep >= MX86_REPE ? (2 + ins->rep - MX86_REPE) : isdata32) + MXOP_ADDPS;
+					ins->opcode = (ins->rep >= MX86_REPE ? (2 + ins->rep - MX86_REPE) : dataprefix32) + MXOP_ADDPS;
 					ins->argc = 2; {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
@@ -678,7 +678,7 @@ decode_next:
 						decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
 					} break;
 				case 0xC2:
-					ins->opcode = (ins->rep >= MX86_REPE) ? (MXOP_CMPSD + ins->rep - MX86_REPE) : (MXOP_CMPPS + (isdata32 ? 1 : 0));
+					ins->opcode = (ins->rep >= MX86_REPE) ? (MXOP_CMPSD + ins->rep - MX86_REPE) : (MXOP_CMPPS + (dataprefix32 ? 1 : 0));
 					ins->argc = 3; {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
@@ -693,7 +693,7 @@ decode_next:
 						i->value = fetch_u8();
 					} break;
 				case 0x2F:
-					ins->opcode = MXOP_COMISS + (isdata32 ? 1 : 0);
+					ins->opcode = MXOP_COMISS + (dataprefix32 ? 1 : 0);
 					ins->argc = 2; {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
@@ -712,7 +712,7 @@ decode_next:
 #   define PAIR(d,r)  ((d) + ((r) << 2))
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						unsigned char t = isdata32 + (ins->rep << 2);
+						unsigned char t = dataprefix32 + (ins->rep << 2);
 						unsigned char m = 0;
 						switch (t) {
 							case PAIR(1,MX86_REP_NONE):
@@ -882,11 +882,13 @@ decode_next:
 		/* 386+ instruction 32-bit prefixes */
 		case 0x66: /* 32-bit data override */
 			ins->data32 ^= 1;
+			dataprefix32++;
 			if (--patience) goto decode_next;
 			break;
 
 		case 0x67: /* 32-bit address override */
 			ins->addr32 ^= 1;
+			addrprefix32++;
 			if (--patience) goto decode_next;
 			break;
 #endif
