@@ -195,6 +195,9 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"CVTTSD2SI",		/* CVTTSD2SI */
 /* 0x94-0x97 */
 	"CVTTSS2SI",		/* CVTTSS2SI */
+	"CWD",			/* CWD */
+	"CDQ",			/* CDQ */
+	"DIV",			/* DIV */
 
 	NULL
 };

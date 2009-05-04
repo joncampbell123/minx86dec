@@ -276,3 +276,32 @@ call1:	call	dword call1			; E8 id              CALL rel32
   cvttsd2si	eax,xmm1			; F2 0F 2C /r
   cvttss2si	eax,xmm1			; F3 0F 2C /r
 
+	cwd					; 99
+	cdq					; [66] 99
+	daa					; 27
+	das					; 2F
+	dec	ax				; 48+rw
+	dec	eax				; 48+rw
+	dec	ebx				; 48+rw
+	dec	ecx				; 48+rw
+	dec	cx				; 48+rw
+	dec	edx				; 48+rw
+	dec	dx				; 48+rw
+	dec	esi				; 48+rw
+	dec	si				; 48+rw
+	dec	byte [si]			; FE /1
+	dec	byte [bx+si+44h]		; FE /1
+	dec	word [di]			; FF /1
+	dec	word [bx+di+11h]		; FF /1
+	dec	dword [ebx]			; FF /1
+	div	al				; F6 /6
+	div	ah				; F6 /6
+	div	cl				; F6 /6
+	div	dh				; F6 /6
+	div	byte [si]			; F7 /6
+	div	word [bx]			; F7 /6
+	div	ax				; F7 /6
+	div	bx				; F7 /6
+	div	ecx				; F7 /6
+	div	dword [esi]			; F7 /6
+

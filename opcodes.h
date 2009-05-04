@@ -190,6 +190,9 @@ enum {
 	MXOP_CVTTSD2SI,		/* CVTTSD2SI */
 /* 0x94-0x97 */
 	MXOP_CVTTSS2SI,		/* CVTTSS2SI */
+	MXOP_CWD,		/* CWD */
+	MXOP_CDQ,		/* CDQ */
+	MXOP_DIV,		/* DIV */
 
 	MXOP_LAST
 };

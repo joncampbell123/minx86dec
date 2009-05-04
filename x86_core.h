@@ -376,6 +376,11 @@ decode_next:
 			ins->argc = 0;
 			break;
 
+		case 0x99:
+			ins->opcode = MXOP_CWD + (isdata32 & 1);
+			ins->argc = 0;
+			break;
+
 		case 0x9A:
 			ins->opcode = MXOP_CALL_FAR;
 			ins->argc = 1; {
@@ -390,15 +395,40 @@ decode_next:
 				mref->segval = fetch_u16();
 			} break;
 
+		COVER_2(0xF6):
+			{
+				union x86_mrm mrm = fetch_modregrm();
+				switch (mrm.f.reg) {
+					case 6: {
+						struct minx86dec_argv *where = &ins->argv[0];
+						ins->opcode = MXOP_DIV;
+						ins->argc = 1;
+						where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
+						where->segment = seg_can_override(MX86_SEG_DS);
+						where->regtype = MX86_RT_NONE;
+						decode_rm(mrm,where,isaddr32);
+					} break;
+				}
+			} break;
+
 		/* group 0xFE-0xFF */
 		COVER_2(0xFE):
 			{
 				union x86_mrm mrm = fetch_modregrm();
 				switch (mrm.f.reg) {
-					case 2: case 3:
-						ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
-						ins->argc = 1; {
+					case 1: {
 						struct minx86dec_argv *where = &ins->argv[0];
+						ins->opcode = MXOP_DEC;
+						ins->argc = 1;
+						where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
+						where->segment = seg_can_override(MX86_SEG_DS);
+						where->regtype = MX86_RT_NONE;
+						decode_rm(mrm,where,isaddr32);
+					} break;
+					case 2: case 3: {
+						struct minx86dec_argv *where = &ins->argv[0];
+						ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
+						ins->argc = 1;
 						where->size = where->memregsz = data32wordsize + 2;
 						where->segment = seg_can_override(MX86_SEG_DS);
 						where->regtype = MX86_RT_NONE;
