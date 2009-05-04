@@ -305,3 +305,220 @@ call1:	call	dword call1			; E8 id              CALL rel32
 	div	ecx				; F7 /6
 	div	dword [esi]			; F7 /6
 
+      divpd	xmm1,xmm2			; 66 0F 5E /r
+      divps	xmm1,xmm2			;    0F 5E /r
+      divsd	xmm1,xmm2			; F2 0F 5E /r
+      divss	xmm1,xmm2			; F3 0F 5E /r
+
+       dppd	xmm1,xmm2,1			; 66 0F 3A 41 /r ib
+       dppd	xmm2,xmm3,4			; 66 0F 3A 41 /r ib
+       dpps	xmm1,xmm2,2			; 66 0F 3A 40 /r ib
+       dpps	xmm1,xmm2,5			; 66 0F 3A 40 /r ib
+
+       emms
+      enter	4,0				; C8 iw 0
+      enter	8,1				; C8 iw 1
+      enter	14,6				; C8 iw 6
+
+  extractps	eax,xmm1,4			; 66 0F 3A 17 /r ib
+  extractps	ebx,xmm2,10			; 66 0F 3A 17 /r ib
+
+      f2xm1					; D9 F0
+       fabs					; D9 E1
+       fadd	dword [esi]			; D8 /0
+       fadd	qword [edi]			; DC /0
+       fadd	st0,st2				; D8 C0+i
+       fadd	st2,st0				; DC C0+i
+      faddp	st2,st0				; DE C0+i
+      faddp					; DE C1 (redundant, it's also faddp st(1),st(0) )
+      fiadd	dword [eax]			; DA /0
+      fiadd	word [ebx]			; DE /0
+       fbld	[si]				; DF /4  mem op. is 80 bits
+      fbstp	[di]				; DF /6  mem op. is 80 bits
+       fchs					; D9 E0
+      fclex					; 9B DB E2
+     fnclex					; DB E2
+
+     fcmovb	st0,st2				; DA C0+i
+     fcmove	st0,st2				; DA C8+i
+    fcmovbe	st0,st2				; DA DO+i
+     fcmovu	st0,st2				; DA D8+i
+    fcmovnb	st0,st2				; DB C0+i
+    fcmovne	st0,st2				; DB C8+i
+   fcmovnbe	st0,st2				; DB D0+i
+    fcmovnu	st0,st2				; DB D8+i
+
+      fcomi	st0,st2				; DB F0+i
+     fcomip	st0,st2				; DF F0+i
+     fucomi	st0,st2				; DB E8+i
+    fucomip	st0,st2				; DF E8+i
+
+       fcos					; D9 FF
+    fdecstp					; D9 F6
+
+       fdiv	dword [si]			; D8 /6
+       fdiv	qword [si]			; DC /6
+       fdiv	st0,st2				; D8 F0+i
+       fdiv	st2,st0				; DC F8+i
+      fdivp	st2,st0				; DE F8+i
+      fdivp					; DE F9 (fdivp st(1),st(0) )
+      fidiv	dword [si]			; DA /6
+      fidiv	word [si]			; DE /6
+
+      fdivr	dword [si]			; D8 /7
+      fdivr	qword [si]			; DC /7
+      fdivr	st0,st2				; D8 F8+i
+      fdivr	st2,st0				; DC F0+i
+     fdivrp	st2,st0				; DE F0+i
+     fdivrp					; DE F1
+     fidivr	dword [si]			; DA /7
+     fidivr	word [si]			; DE /7
+
+      ffree	st0				; DD C0+i
+      ffree	st2				; DD C0+i
+
+      ficom	word [si]			; DE /2
+      ficom	dword [si]			; DA /2
+     ficomp	word [si]			; DE /3
+     ficomp	dword [si]			; DA /3
+
+       fild	word [si]			; DF /0
+       fild	dword [si]			; DB /0
+       fild	qword [si]			; DF /5
+
+    fincstp					; D9 F7
+      finit					; 9B DB E3
+     fninit					; DB E3
+
+       fist	word [si]			; DF /2
+       fist	dword [si]			; DB /2
+      fistp	word [si]			; DF /3
+      fistp	dword [si]			; DB /3
+      fistp	qword [si]			; DF /7
+     fisttp	word [si]			; DF /1
+     fisttp	dword [si]			; DB /1
+     fisttp	qword [si]			; DD /1
+	fld	dword [si]			; D9 /0
+	fld	qword [si]			; DD /0
+	fld	tword [si]			; DB /5
+	fld	st2				; D9 C0+i
+       fld1					; D9 E8
+     fldl2t					; D9 E9
+     fldl2e					; D9 EA
+      fldpi					; D9 EB
+     fldlg2					; D9 EC
+     fldln2					; D9 ED
+       fldz					; D9 EE
+      fldcw	[si]				; D9 /5 (how big?)
+     fldenv	[si]				; D9 /4 (14? or 28? bytes long)
+       fmul	dword [si]			; D8 /1
+       fmul	qword [si]			; DC /1
+       fmul	st0,st2				; D8 C8+i
+       fmul	st2,st0				; DC C8+i
+      fmulp	st2,st0				; DE C8+i
+      fmulp					; DE C9 ( st(1),st(0) )
+      fimul	dword [si]			; DA /1
+      fimul	word [si]			; DE /1
+       fnop					; D9 D0
+     fpatan					; D9 F3
+      fprem					; D9 F8
+     fprem1					; D9 F5
+     fpatan					; D9 F2
+    frndint					; D9 FC
+     frstor	[si]				; DD /4 ( 94 or 108 bytes? )
+      fsave	[si]				; 99 DD /6
+     fnsave	[si]				; DD /6 ( 94 or 108 bytes? )
+     fscale					; D9 FD
+       fsin					; D9 FE
+    fsincos					; D9 FB
+      fsqrt					; D9 FA
+        fst	dword [si]			; D9 /2
+        fst	qword [si]			; DD /2
+	fst	st2				; DD D0+i
+       fstp	dword [si]			; D9 /3
+       fstp	qword [si]			; DD /3
+       fstp	tword [si]			; DB /7
+       fstp	st2				; DD D8+i
+      fstcw	[di]				; 9B D9 /7
+     fnstcw	[di]				; D9 /7
+     fstenv	[si]				; 9B D9 /6
+    fnstenv	[si]				; D9 /6
+      fstsw	[si]				; 9B DD /7
+      fstsw	ax				; 9B DF E0
+     fnstsw	[si]				; DD /7
+     fnstsw	ax				; DF E0
+       fsub	dword [si]			; D8 /4
+       fsub	qword [si]			; DC /4
+       fsub	st0,st2				; D8 E0+i
+       fsub	st2,st0				; DC E8+i
+      fsubp	st2,st0				; DE E8+i
+      fsubp					; DE E9
+      fisub	dword [si]			; DA /4
+      fisub	word [si]			; DE /4
+      fsubr	dword [si]			; D8 /5
+      fsubr	qword [si]			; DC /5
+      fsubr	st0,st2				; D8 E8+i
+      fsubr	st2,st0				; DC E0+i
+     fsubrp	st2,st0				; DE E0+i
+     fsubrp					; DE E1
+     fisubr	dword [si]			; DA /5
+     fisubr	word [si]			; DE /5
+       ftst					; D9 E4
+      fucom	st2				; DD E0+i
+      fucom					; DD E1
+     fucomp	st2				; DD E8+i
+     fucomp					; DD E9
+    fucompp					; DA E9
+       fxam					; D9 E5
+       fxch	st2				; D9 C8+i
+       fxch					; D9 C9
+    fxrstor	[si]				; 0F AE /1 ( 512 byte region )
+     fxsave	[si]				; 0F AE /0 ( 512 byte region )
+    fxtract					; D9 F4
+      fyl2x					; D9 F1
+    fyl2xp1					; D9 F9
+     haddpd	xmm1,xmm2			; 66 0F 7C /r
+     haddps	xmm1,xmm2			; F2 0F 7C /r
+        hlt					; F4
+     hsubpd	xmm1,xmm2			; 66 0F 7D /r
+     hsubps	xmm1,xmm2			; F2 0F 7D /r
+       idiv	al				; F6 /7
+       idiv	ch				; F6 /7
+       idiv	bx				; F6 /7
+       idiv	dx				; F6 /7
+       idiv	esi				; F6 /7
+       idiv	byte [si]			; F6 /7
+       idiv	word [di]			; F6 /7
+       idiv	dword [ebx]			; F6 /7
+       imul	ah				; F6 /5
+       imul	cl				; F6 /5
+       imul	bx				; F6 /5
+       imul	esi				; F6 /5
+       imul	byte [si]			; F6 /5
+       imul	dword [ecx]			; F6 /5
+         in	al,41h				; E4 ib
+	 in	ax,72h				; E5 ib
+	 in	eax,22h				; E5 ib
+	 in	al,dx				; EC
+	 in	ax,dx				; ED
+	 in	eax,dx				; ED
+	inc	eax				; 40+reg
+	inc	bx				; 40+reg
+	inc	cl				; FE /0
+	inc	word [si]			; FF /0
+	inc	byte [si]			; FE /0
+	inc	dword [di]			; FF /0
+	insb					; 6C
+	insw					; 6D
+	insd					; 6D
+    insertps	xmm1,xmm2,2			; 66 0F 3A 21 /r ib
+    insertps	xmm1,[esi],4			; 66 0F 3A 21 /r ib
+	int	3				; CC
+	int	21h				; CD imm8
+       into					; CE
+       invd					; 0F 08
+     invlpg	[esi]				; 0F 01 /7
+     invlpg	[44h]				; 0F 01 /7
+       iret					; CF
+      iretd					; CF
+
