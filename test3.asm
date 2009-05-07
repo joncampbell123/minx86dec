@@ -521,4 +521,39 @@ call1:	call	dword call1			; E8 id              CALL rel32
      invlpg	[44h]				; 0F 01 /7
        iret					; CF
       iretd					; CF
+l1:
+	jo	l1				; 70 ib
+	jno	l1				; 71 ib
+	jc	l1				; 72 ib
+	jnc	l1				; 73 ib
+	jz	l1				; 74 ib
+	jnz	l1				; 75 ib
+	jna	l1				; 76 ib
+	ja	l1				; 77 ib
+	js	l1				; 78 ib
+	jns	l1				; 79 ib
+	jp	l1				; 7A ib
+	jnp	l1				; 7B ib
+	jl	l1				; 7C ib
+	jnl	l1				; 7D ib
+	jle	l1				; 7E ib
+	jnle	l1				; 7F ib
+	jcxz	l1				; E3 ib
+l2:
+	jo	near l2				; 0F 80 iw
+	jno	near l2				; 0F 81 iw
+	jc	near l2				; 0F 82 iw
+	jnc	near l2				; 0F 83 iw
+	jz	near l2				; 0F 84 iw
+	jnz	near l2				; 0F 85 iw
+	jna	near l2				; 0F 86 iw
+	ja	near l2				; 0F 87 iw
+	js	near l2				; 0F 88 iw
+	jns	near l2				; 0F 89 iw
+	jp	near l2				; 0F 8A iw
+	jnp	near l2				; 0F 8B iw
+	jl	near l2				; 0F 8C iw
+	jnl	near l2				; 0F 8D iw
+	jle	near l2				; 0F 8E iw
+	jnle	near l2				; 0F 8F iw
 
