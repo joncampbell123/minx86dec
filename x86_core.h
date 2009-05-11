@@ -1209,24 +1209,63 @@ decode_next:
 					ins->opcode = MXOP_F2XM1;
 					ins->argc = 1;
 				} break;
+				case 0xF6: {
+					struct minx86dec_argv *d = &ins->argv[0];
+					d->regtype = MX86_RT_ST;
+					d->reg = 0;	/* ST(0) */
+					ins->opcode = MXOP_FDECSTP;
+					ins->argc = 1;
+				} break;
+				case 0xFF: {
+					struct minx86dec_argv *d = &ins->argv[0];
+					d->regtype = MX86_RT_ST;
+					d->reg = 0;	/* ST(0) */
+					ins->opcode = MXOP_FCOS;
+					ins->argc = 1;
+				} break;
 			} break; }
 		case 0xDA: {
 			const uint8_t second_byte = *cip;
 			if ((second_byte & 0xC0) == 0xC0) {
 				cip++;	/* it was second byte of the opcode, step forward */
-#if 0
 				switch (second_byte) {
 					COVER_8(0xC0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = second_byte - 0xC0;	/* ST(i) */
-						s->reg = 0;			/* ST(0) */
-						ins->opcode = MXOP_FADD;
+						s->reg = second_byte & 7;	/* ST(i) */
+						d->reg = 0;			/* ST(0) */
+						ins->opcode = MXOP_FCMOVB;
+						ins->argc = 2;
+					} break;
+					COVER_8(0xC8): {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						d->regtype = s->regtype = MX86_RT_ST;
+						s->reg = second_byte & 7;	/* ST(i) */
+						d->reg = 0;			/* ST(0) */
+						ins->opcode = MXOP_FCMOVE;
+						ins->argc = 2;
+					} break;
+					COVER_8(0xD0): {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						d->regtype = s->regtype = MX86_RT_ST;
+						s->reg = second_byte & 7;	/* ST(i) */
+						d->reg = 0;			/* ST(0) */
+						ins->opcode = MXOP_FCMOVBE;
+						ins->argc = 2;
+					} break;
+					COVER_8(0xD8): {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						d->regtype = s->regtype = MX86_RT_ST;
+						s->reg = second_byte & 7;	/* ST(i) */
+						d->reg = 0;			/* ST(0) */
+						ins->opcode = MXOP_FCMOVU;
 						ins->argc = 2;
 					} break;
 				}
-#endif
 			}
 			else {
 				/* mod/reg/rm */
@@ -1251,6 +1290,60 @@ decode_next:
 		case 0xDB: {
 			const uint8_t second_byte = *cip++;
 			switch (second_byte) {
+				COVER_8(0xC0): {
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					d->regtype = s->regtype = MX86_RT_ST;
+					s->reg = second_byte & 7;	/* ST(i) */
+					d->reg = 0;			/* ST(0) */
+					ins->opcode = MXOP_FCMOVNB;
+					ins->argc = 2;
+				} break;
+				COVER_8(0xC8): {
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					d->regtype = s->regtype = MX86_RT_ST;
+					s->reg = second_byte & 7;	/* ST(i) */
+					d->reg = 0;			/* ST(0) */
+					ins->opcode = MXOP_FCMOVNE;
+					ins->argc = 2;
+				} break;
+				COVER_8(0xD0): {
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					d->regtype = s->regtype = MX86_RT_ST;
+					s->reg = second_byte & 7;	/* ST(i) */
+					d->reg = 0;			/* ST(0) */
+					ins->opcode = MXOP_FCMOVNBE;
+					ins->argc = 2;
+				} break;
+				COVER_8(0xD8): {
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					d->regtype = s->regtype = MX86_RT_ST;
+					s->reg = second_byte & 7;	/* ST(i) */
+					d->reg = 0;			/* ST(0) */
+					ins->opcode = MXOP_FCMOVNU;
+					ins->argc = 2;
+				} break;
+				COVER_8(0xE8): {
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					d->regtype = s->regtype = MX86_RT_ST;
+					s->reg = second_byte & 7;	/* ST(i) */
+					d->reg = 0;			/* ST(0) */
+					ins->opcode = MXOP_FUCOMI;
+					ins->argc = 2;
+				} break;
+				COVER_8(0xF0): {
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					d->regtype = s->regtype = MX86_RT_ST;
+					s->reg = second_byte & 7;	/* ST(i) */
+					d->reg = 0;			/* ST(0) */
+					ins->opcode = MXOP_FCOMI;
+					ins->argc = 2;
+				} break;
 				case 0xE2: {	/* 0xDB 0xE2 or 0x9B 0xDB 0xE2 */
 					ins->opcode = fwait ? MXOP_FCLEX : MXOP_FNCLEX;
 					ins->argc = 0;
@@ -1332,19 +1425,26 @@ decode_next:
 			const uint8_t second_byte = *cip;
 			if ((second_byte & 0xC0) == 0xC0) {
 				cip++;	/* it was second byte of the opcode, step forward */
-#if 0
 				switch (second_byte) {
-					COVER_8(0xC0): {
+					COVER_8(0xE8): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = second_byte - 0xC0;	/* ST(i) */
-						s->reg = 0;			/* ST(0) */
-						ins->opcode = MXOP_FADDP;
+						s->reg = second_byte & 7;	/* ST(i) */
+						d->reg = 0;			/* ST(0) */
+						ins->opcode = MXOP_FUCOMIP;
+						ins->argc = 2;
+					} break;
+					COVER_8(0xF0): {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						d->regtype = s->regtype = MX86_RT_ST;
+						s->reg = second_byte & 7;	/* ST(i) */
+						d->reg = 0;			/* ST(0) */
+						ins->opcode = MXOP_FCOMIP;
 						ins->argc = 2;
 					} break;
 				} break;
-#endif
 			}
 			else {
 				/* mod/reg/rm */

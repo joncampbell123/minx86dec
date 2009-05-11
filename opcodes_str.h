@@ -223,6 +223,24 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"FCLEX",
 	"FNCLEX",
 	"FWAIT",
+/* 0xAC-0xAF */
+	"FCMOVB",
+	"FCMOVE",
+	"FCMOVBE",
+	"FCMOVU",
+/* 0xB0-0xB3 */
+	"FCMOVNB",
+	"FCMOVNE",
+	"FCMOVNBE",
+	"FCMOVNU",
+/* 0xB4-0xB7 */
+	"FCOMI",
+	"FCOMIP",
+	"FUCOMI",
+	"FUCOMIP",
+/* 0xB8-0xBC */
+	"FCOS",
+	"FDECSTP",
 
 	NULL
 };
