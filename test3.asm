@@ -315,7 +315,7 @@ call1:	call	dword call1			; E8 id              CALL rel32
        dpps	xmm1,xmm2,2			; 66 0F 3A 40 /r ib
        dpps	xmm1,xmm2,5			; 66 0F 3A 40 /r ib
 
-       emms
+       emms					; 0F 77
       enter	4,0				; C8 iw 0
       enter	8,1				; C8 iw 1
       enter	14,6				; C8 iw 6

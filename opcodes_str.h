@@ -198,6 +198,31 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"CWD",			/* CWD */
 	"CDQ",			/* CDQ */
 	"DIV",			/* DIV */
+/* 0x98-0x9B */
+	"DIVPS",		/* DIVPS */
+	"DIVPD",
+	"DIVSD",
+	"DIVSS",
+/* 0x9C-0x9F */
+	"DPPS",
+	"DPPD",
+	"EMMS",
+	"EXTRACTPS",
+/* 0xA0-0xA3 */
+	"F2XM1",
+	"FABS",
+	"FADD",
+	"FADDP",
+/* 0xA4-0xA7 */
+	"FIADD",
+	"FIADDP",
+	"FBLD",
+	"FBSTP",
+/* 0xA8-0xAB */
+	"FCHS",
+	"FCLEX",
+	"FNCLEX",
+	"FWAIT",
 
 	NULL
 };
