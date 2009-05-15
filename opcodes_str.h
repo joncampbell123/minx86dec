@@ -241,6 +241,22 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0xB8-0xBC */
 	"FCOS",
 	"FDECSTP",
+	"FDIV",
+	"FDIVP",
+/* 0xBC-0xBF */
+	"FIDIV",
+	"FDIVR",
+	"FDIVRP",
+	"FIDIVR",
+/* 0xC0-0xC3 */
+	"FFREE",
+	"FICOM",
+	"FICOMP",
+	"FILD",
+/* 0xC4-0xC7 */
+	"FINCSTP",
+	"FINIT",
+	"FNINIT",
 
 	NULL
 };
