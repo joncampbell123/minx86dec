@@ -93,11 +93,8 @@ decode_next:
 				struct minx86dec_argv *imm = &ins->argv[1];
 				struct minx86dec_argv *reg = &ins->argv[0];
 				imm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
-				reg->regtype = MX86_RT_REG;
-				reg->reg = MX86_REG_AX;
-				imm->regtype = MX86_RT_IMM;
-				imm->value = (first_byte & 1) ?
-					(isdata32 ? fetch_u32() : fetch_u16()) : fetch_u8();
+				set_immediate(imm,(first_byte & 1) ? (isdata32 ? fetch_u32() : fetch_u16()) : fetch_u8());
+				set_register(reg,MX86_REG_AX);
 			} break;
 		/* group 0x00-0x3F opcodes */
 		COVER_4(0x00):	/* ADD */	COVER_4(0x08):	/* OR */
@@ -111,28 +108,24 @@ decode_next:
 				struct minx86dec_argv *rm = &ins->argv[which];
 				struct minx86dec_argv *reg = &ins->argv[which^1];
 				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
-				reg->regtype = MX86_RT_REG;
-				reg->reg = mrm.f.reg;
 				rm->segment = seg_can_override(MX86_SEG_DS);
+				set_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
 			} break;
 
 		COVER_4(0x80):	/* immediate group 1 */
-			{	union x86_mrm mrm = fetch_modregrm();
-				ins->opcode = MXOP_ADD+mrm.f.reg;
-				ins->argc = 2;
+			ins->argc = 2; {
+				union x86_mrm mrm = fetch_modregrm();
 				struct minx86dec_argv *rm = &ins->argv[0];
 				struct minx86dec_argv *imm = &ins->argv[1];
+				ins->opcode = MXOP_ADD+mrm.f.reg;
 				rm->size = imm->size = (first_byte & 1) ? data32wordsize : 1;
 				rm->segment = seg_can_override(MX86_SEG_DS);
 				decode_rm(mrm,rm,isaddr32);
 				imm->regtype = MX86_RT_IMM;
-				if (first_byte == 0x83)
-					imm->value = (uint32_t)((char)fetch_u8());
-				else if (first_byte == 0x81)
-					imm->value = (isdata32 ? fetch_u32() : fetch_u16());
-				else
-					imm->value = fetch_u8();
+				if (first_byte == 0x83)		imm->value = (uint32_t)((char)fetch_u8());
+				else if (first_byte == 0x81)	imm->value = (isdata32 ? fetch_u32() : fetch_u16());
+				else				imm->value = fetch_u8();
 			} break;
 
 		COVER_2(0x84):	/* TEST */
@@ -142,9 +135,8 @@ decode_next:
 				struct minx86dec_argv *rm = &ins->argv[0];
 				struct minx86dec_argv *reg = &ins->argv[1];
 				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
-				reg->regtype = MX86_RT_REG;
-				reg->reg = mrm.f.reg;
 				rm->segment = seg_can_override(MX86_SEG_DS);
+				set_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
 			} break;
 
@@ -155,9 +147,8 @@ decode_next:
 				struct minx86dec_argv *rm = &ins->argv[0];
 				struct minx86dec_argv *reg = &ins->argv[1];
 				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
-				reg->regtype = MX86_RT_REG;
-				reg->reg = mrm.f.reg;
 				rm->segment = seg_can_override(MX86_SEG_DS);
+				set_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
 			} break;
 
@@ -169,46 +160,17 @@ decode_next:
 				struct minx86dec_argv *rm = &ins->argv[which];
 				struct minx86dec_argv *reg = &ins->argv[which^1];
 				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
-				reg->regtype = MX86_RT_REG;
-				reg->reg = mrm.f.reg;
 				rm->segment = seg_can_override(MX86_SEG_DS);
+				set_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
 			} break;
 
 		COVER_2(0xA4):
-			ins->opcode = MXOP_MOVS;
-			ins->argc = 2; {
-				struct minx86dec_argv *d = &ins->argv[0];
-				struct minx86dec_argv *s = &ins->argv[1];
-				d->size = s->size = (first_byte & 1) ? data32wordsize : 1;
-				d->regtype = s->regtype = MX86_RT_NONE;
-				s->segment = seg_can_override(MX86_SEG_DS);
-				d->segment = MX86_SEG_ES;
-				d->scalar = s->scalar = 0;
-				d->memregs = s->memregs = 1;
-				d->memref_base = s->memref_base = 0;
-				d->memregsz = s->memregsz = addr32wordsize;
-				s->memreg[0] = MX86_REG_ESI;
-				d->memreg[0] = MX86_REG_EDI;
-			}
+			string_instruction_typical(MXOP_MOVS);
 			break;
 
 		COVER_2(0xA6):
-			ins->opcode = MXOP_CMPS;
-			ins->argc = 2; {
-				struct minx86dec_argv *d = &ins->argv[0];
-				struct minx86dec_argv *s = &ins->argv[1];
-				d->size = s->size = (first_byte & 1) ? data32wordsize : 1;
-				d->regtype = s->regtype = MX86_RT_NONE;
-				s->segment = seg_can_override(MX86_SEG_DS);
-				d->segment = MX86_SEG_ES;
-				d->scalar = s->scalar = 0;
-				d->memregs = s->memregs = 1;
-				d->memref_base = s->memref_base = 0;
-				d->memregsz = s->memregsz = addr32wordsize;
-				s->memreg[0] = MX86_REG_ESI;
-				d->memreg[0] = MX86_REG_EDI;
-			}
+			string_instruction_typical(MXOP_CMPS);
 			break;
 
 		COVER_4(0xAA): COVER_2(0xAE):
@@ -233,10 +195,9 @@ decode_next:
 				union x86_mrm mrm = fetch_modregrm();
 				struct minx86dec_argv *rm = &ins->argv[which];
 				struct minx86dec_argv *reg = &ins->argv[which^1];
-				rm->size = reg->size = 2;
-				reg->regtype = MX86_RT_SREG;
-				reg->reg = mrm.f.reg;
 				rm->segment = seg_can_override(MX86_SEG_DS);
+				rm->size = reg->size = 2;
+				set_segment_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
 			} break;
 
@@ -246,10 +207,9 @@ decode_next:
 				union x86_mrm mrm = fetch_modregrm();
 				struct minx86dec_argv *reg = &ins->argv[0];
 				struct minx86dec_argv *rm = &ins->argv[1];
-				rm->size = reg->size = data32wordsize;
-				reg->regtype = MX86_RT_REG;
-				reg->reg = mrm.f.reg;
 				rm->segment = seg_can_override(MX86_SEG_DS);
+				rm->size = reg->size = data32wordsize;
+				set_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
 			} break;
 
@@ -259,12 +219,8 @@ decode_next:
 				struct minx86dec_argv *mref = &ins->argv[0];
 				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
 				mref->size = mref->memregsz = data32wordsize;
-				mref->regtype = MX86_RT_IMM;
-				/* address is RELATIVE to instruction pointer! */
-				if (isdata32)
-					mref->value = (fetch_u32() + curp + 4) & 0xFFFFFFFFUL;
-				else
-					mref->value = (fetch_u16() + curp + 2) & 0xFFFFUL;
+				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
+				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
 			} break;
 
 		case 0xF8:
@@ -287,9 +243,8 @@ decode_next:
 			ins->opcode = MXOP_PUSH+(first_byte&1);
 			ins->argc = 1; {
 				struct minx86dec_argv *a = &ins->argv[0];
+				set_segment_register(a,first_byte >> 3);
 				a->size = data32wordsize;
-				a->regtype = MX86_RT_SREG;
-				a->reg = first_byte >> 3;
 			} break;
 
 		case 0x27: case 0x2F: case 0x37: case 0x3F: /* DAA/DAS/AAA/AAS */
@@ -301,9 +256,8 @@ decode_next:
 			ins->opcode = MXOP_AAM+(first_byte&1);
 			ins->argc = 1; {
 				struct minx86dec_argv *im = &ins->argv[0];
+				set_immediate(im,fetch_u8());
 				im->size = 1;
-				im->regtype = MX86_RT_IMM;
-				im->value = fetch_u8();
 			} break;
 
 		case 0x9B:
@@ -328,9 +282,8 @@ decode_next:
 			ins->opcode = MXOP_INC+((first_byte>>3)&1);
 			ins->argc = 1; {
 				struct minx86dec_argv *reg = &ins->argv[0];
+				set_register(reg,first_byte & 7);
 				reg->size = data32wordsize;
-				reg->regtype = MX86_RT_REG;
-				reg->reg = first_byte & 7;
 			} break;
 
 		/* PUSH/POP register */
@@ -338,9 +291,8 @@ decode_next:
 			ins->opcode = MXOP_PUSH+((first_byte>>3)&1);
 			ins->argc = 1; {
 				struct minx86dec_argv *reg = &ins->argv[0];
+				set_register(reg,first_byte & 7);
 				reg->size = data32wordsize;
-				reg->regtype = MX86_RT_REG;
-				reg->reg = first_byte & 7;
 			} break;
 
 		/* Jcc short */
@@ -348,9 +300,8 @@ decode_next:
 			ins->opcode = MXOP_JO+(first_byte&0xF);
 			ins->argc = 1; {
 				struct minx86dec_argv *r = &ins->argv[0];
+				set_immediate(r,state->ip_value + 2 + ((uint32_t)((char)fetch_u8())));
 				r->size = addr32wordsize;
-				r->regtype = MX86_RT_IMM;
-				r->value = state->ip_value + 2 + ((uint32_t)((char)fetch_u8()));
 			} break;
 
 		/* MOV a,[memory addr] or
@@ -362,12 +313,9 @@ decode_next:
 				struct minx86dec_argv *areg = &ins->argv[which];
 				struct minx86dec_argv *mref = &ins->argv[which^1];
 				areg->size = mref->size = (first_byte & 1) ? data32wordsize : 1;
-				areg->regtype = MX86_RT_REG;
-				areg->reg = MX86_REG_AX;
-				mref->regtype = MX86_RT_NONE;
+				set_mem_ref_imm(mref,isaddr32 ? fetch_u32() : fetch_u16());
 				mref->segment = seg_can_override(MX86_SEG_DS);
-				mref->memregs = 0;
-				mref->memref_base = isaddr32 ? fetch_u32() : fetch_u16();
+				set_register(areg,MX86_REG_AX);
 			} break;
 
 		/* NOP */
@@ -382,9 +330,8 @@ decode_next:
 				struct minx86dec_argv *a = &ins->argv[0];
 				struct minx86dec_argv *r = &ins->argv[1];
 				a->size = r->size = data32wordsize;
-				a->regtype = r->regtype = MX86_RT_REG;
-				a->reg = MX86_REG_AX;
-				r->reg = first_byte & 7;
+				set_register(r,first_byte & 7);
+				set_register(a,MX86_REG_AX);
 			} break;
 
 		case 0x98:
@@ -401,7 +348,6 @@ decode_next:
 			ins->opcode = MXOP_CALL_FAR;
 			ins->argc = 1; {
 				struct minx86dec_argv *mref = &ins->argv[0];
-//				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
 				mref->size = mref->memregsz = data32wordsize + 2;
 				mref->regtype = MX86_RT_IMM;
 				mref->segment = MX86_SEG_IMM;
@@ -417,8 +363,8 @@ decode_next:
 				switch (mrm.f.reg) {
 					case 6: {
 						struct minx86dec_argv *where = &ins->argv[0];
-						ins->opcode = MXOP_DIV;
 						ins->argc = 1;
+						ins->opcode = MXOP_DIV;
 						where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
 						where->segment = seg_can_override(MX86_SEG_DS);
 						where->regtype = MX86_RT_NONE;
@@ -434,8 +380,8 @@ decode_next:
 				switch (mrm.f.reg) {
 					case 1: {
 						struct minx86dec_argv *where = &ins->argv[0];
-						ins->opcode = MXOP_DEC;
 						ins->argc = 1;
+						ins->opcode = MXOP_DEC;
 						where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
 						where->segment = seg_can_override(MX86_SEG_DS);
 						where->regtype = MX86_RT_NONE;
@@ -443,8 +389,8 @@ decode_next:
 					} break;
 					case 2: case 3: {
 						struct minx86dec_argv *where = &ins->argv[0];
-						ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
 						ins->argc = 1;
+						ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
 						where->size = where->memregsz = data32wordsize + 2;
 						where->segment = seg_can_override(MX86_SEG_DS);
 						where->regtype = MX86_RT_NONE;
@@ -477,11 +423,8 @@ decode_next:
 				struct minx86dec_argv *r = &ins->argv[0];
 				struct minx86dec_argv *imm = &ins->argv[1];
 				r->size = imm->size = (first_byte & 8) ? data32wordsize : 1;
-				r->regtype = MX86_RT_REG;
-				r->reg = first_byte & 7;
-				imm->regtype = MX86_RT_IMM;
-				imm->value = (first_byte & 8) ?
-					(isdata32 ? fetch_u32() : fetch_u16()) : fetch_u8();
+				set_immediate(imm,(first_byte & 8) ? (isdata32 ? fetch_u32() : fetch_u16()) : fetch_u8());
+				set_register(r,first_byte & 7);
 			} break;
 #if core_level > 0
 		/* extended opcode escape */
@@ -541,9 +484,8 @@ decode_next:
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						d->size = s->size = data32wordsize;
-						d->regtype = MX86_RT_REG;
-						d->reg = mrm.f.reg;
 						s->segment = seg_can_override(MX86_SEG_DS);
+						set_register(d,mrm.f.reg);
 						decode_rm(mrm,s,isaddr32);
 					} break;
 				case 0x03: /* LSL */
@@ -553,9 +495,8 @@ decode_next:
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						d->size = s->size = data32wordsize;
-						d->regtype = MX86_RT_REG;
-						d->reg = mrm.f.reg;
 						s->segment = seg_can_override(MX86_SEG_DS);
+						set_register(d,mrm.f.reg);
 						decode_rm(mrm,s,isaddr32);
 					} break;
 				case 0x06: /* CLTS */
@@ -571,9 +512,8 @@ decode_next:
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
 						d->size = s->size = data32wordsize;
-						d->regtype = MX86_RT_REG;
-						d->reg = mrm.f.reg;
 						s->segment = seg_can_override(MX86_SEG_DS);
+						set_register(d,mrm.f.reg);
 						decode_rm(mrm,s,isaddr32);
 					} break;
 				case 0xA3:
@@ -583,9 +523,8 @@ decode_next:
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
 						d->size = s->size = data32wordsize;
-						s->regtype = MX86_RT_REG;
-						s->reg = mrm.f.reg;
 						d->segment = seg_can_override(MX86_SEG_DS);
+						set_register(s,mrm.f.reg);
 						decode_rm(mrm,d,isaddr32);
 					} break;
 				case 0xAB:
@@ -595,9 +534,8 @@ decode_next:
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
 						d->size = s->size = data32wordsize;
-						s->regtype = MX86_RT_REG;
-						s->reg = mrm.f.reg;
 						d->segment = seg_can_override(MX86_SEG_DS);
+						set_register(s,mrm.f.reg);
 						decode_rm(mrm,d,isaddr32);
 					} break;
 				case 0xB3:
@@ -607,9 +545,8 @@ decode_next:
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
 						d->size = s->size = data32wordsize;
-						s->regtype = MX86_RT_REG;
-						s->reg = mrm.f.reg;
 						d->segment = seg_can_override(MX86_SEG_DS);
+						set_register(s,mrm.f.reg);
 						decode_rm(mrm,d,isaddr32);
 					} break;
 				case 0xBA: {
@@ -628,9 +565,8 @@ decode_next:
 								d->size = data32wordsize;
 								d->segment = seg_can_override(MX86_SEG_DS);
 								decode_rm(mrm,d,isaddr32);
-								s->regtype = MX86_RT_IMM;
+								set_immediate(s,fetch_u8());
 								s->size = 1;
-								s->value = fetch_u8();
 								break;
 						};
 					} break;
@@ -641,9 +577,8 @@ decode_next:
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
 						d->size = s->size = data32wordsize;
-						s->regtype = MX86_RT_REG;
-						s->reg = mrm.f.reg;
 						d->segment = seg_can_override(MX86_SEG_DS);
+						set_register(s,mrm.f.reg);
 						decode_rm(mrm,d,isaddr32);
 					} break;
 
@@ -656,18 +591,16 @@ decode_next:
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
 						d->size = s->size = (second_byte & 1) ? data32wordsize : 1;
-						s->regtype = MX86_RT_REG;
-						s->reg = mrm.f.reg;
 						d->segment = seg_can_override(MX86_SEG_DS);
+						set_register(s,mrm.f.reg);
 						decode_rm(mrm,d,isaddr32);
 					} break;
 				COVER_8(0xC8):
 					ins->opcode = MXOP_BSWAP;
 					ins->argc = 1; {
 						struct minx86dec_argv *r = &ins->argv[0];
+						set_register(r,second_byte & 7);
 						r->size = data32wordsize;
-						r->regtype = MX86_RT_REG;
-						r->reg = second_byte & 7;
 					}
 					break;
 # endif
@@ -680,9 +613,8 @@ decode_next:
 						struct minx86dec_argv *s = &ins->argv[0];
 						union x86_mrm mrm = fetch_modregrm();
 						d->size = s->size = data32wordsize;
-						s->regtype = MX86_RT_REG;
-						s->reg = mrm.f.reg;
 						d->segment = seg_can_override(MX86_SEG_DS);
+						set_register(s,mrm.f.reg);
 						decode_rm(mrm,d,isaddr32);
 					} break;
 				case 0xC7: {
@@ -694,8 +626,8 @@ decode_next:
 							ins->opcode = MXOP_CMPXCHG8B;
 							ins->argc = 1;
 							a->size = 8;
-							a->segment = seg_can_override(MX86_SEG_DS);
 							decode_rm(mrm,a,isaddr32);
+							a->segment = seg_can_override(MX86_SEG_DS);
 							break;
 					};
 					} break;
@@ -712,9 +644,9 @@ decode_next:
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
 						d->size = s->size = 16; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
+						set_sse_register(d,mrm.f.reg);
 						s->segment = seg_can_override(MX86_SEG_DS);
-						decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
+						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					} break;
 				case 0x58:
 					ins->opcode = (ins->rep >= MX86_REPE ? (2 + ins->rep - MX86_REPE) : dataprefix32) + MXOP_ADDPS;
@@ -723,9 +655,9 @@ decode_next:
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
 						d->size = s->size = 16; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
+						set_sse_register(d,mrm.f.reg);
 						s->segment = seg_can_override(MX86_SEG_DS);
-						decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
+						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					} break;
 				case 0xC2:
 					ins->opcode = (ins->rep >= MX86_REPE) ? (MXOP_CMPSD + ins->rep - MX86_REPE) : (MXOP_CMPPS + (dataprefix32 ? 1 : 0));
@@ -735,12 +667,10 @@ decode_next:
 						struct minx86dec_argv *i = &ins->argv[2];
 						union x86_mrm mrm = fetch_modregrm();
 						d->size = s->size = 16; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
+						set_sse_register(d,mrm.f.reg);
 						s->segment = seg_can_override(MX86_SEG_DS);
-						decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
-						i->size = 1;
-						i->regtype = MX86_RT_IMM;
-						i->value = fetch_u8();
+						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+						set_immediate(i,fetch_u8());
 					} break;
 				case 0x2A:
 					if (ins->rep >= MX86_REPE) {
@@ -750,9 +680,8 @@ decode_next:
 						ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSI2SS : MXOP_CVTSI2SD;
 						ins->argc = 2;
 						d->size = 16;
+						set_sse_register(d,mrm.f.reg);
 						s->size = 4; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
-						d->regtype = MX86_RT_SSE;
 						s->segment = seg_can_override(MX86_SEG_DS);
 						decode_rm(mrm,s,isaddr32);
 					}
@@ -763,9 +692,8 @@ decode_next:
 						ins->opcode = MXOP_CVTPI2PS + (dataprefix32 & 1);
 						ins->argc = 2;
 						d->size = 16;
+						set_sse_register(d,mrm.f.reg);
 						s->size = 8; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
-						d->regtype = MX86_RT_SSE;
 						s->segment = seg_can_override(MX86_SEG_DS);
 						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_MMX);
 					}
@@ -790,8 +718,9 @@ decode_next:
 						}
 						s->size = 16; /* 128 bit = 16 bytes */
 						d->reg = mrm.f.reg;
+						s->regtype = MX86_RT_SSE;
 						s->segment = seg_can_override(MX86_SEG_DS);
-						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
+						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					}
 					break;
 				case 0x2D:
@@ -802,11 +731,11 @@ decode_next:
 						ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSS2SI : MXOP_CVTSD2SI;
 						ins->argc = 2;
 						d->size = 4;
+						set_register(d,mrm.f.reg);
 						s->size = 16; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
-						d->regtype = MX86_RT_REG;
+						s->regtype = MX86_RT_SSE;
 						s->segment = seg_can_override(MX86_SEG_DS);
-						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
+						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					}
 					else {
 						struct minx86dec_argv *d = &ins->argv[0];
@@ -815,11 +744,11 @@ decode_next:
 						ins->opcode = MXOP_CVTPS2PI + (dataprefix32 & 1);
 						ins->argc = 2;
 						d->size = 8;
+						set_mmx_register(d,mrm.f.reg);
 						s->size = 16; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
-						d->regtype = MX86_RT_MMX;
+						s->regtype = MX86_RT_SSE;
 						s->segment = seg_can_override(MX86_SEG_DS);
-						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
+						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					}
 					break;
 				case 0x2F:
@@ -841,9 +770,8 @@ decode_next:
 						ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSS2SD : MXOP_CVTSD2SS;
 						ins->argc = 2;
 						d->size = 16;
+						set_sse_register(d,mrm.f.reg);
 						s->size = 16; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
-						d->regtype = MX86_RT_SSE;
 						s->segment = seg_can_override(MX86_SEG_DS);
 						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
 					}
@@ -854,9 +782,8 @@ decode_next:
 						ins->opcode = MXOP_CVTPS2PD + (dataprefix32 & 1);
 						ins->argc = 2;
 						d->size = 16;
+						set_sse_register(d,mrm.f.reg);
 						s->size = 16; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
-						d->regtype = MX86_RT_SSE;
 						s->segment = seg_can_override(MX86_SEG_DS);
 						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
 					}
@@ -878,9 +805,8 @@ decode_next:
 						}
 						ins->argc = 2;
 						d->size = 16;
+						set_sse_register(d,mrm.f.reg);
 						s->size = 16; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
-						d->regtype = MX86_RT_SSE;
 						s->segment = seg_can_override(MX86_SEG_DS);
 						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
 					}
@@ -911,9 +837,9 @@ decode_next:
 								union x86_mrm mrm = fetch_modregrm();
 								ins->argc = 2;
 								d->size = s->size = 16; /* 128 bit = 16 bytes */
-								d->reg = mrm.f.reg;
+								set_sse_register(d,mrm.f.reg);
 								s->segment = seg_can_override(MX86_SEG_DS);
-								decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
+								decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 								} break;
 						}
 #   undef PAIR
@@ -933,11 +859,10 @@ decode_next:
 
 					ins->argc = 2;
 					d->size = 16;
+					set_sse_register(d,mrm.f.reg);
 					s->size = 16; /* 128 bit = 16 bytes */
-					d->reg = mrm.f.reg;
-					d->regtype = MX86_RT_SSE;
 					s->segment = seg_can_override(MX86_SEG_DS);
-					decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
+					decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					} break;
 				case 0xE6:
 					{
@@ -953,17 +878,15 @@ decode_next:
 
 						ins->argc = 2;
 						d->size = 16;
+						set_sse_register(d,mrm.f.reg);
 						s->size = 16; /* 128 bit = 16 bytes */
-						d->reg = mrm.f.reg;
-						d->regtype = MX86_RT_SSE;
 						s->segment = seg_can_override(MX86_SEG_DS);
-						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
+						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					}
 					break;
 				case 0xAE: {
 					int m = -1;
 					struct minx86dec_argv *d = &ins->argv[0];
-//					struct minx86dec_argv *s = &ins->argv[1];
 					union x86_mrm mrm = fetch_modregrm();
 					switch (mrm.f.reg) {
 						case 7: ins->opcode = MXOP_CLFLUSH; m = 0; break;
@@ -988,12 +911,11 @@ decode_next:
 							ins->opcode = MXOP_BLENDPS + (third_byte & 1);
 							ins->argc = 3;
 							d->size = s->size = 16;
-							d->reg = mrm.f.reg;
+							set_sse_register(d,mrm.f.reg);
 							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
-							i->size = 8;
-							i->regtype = MX86_RT_IMM;
-							i->value = fetch_u8();
+							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+							i->size = 1;
+							set_immediate(i,fetch_u8());
 						} break;
 						case 0x17: {
 							union x86_mrm mrm = fetch_modregrm();
@@ -1003,14 +925,12 @@ decode_next:
 							ins->opcode = MXOP_EXTRACTPS;
 							ins->argc = 3;
 							d->size = 16;
+							set_sse_register(d,mrm.f.reg);
 							s->size = 4;
-							d->reg = mrm.f.reg;
 							s->segment = seg_can_override(MX86_SEG_DS);
-							d->regtype = MX86_RT_SSE;
 							decode_rm_ex(mrm,s,isaddr32,MX86_RT_REG);
-							i->size = 8;
-							i->regtype = MX86_RT_IMM;
-							i->value = fetch_u8();
+							i->size = 1;
+							set_immediate(i,fetch_u8());
 						} break;
 						COVER_2(0x40): {
 							union x86_mrm mrm = fetch_modregrm();
@@ -1020,12 +940,11 @@ decode_next:
 							ins->opcode = MXOP_DPPS + (third_byte & 1);
 							ins->argc = 3;
 							d->size = s->size = 16;
-							d->reg = mrm.f.reg;
+							set_sse_register(d,mrm.f.reg);
 							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
-							i->size = 8;
-							i->regtype = MX86_RT_IMM;
-							i->value = fetch_u8();
+							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+							i->size = 1;
+							set_immediate(i,fetch_u8());
 						} break;
 					};
 					} break;
@@ -1041,12 +960,11 @@ decode_next:
 							ins->opcode = MXOP_BLENDVPS + (third_byte & 1);
 							ins->argc = 3;
 							d->size = s->size = 16;
-							d->reg = mrm.f.reg;
+							set_sse_register(d,mrm.f.reg);
 							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
-							i->size = 8;
-							i->regtype = MX86_RT_SSE;
-							i->reg = MX86_XMM0;
+							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+							i->size = 16;
+							set_sse_register(i,MX86_XMM0);
 						} break;
 						COVER_2(0xF0): {
 							union x86_mrm mrm = fetch_modregrm();
@@ -1055,8 +973,7 @@ decode_next:
 							ins->opcode = MXOP_CRC32;
 							ins->argc = 2;
 							d->size = 4;
-							d->reg = mrm.f.reg;
-							d->regtype = MX86_RT_REG;
+							set_register(d,mrm.f.reg);
 							s->size = (third_byte & 1) ? data32wordsize : 1;
 							s->segment = seg_can_override(MX86_SEG_DS);
 							decode_rm(mrm,s,isaddr32);
@@ -1079,8 +996,7 @@ decode_next:
 				union x86_mrm mrm = fetch_modregrm();
 				ai->size = data32wordsize;
 				mp->size = data32wordsize * 2;
-				ai->regtype = MX86_RT_REG;
-				ai->reg = mrm.f.reg;
+				set_register(ai,mrm.f.reg);
 				mp->segment = seg_can_override(MX86_SEG_DS);
 				decode_rm(mrm,mp,isaddr32);
 			}
@@ -1107,9 +1023,8 @@ decode_next:
 				struct minx86dec_argv *b = &ins->argv[1];
 				a->size = 16;
 				b->size = 8;
-				a->regtype = b->regtype = MX86_RT_IMM;
-				a->value = fetch_u16();
-				b->value = fetch_u8();
+				set_immediate(a,fetch_u16());
+				set_immediate(b,fetch_u8());
 			}
 			break;
 		COVER_2(0x60):
@@ -1125,8 +1040,7 @@ decode_next:
 				struct minx86dec_argv *s = &ins->argv[1];
 				union x86_mrm mrm = fetch_modregrm();
 				s->size = d->size = 2;
-				s->regtype = MX86_RT_REG;
-				s->reg = mrm.f.reg;
+				set_register(s,mrm.f.reg);
 				d->segment = seg_can_override(MX86_SEG_DS);
 				decode_rm(mrm,d,isaddr32);
 			}
@@ -1157,9 +1071,8 @@ decode_next:
 					COVER_8(0xC0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = 0;			/* ST(0) */
-						s->reg = second_byte - 0xC0;	/* ST(i) */
+						set_fpu_register(d,MX86_ST(0));
+						set_fpu_register(s,MX86_ST(second_byte&7));
 						ins->opcode = MXOP_FADD;
 						ins->argc = 2;
 					}
@@ -1167,8 +1080,8 @@ decode_next:
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = 0;			/* ST(0) */
-						s->reg = second_byte - 0xF0;	/* ST(i) */
+						set_fpu_register(d,MX86_ST(0));
+						set_fpu_register(s,MX86_ST(second_byte&7));
 						ins->opcode = MXOP_FDIV;
 						ins->argc = 2;
 					}
@@ -1176,8 +1089,8 @@ decode_next:
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = 0;			/* ST(0) */
-						s->reg = second_byte & 7;	/* ST(i) */
+						set_fpu_register(d,MX86_ST(0));
+						set_fpu_register(s,MX86_ST(second_byte&7));
 						ins->opcode = MXOP_FDIVR;
 						ins->argc = 2;
 					}
@@ -1193,8 +1106,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1206,8 +1118,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1219,8 +1130,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1236,36 +1146,31 @@ decode_next:
 				switch (second_byte) {
 					COVER_8(0xC0): {
 						struct minx86dec_argv *d = &ins->argv[0];
-						d->regtype = MX86_RT_ST;
-						d->reg = second_byte & 7;	/* ST(0) */
+						set_fpu_register(d,MX86_ST(second_byte&7));
 						ins->opcode = MXOP_FLD;
 						ins->argc = 1;
 					} break;
 					case 0xE0: {
 						struct minx86dec_argv *d = &ins->argv[0];
-						d->regtype = MX86_RT_ST;
-						d->reg = 0;	/* ST(0) */
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCHS;
 						ins->argc = 1;
 					} break;
 					case 0xE1: {
 						struct minx86dec_argv *d = &ins->argv[0];
-						d->regtype = MX86_RT_ST;
-						d->reg = 0;	/* ST(0) */
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FABS;
 						ins->argc = 1;
 					} break;
 					case 0xE8: {
 						struct minx86dec_argv *d = &ins->argv[0];
-						d->regtype = MX86_RT_ST;
-						d->reg = 0;	/* ST(0) */
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FLD1;
 						ins->argc = 1;
 					} break;
 					case 0xF0: {
 						struct minx86dec_argv *d = &ins->argv[0];
-						d->regtype = MX86_RT_ST;
-						d->reg = 0;	/* ST(0) */
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_F2XM1;
 						ins->argc = 1;
 					} break;
@@ -1279,8 +1184,7 @@ decode_next:
 					} break;
 					case 0xFF: {
 						struct minx86dec_argv *d = &ins->argv[0];
-						d->regtype = MX86_RT_ST;
-						d->reg = 0;	/* ST(0) */
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCOS;
 						ins->argc = 1;
 					} break;
@@ -1296,8 +1200,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1314,36 +1217,32 @@ decode_next:
 					COVER_8(0xC0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCMOVB;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xC8): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCMOVE;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xD0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCMOVBE;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xD8): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCMOVU;
 						ins->argc = 2;
 					} break;
@@ -1359,8 +1258,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1372,8 +1270,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1385,8 +1282,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1398,8 +1294,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1411,8 +1306,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1429,54 +1323,48 @@ decode_next:
 					COVER_8(0xC0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCMOVNB;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xC8): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCMOVNE;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xD0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCMOVNBE;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xD8): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCMOVNU;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xE8): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FUCOMI;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xF0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCOMI;
 						ins->argc = 2;
 					} break;
@@ -1500,8 +1388,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1513,8 +1400,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1526,8 +1412,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1539,8 +1424,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1552,8 +1436,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 10;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1569,27 +1452,24 @@ decode_next:
 					COVER_8(0xC0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = second_byte - 0xC0;	/* ST(i) */
-						s->reg = 0;			/* ST(0) */
+						set_fpu_register(d,MX86_ST(second_byte&7));
+						set_fpu_register(s,MX86_ST(0));
 						ins->opcode = MXOP_FADD;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xF0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = second_byte & 7;	/* ST(i) */
-						s->reg = 0;			/* ST(0) */
+						set_fpu_register(d,MX86_ST(second_byte&7));
+						set_fpu_register(s,MX86_ST(0));
 						ins->opcode = MXOP_FDIVR;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xF8): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = second_byte & 7;	/* ST(i) */
-						s->reg = 0;			/* ST(0) */
+						set_fpu_register(d,MX86_ST(second_byte&7));
+						set_fpu_register(s,MX86_ST(0));
 						ins->opcode = MXOP_FDIV;
 						ins->argc = 2;
 					} break;
@@ -1605,8 +1485,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 8;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1618,8 +1497,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 8;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1631,8 +1509,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 8;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1647,8 +1524,7 @@ decode_next:
 				switch (second_byte) {
 					COVER_8(0xC0): {
 						struct minx86dec_argv *d = &ins->argv[0];
-						d->regtype = MX86_RT_ST;
-						d->reg = second_byte & 7;	/* ST(i) */
+						set_fpu_register(d,MX86_ST(second_byte&7));
 						ins->opcode = MXOP_FFREE;
 						ins->argc = 1;
 					} break;
@@ -1664,8 +1540,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 8;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1677,8 +1552,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 8;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1694,27 +1568,24 @@ decode_next:
 					COVER_8(0xC0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = second_byte - 0xC0;	/* ST(i) */
-						s->reg = 0;			/* ST(0) */
+						set_fpu_register(d,MX86_ST(second_byte&7));
+						set_fpu_register(s,MX86_ST(0));
 						ins->opcode = MXOP_FADDP;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xF0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = second_byte & 7;	/* ST(i) */
-						s->reg = 0;			/* ST(0) */
+						set_fpu_register(d,MX86_ST(second_byte&7));
+						set_fpu_register(s,MX86_ST(0));
 						ins->opcode = MXOP_FDIVRP;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xF8): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						d->reg = second_byte & 7;	/* ST(i) */
-						s->reg = 0;			/* ST(0) */
+						set_fpu_register(d,MX86_ST(second_byte&7));
+						set_fpu_register(s,MX86_ST(0));
 						ins->opcode = MXOP_FDIVP;
 						ins->argc = 2;
 					} break;
@@ -1730,8 +1601,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 2;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1743,8 +1613,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 2;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1756,8 +1625,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 2;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1769,8 +1637,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 2;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1782,8 +1649,7 @@ decode_next:
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
 							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
+							set_fpu_register(d,MX86_ST(0));
 							/* src */
 							s->size = 2;
 							s->segment = seg_can_override(MX86_SEG_DS);
@@ -1799,133 +1665,45 @@ decode_next:
 					COVER_8(0xE8): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FUCOMIP;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xF0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						s->reg = second_byte & 7;	/* ST(i) */
-						d->reg = 0;			/* ST(0) */
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FCOMIP;
 						ins->argc = 2;
 					} break;
 				} break;
 			}
 			else {
+				/* all instructions follow a common pattern, we just have to list variances here */
+				static const unsigned int map[8*2] = {
+					MXOP_FILD,	2,
+					MXOP_FISTTP,	2,
+					MXOP_FIST,	2,
+					MXOP_FISTP,	2,
+					MXOP_FBLD,	10,
+					MXOP_FILD,	8,
+					MXOP_FBSTP,	10,
+					MXOP_FISTP,	8
+				};
 				/* mod/reg/rm */
 				union x86_mrm mrm = fetch_modregrm();
-				switch (mrm.f.reg) {
-					case 0:
-						ins->opcode = MXOP_FILD;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
-							/* src */
-							s->size = 2;
-							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 1:
-						ins->opcode = MXOP_FISTTP;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
-							/* src */
-							s->size = 2;
-							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 2:
-						ins->opcode = MXOP_FIST;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
-							/* src */
-							s->size = 2;
-							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 3:
-						ins->opcode = MXOP_FISTP;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
-							/* src */
-							s->size = 2;
-							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 4:
-						ins->opcode = MXOP_FBLD;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
-							/* src */
-							s->size = 10;
-							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 5:
-						ins->opcode = MXOP_FILD;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
-							/* src */
-							s->size = 8;
-							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 6:
-						ins->opcode = MXOP_FBSTP;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[1];
-							struct minx86dec_argv *s = &ins->argv[0];
-							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
-							/* src */
-							s->size = 10;
-							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 7:
-						ins->opcode = MXOP_FISTP;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							d->regtype = MX86_RT_ST;
-							d->reg = 0;
-							/* src */
-							s->size = 8;
-							s->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm(mrm,s,isaddr32);
-						} break;
-
-				}
+				const unsigned int b = mrm.f.reg << 1;
+				struct minx86dec_argv *d = &ins->argv[0];
+				struct minx86dec_argv *s = &ins->argv[1];
+				set_fpu_register(d,MX86_ST(0));
+				ins->opcode = map[b+0];
+				s->size = map[b+1];
+				ins->argc = 2;
+				s->size = 2;
+				s->segment = seg_can_override(MX86_SEG_DS);
+				decode_rm(mrm,s,isaddr32);
 			} break; }
 #endif
 

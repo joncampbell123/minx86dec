@@ -49,6 +49,11 @@ enum {	MX86_XMM0=0,	MX86_XMM1,	MX86_XMM2,	MX86_XMM3,
 /* or simply */
 #define MX86_XMM(x) (MX86_XMM0+(x))
 
+/* FPU registers */
+enum {	MX86_ST0,	MX86_ST1,	MX86_ST2,	MX86_ST3,
+	MX86_ST4,	MX86_ST5,	MX86_ST6,	MX86_ST7   };
+#define MX86_ST(x) (MX86_ST0+(x))
+
 /* segment registers */
 enum {	MX86_SEG_ES=0,	MX86_SEG_CS,	MX86_SEG_SS,	MX86_SEG_DS };
 #define MX86_SEG_IMM -2

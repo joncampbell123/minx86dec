@@ -45,6 +45,51 @@ union x86_sib {
 	uint8_t		raw;
 };
 
+static inline void set_mem_ref_reg(struct minx86dec_argv *a,int reg_base) {
+	a->regtype = MX86_RT_NONE;
+	a->scalar = 0;
+	a->memregs = 1;
+	a->memref_base = 0;
+	a->memreg[0] = reg_base;
+}
+
+static inline void set_mem_ref_imm(struct minx86dec_argv *a,uint32_t base) {
+	a->regtype = MX86_RT_NONE;
+	a->scalar = 0;
+	a->memregs = 0;
+	a->memref_base = base;
+}
+
+static inline void set_fpu_register(struct minx86dec_argv *a,int reg) {
+	a->regtype = MX86_RT_ST;
+	a->reg = reg;
+}
+
+static inline void set_segment_register(struct minx86dec_argv *a,int reg) {
+	a->regtype = MX86_RT_SREG;
+	a->reg = reg;
+}
+
+static inline void set_mmx_register(struct minx86dec_argv *d,int reg) {
+	d->regtype = MX86_RT_MMX;
+	d->reg = reg;
+}
+
+static inline void set_sse_register(struct minx86dec_argv *d,int reg) {
+	d->regtype = MX86_RT_SSE;
+	d->reg = reg;
+}
+
+static inline void set_register(struct minx86dec_argv *a,int reg) {
+	a->regtype = MX86_RT_REG;
+	a->reg = reg;
+}
+
+static inline void set_immediate(struct minx86dec_argv *a,uint32_t reg) {
+	a->regtype = MX86_RT_IMM;
+	a->value = reg;
+}
+
 static inline union x86_mrm fetch_modregrm() {
 	union x86_mrm r;
 	r.raw = fetch_u8();
@@ -198,4 +243,21 @@ static inline void decode_rm_ex(union x86_mrm mrm,struct minx86dec_argv *a,const
 		a->memreg[1] = MX86_REG_SI + (mrm.f.rm & 1);
 	}
 }
+
+static inline void string_instruction(int opcode,struct minx86dec_instruction *ins,unsigned int sz,unsigned int addrsz,int segment) {
+	ins->opcode = opcode;
+	ins->argc = 2; {
+		struct minx86dec_argv *d = &ins->argv[0];
+		struct minx86dec_argv *s = &ins->argv[1];
+		d->size = s->size = sz;
+		d->memregsz = s->memregsz = addrsz;
+		s->segment = segment;
+		d->segment = MX86_SEG_ES;
+		set_mem_ref_reg(s,MX86_REG_ESI);
+		set_mem_ref_reg(d,MX86_REG_EDI);
+	}
+}
+
+/* warning: intended for use in x86_core.h */
+#define string_instruction_typical(opcode) string_instruction(opcode,ins,(first_byte & 1) ? data32wordsize : 1,addr32wordsize,seg_can_override(MX86_SEG_DS))
 

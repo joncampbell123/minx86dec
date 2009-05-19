@@ -17,6 +17,12 @@ _start:
 	bsr	dx,[ebx]
 	bsr	edx,eax
 
+	cmpsb
+	cmpsw
+	cmpsd
+	a32 cmpsb
+	a32 cmpsw
+	a32 cmpsd
 	scasb
 	scasw
 	scasd

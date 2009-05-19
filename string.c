@@ -88,7 +88,7 @@ static void minx86dec_memref_print(struct minx86dec_argv *a,char *output) {
 }
 
 void minx86dec_regprint(struct minx86dec_argv *a,char *output) {
-	char *x;
+	const char *x;
 	output[0] = 0;
 	switch (a->regtype) {
 		case MX86_RT_NONE:
