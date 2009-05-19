@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 int main() {
-	if (minx86_read_ptr_t_test(NULL+1) != NULL+1) return 1;
+	if (minx86_read_ptr_t_test((minx86_read_ptr_t)(1UL)) != (minx86_read_ptr_t)(1UL)) return 1;
 	if (minx86_uint8_t_test(9) != 9) return 2;
 	if (minx86_uint16_t_test(29) != 29) return 3;
 	if (minx86_uint32_t_test(39) != 39) return 4;

@@ -401,7 +401,7 @@ decode_next:
 			ins->opcode = MXOP_CALL_FAR;
 			ins->argc = 1; {
 				struct minx86dec_argv *mref = &ins->argv[0];
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+//				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
 				mref->size = mref->memregsz = data32wordsize + 2;
 				mref->regtype = MX86_RT_IMM;
 				mref->segment = MX86_SEG_IMM;
@@ -687,7 +687,7 @@ decode_next:
 					} break;
 				case 0xC7: {
 					struct minx86dec_argv *a = &ins->argv[0];
-					struct minx86dec_argv *b = &ins->argv[1];
+//					struct minx86dec_argv *b = &ins->argv[1];
 					union x86_mrm mrm = fetch_modregrm();
 					switch (mrm.f.reg) {
 						case 1:
@@ -963,7 +963,7 @@ decode_next:
 				case 0xAE: {
 					int m = -1;
 					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
+//					struct minx86dec_argv *s = &ins->argv[1];
 					union x86_mrm mrm = fetch_modregrm();
 					switch (mrm.f.reg) {
 						case 7: ins->opcode = MXOP_CLFLUSH; m = 0; break;
@@ -1230,45 +1230,82 @@ decode_next:
 			}
 			} break;
 		case 0xD9: {
-			const uint8_t second_byte = *cip++;
-			switch (second_byte) {
-				case 0xE0: {
-					struct minx86dec_argv *d = &ins->argv[0];
-					d->regtype = MX86_RT_ST;
-					d->reg = 0;	/* ST(0) */
-					ins->opcode = MXOP_FCHS;
-					ins->argc = 1;
-				} break;
-				case 0xE1: {
-					struct minx86dec_argv *d = &ins->argv[0];
-					d->regtype = MX86_RT_ST;
-					d->reg = 0;	/* ST(0) */
-					ins->opcode = MXOP_FABS;
-					ins->argc = 1;
-				} break;
-				case 0xF0: {
-					struct minx86dec_argv *d = &ins->argv[0];
-					d->regtype = MX86_RT_ST;
-					d->reg = 0;	/* ST(0) */
-					ins->opcode = MXOP_F2XM1;
-					ins->argc = 1;
-				} break;
-				case 0xF6: {
-					ins->opcode = MXOP_FDECSTP;
-					ins->argc = 0;
-				} break;
-				case 0xF7: {
-					ins->opcode = MXOP_FINCSTP;
-					ins->argc = 0;
-				} break;
-				case 0xFF: {
-					struct minx86dec_argv *d = &ins->argv[0];
-					d->regtype = MX86_RT_ST;
-					d->reg = 0;	/* ST(0) */
-					ins->opcode = MXOP_FCOS;
-					ins->argc = 1;
-				} break;
-			} break; }
+			const uint8_t second_byte = *cip;
+			if ((second_byte & 0xC0) == 0xC0) {
+				cip++;	/* it was second byte of the opcode, step forward */
+				switch (second_byte) {
+					COVER_8(0xC0): {
+						struct minx86dec_argv *d = &ins->argv[0];
+						d->regtype = MX86_RT_ST;
+						d->reg = second_byte & 7;	/* ST(0) */
+						ins->opcode = MXOP_FLD;
+						ins->argc = 1;
+					} break;
+					case 0xE0: {
+						struct minx86dec_argv *d = &ins->argv[0];
+						d->regtype = MX86_RT_ST;
+						d->reg = 0;	/* ST(0) */
+						ins->opcode = MXOP_FCHS;
+						ins->argc = 1;
+					} break;
+					case 0xE1: {
+						struct minx86dec_argv *d = &ins->argv[0];
+						d->regtype = MX86_RT_ST;
+						d->reg = 0;	/* ST(0) */
+						ins->opcode = MXOP_FABS;
+						ins->argc = 1;
+					} break;
+					case 0xE8: {
+						struct minx86dec_argv *d = &ins->argv[0];
+						d->regtype = MX86_RT_ST;
+						d->reg = 0;	/* ST(0) */
+						ins->opcode = MXOP_FLD1;
+						ins->argc = 1;
+					} break;
+					case 0xF0: {
+						struct minx86dec_argv *d = &ins->argv[0];
+						d->regtype = MX86_RT_ST;
+						d->reg = 0;	/* ST(0) */
+						ins->opcode = MXOP_F2XM1;
+						ins->argc = 1;
+					} break;
+					case 0xF6: {
+						ins->opcode = MXOP_FDECSTP;
+						ins->argc = 0;
+					} break;
+					case 0xF7: {
+						ins->opcode = MXOP_FINCSTP;
+						ins->argc = 0;
+					} break;
+					case 0xFF: {
+						struct minx86dec_argv *d = &ins->argv[0];
+						d->regtype = MX86_RT_ST;
+						d->reg = 0;	/* ST(0) */
+						ins->opcode = MXOP_FCOS;
+						ins->argc = 1;
+					} break;
+				}
+			}
+			else {
+				/* mod/reg/rm */
+				union x86_mrm mrm = fetch_modregrm();
+				switch (mrm.f.reg) {
+					case 0:
+						ins->opcode = MXOP_FLD;
+						ins->argc = 2; {
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							/* ST(0) */
+							d->regtype = MX86_RT_ST;
+							d->reg = 0;
+							/* src */
+							s->size = 4;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+						} break;
+				}
+			}
+			} break;
 		case 0xDA: {
 			const uint8_t second_byte = *cip;
 			if ((second_byte & 0xC0) == 0xC0) {
@@ -1470,6 +1507,58 @@ decode_next:
 							s->segment = seg_can_override(MX86_SEG_DS);
 							decode_rm(mrm,s,isaddr32);
 						} break;
+					case 1:
+						ins->opcode = MXOP_FISTTP;
+						ins->argc = 2; {
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							/* ST(0) */
+							d->regtype = MX86_RT_ST;
+							d->reg = 0;
+							/* src */
+							s->size = 4;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+						} break;
+					case 2:
+						ins->opcode = MXOP_FIST;
+						ins->argc = 2; {
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							/* ST(0) */
+							d->regtype = MX86_RT_ST;
+							d->reg = 0;
+							/* src */
+							s->size = 4;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+						} break;
+					case 3:
+						ins->opcode = MXOP_FISTP;
+						ins->argc = 2; {
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							/* ST(0) */
+							d->regtype = MX86_RT_ST;
+							d->reg = 0;
+							/* src */
+							s->size = 4;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+						} break;
+					case 5:
+						ins->opcode = MXOP_FLD;
+						ins->argc = 2; {
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							/* ST(0) */
+							d->regtype = MX86_RT_ST;
+							d->reg = 0;
+							/* src */
+							s->size = 10;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+						} break;
 				}
 			} break; }
 		case 0xDC: {
@@ -1566,12 +1655,24 @@ decode_next:
 				}
 			}
 			else {
-#if 0
 				/* mod/reg/rm */
 				union x86_mrm mrm = fetch_modregrm();
 				switch (mrm.f.reg) {
 					case 0:
-						ins->opcode = MXOP_FADD;
+						ins->opcode = MXOP_FLD;
+						ins->argc = 2; {
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							/* ST(0) */
+							d->regtype = MX86_RT_ST;
+							d->reg = 0;
+							/* src */
+							s->size = 8;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+						} break;
+					case 1:
+						ins->opcode = MXOP_FISTTP;
 						ins->argc = 2; {
 							struct minx86dec_argv *d = &ins->argv[0];
 							struct minx86dec_argv *s = &ins->argv[1];
@@ -1584,7 +1685,6 @@ decode_next:
 							decode_rm(mrm,s,isaddr32);
 						} break;
 				}
-#endif
 			} break; }
 		case 0xDE: {
 			const uint8_t second_byte = *cip;
@@ -1733,6 +1833,45 @@ decode_next:
 							s->segment = seg_can_override(MX86_SEG_DS);
 							decode_rm(mrm,s,isaddr32);
 						} break;
+					case 1:
+						ins->opcode = MXOP_FISTTP;
+						ins->argc = 2; {
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							/* ST(0) */
+							d->regtype = MX86_RT_ST;
+							d->reg = 0;
+							/* src */
+							s->size = 2;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+						} break;
+					case 2:
+						ins->opcode = MXOP_FIST;
+						ins->argc = 2; {
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							/* ST(0) */
+							d->regtype = MX86_RT_ST;
+							d->reg = 0;
+							/* src */
+							s->size = 2;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+						} break;
+					case 3:
+						ins->opcode = MXOP_FISTP;
+						ins->argc = 2; {
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							/* ST(0) */
+							d->regtype = MX86_RT_ST;
+							d->reg = 0;
+							/* src */
+							s->size = 2;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+						} break;
 					case 4:
 						ins->opcode = MXOP_FBLD;
 						ins->argc = 2; {
@@ -1772,6 +1911,20 @@ decode_next:
 							s->segment = seg_can_override(MX86_SEG_DS);
 							decode_rm(mrm,s,isaddr32);
 						} break;
+					case 7:
+						ins->opcode = MXOP_FISTP;
+						ins->argc = 2; {
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							/* ST(0) */
+							d->regtype = MX86_RT_ST;
+							d->reg = 0;
+							/* src */
+							s->size = 8;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+						} break;
+
 				}
 			} break; }
 #endif

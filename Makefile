@@ -1,6 +1,6 @@
 TOP=`pwd`
 
-CFLAGS=-I. -I.. -g3 -O0
+CFLAGS=-I. -I.. -g3 -O0 -std=c99
 
 all: test-headers decode8086 decode286 decode386 decode486 decodeall test1.bin test2.bin test3.bin
 

@@ -257,6 +257,12 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"FINCSTP",
 	"FINIT",
 	"FNINIT",
+	"FIST",
+/* 0xC8-0xCB */
+	"FISTP",
+	"FISTTP",
+	"FLD",
+	"FLD1",
 
 	NULL
 };
