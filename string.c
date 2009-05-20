@@ -50,7 +50,10 @@ static void minx86dec_memref_print(struct minx86dec_argv *a,char *output) {
 	else if (a->segment == MX86_SEG_IMM)
 		output += sprintf(output,"0x%04X:",a->segval);
 
-	output += sprintf(output,"%s[",memptrsizes[a->size]);
+	if (a->size >= 0 && a->size <= 16)
+		output += sprintf(output,"%s[",memptrsizes[a->size]);
+	else
+		output += sprintf(output,"(BYTE[%u])[",a->size);
 
 	if (a->memregs) {
 		int c;

@@ -423,10 +423,10 @@ call1:	call	dword call1			; E8 id              CALL rel32
      fpatan					; D9 F3
       fprem					; D9 F8
      fprem1					; D9 F5
-     fpatan					; D9 F2
+      fptan					; D9 F2
     frndint					; D9 FC
      frstor	[si]				; DD /4 ( 94 or 108 bytes? )
-      fsave	[si]				; 99 DD /6
+      fsave	[si]				; 9B DD /6
      fnsave	[si]				; DD /6 ( 94 or 108 bytes? )
      fscale					; D9 FD
        fsin					; D9 FE

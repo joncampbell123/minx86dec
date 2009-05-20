@@ -263,6 +263,36 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"FISTTP",
 	"FLD",
 	"FLD1",
+/* 0xCC-0xCF */
+	"FLDL2T",
+	"FLDL2E",
+	"FLDPI",
+	"FLDLG2",
+/* 0xD0-0xD3 */
+	"FLDLN2",
+	"FLDZ",
+	"FLDCW",
+	"FLDENV",
+/* 0xD4-0xD7 */
+	"FMUL",
+	"FMULP",
+	"FIMUL",
+	"FNOP",
+/* 0xD8-0xDB */
+	"FPATAN",
+	"FPREM",
+	"FPREM1",
+	"FPTAN",
+/* 0xDC-0xDF */
+	"FRNDINT",
+	"FRSTOR",
+	"FSAVE",
+	"FNSAVE",
+/* 0xE0-0xE3 */
+	"FSCALE",
+	"FSIN",
+	"FSINCOS",
+	"FSQRT",
 
 	NULL
 };
