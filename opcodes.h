@@ -288,6 +288,9 @@ enum {
 	MXOP_FSIN,
 	MXOP_FSINCOS,
 	MXOP_FSQRT,
+/* 0xE4-0xE7 */
+	MXOP_FST,
+	MXOP_FSTP,
 
 	MXOP_LAST
 };

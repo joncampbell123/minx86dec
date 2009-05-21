@@ -293,6 +293,9 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"FSIN",
 	"FSINCOS",
 	"FSQRT",
+/* 0xE4-0xE7 */
+	"FST",
+	"FSTP",
 
 	NULL
 };
