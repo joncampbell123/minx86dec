@@ -296,6 +296,41 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0xE4-0xE7 */
 	"FST",
 	"FSTP",
+	"FSTCW",
+	"FNSTCW",
+/* 0xE8-0xEB */
+	"FSTENV",
+	"FNSTENV",
+	"FSTSW",
+	"FNSTSW",
+/* 0xEC-0xEF */
+	"FSUB",
+	"FSUBP",
+	"FISUB",
+	"FSUBR",
+/* 0xF0-0xF3 */
+	"FSUBRP",
+	"FISUBR",
+	"FTST",
+	"FUCOM",
+/* 0xF4-0xF7 */
+	"FUCOMP",
+	"FUCOMPP",
+	"FXAM",
+	"FXCH",
+/* 0xF8-0xFB */
+	"FXRSTOR",
+	"FXSAVE",
+	"FXTRACT",
+	"FYL2X",
+/* 0xFC-0xFF */
+	"FYL2XP1",
+	"HADDPD",
+	"HADDPS",
+	"HLT",
+/* 0x100-0x103 */
+	"HSUBPD",
+	"HSUBPS",
 
 	NULL
 };
