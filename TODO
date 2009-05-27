@@ -14,7 +14,8 @@ TODO:
    converted to x86_core.h for a particular instance, configuration, and
    variation. Then you could have one master file that describes 8086, 286,
    386, 486, etc. and all 16-bit, 32-bit, and 64-bit encodings. Kind of like
-   yacc/bison + flex but for x86 instruction decoding.
+   yacc/bison + flex but for x86 instruction decoding. Then the master decoding
+   loop would be a simple byte lookup table.
 TODO:
    have you noticed that may instruction encodings have similar if not exact
    corresponding forms. Anything 0F 3A xx tends to be reg,reg,imm, for example.
