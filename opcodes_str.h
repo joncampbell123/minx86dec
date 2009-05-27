@@ -331,6 +331,8 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x100-0x103 */
 	"HSUBPD",
 	"HSUBPS",
+	"IDIV",
+	"IMUL",
 
 	NULL
 };

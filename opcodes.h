@@ -326,6 +326,8 @@ enum {
 /* 0x100-0x103 */
 	MXOP_HSUBPD,
 	MXOP_HSUBPS,
+	MXOP_IDIV,
+	MXOP_IMUL,
 
 	MXOP_LAST
 };

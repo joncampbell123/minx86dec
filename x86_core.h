@@ -393,10 +393,28 @@ decode_next:
 		COVER_2(0xF6): {
 			union x86_mrm mrm = fetch_modregrm();
 			switch (mrm.f.reg) {
+				case 5: {
+					struct minx86dec_argv *where = &ins->argv[0];
+					ins->argc = 1;
+					ins->opcode = MXOP_IMUL;
+					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
+					where->segment = seg_can_override(MX86_SEG_DS);
+					where->regtype = MX86_RT_NONE;
+					decode_rm(mrm,where,isaddr32);
+				} break;
 				case 6: {
 					struct minx86dec_argv *where = &ins->argv[0];
 					ins->argc = 1;
 					ins->opcode = MXOP_DIV;
+					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
+					where->segment = seg_can_override(MX86_SEG_DS);
+					where->regtype = MX86_RT_NONE;
+					decode_rm(mrm,where,isaddr32);
+				} break;
+				case 7: {
+					struct minx86dec_argv *where = &ins->argv[0];
+					ins->argc = 1;
+					ins->opcode = MXOP_IDIV;
 					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
 					where->segment = seg_can_override(MX86_SEG_DS);
 					where->regtype = MX86_RT_NONE;

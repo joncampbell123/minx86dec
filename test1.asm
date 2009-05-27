@@ -2,6 +2,19 @@
 org 0
 
 _start:
+	idiv	eax
+	idiv	ebx
+	idiv	ecx
+	idiv	edx
+	idiv	esi
+	idiv	edi
+	idiv	word [eax]
+	idiv	word [ebx]
+	idiv	word [ecx]
+	idiv	word [edx]
+	idiv	word [esi]
+	idiv	word [edi]
+
 	nop
 	lea	bx,[si+3]
 	lea	cx,[bx+di+33h]

@@ -106,9 +106,11 @@ static int rm_addr16_mapping[8] = {
 	MX86_REG_BX,	MX86_REG_BX,	MX86_REG_BP,	MX86_REG_BP,
 	MX86_REG_SI,	MX86_REG_DI,	MX86_REG_BP,	MX86_REG_BX	};
 
+#if 0
 static int rm_addr32_mapping[8] = {
-	MX86_REG_EAX,	MX86_REG_EBX,	MX86_REG_ECX,	MX86_REG_EDX,
+	MX86_REG_EAX,	MX86_REG_ECX,	MX86_REG_EDX,	MX86_REG_EBX,
 	MX86_REG_ESP,	MX86_REG_EBP,	MX86_REG_ESI,	MX86_REG_EDI	};
+#endif
 
 static inline void decode_rm(union x86_mrm mrm,struct minx86dec_argv *a,const int addr32) {
 	if (mrm.f.mod == 3) {
@@ -147,7 +149,7 @@ static inline void decode_rm(union x86_mrm mrm,struct minx86dec_argv *a,const in
 		}
 		else {
 			a->memregs = 1;
-			a->memreg[0] = rm_addr32_mapping[mrm.f.rm];
+			a->memreg[0] = mrm.f.rm;
 		}
 
 		if (mrm.f.mod == 2)
@@ -214,7 +216,7 @@ static inline void decode_rm_ex(union x86_mrm mrm,struct minx86dec_argv *a,const
 		}
 		else {
 			a->memregs = 1;
-			a->memreg[0] = rm_addr32_mapping[mrm.f.rm];
+			a->memreg[0] = mrm.f.rm;
 		}
 
 		if (mrm.f.mod == 2)
