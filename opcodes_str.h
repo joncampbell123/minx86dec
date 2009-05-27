@@ -345,6 +345,8 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"IRETD",
 /* 0x10C-0x10F */
 	"JCXZ",
+	"JMP",
+	"JMP FAR",
 
 	NULL
 };

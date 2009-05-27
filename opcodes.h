@@ -340,6 +340,8 @@ enum {
 	MXOP_IRETD,
 /* 0x10C-0x10F */
 	MXOP_JCXZ,
+	MXOP_JMP,
+	MXOP_JMP_FAR,
 
 	MXOP_LAST
 };

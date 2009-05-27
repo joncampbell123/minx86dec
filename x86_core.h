@@ -222,6 +222,16 @@ decode_next:
 				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
 			} break;
 
+		case 0xE9:
+			ins->opcode = MXOP_JMP;
+			ins->argc = 1; {
+				struct minx86dec_argv *mref = &ins->argv[0];
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				mref->size = mref->memregsz = data32wordsize;
+				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
+				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
+			} break;
+
 		case 0xF8:
 			ins->opcode = MXOP_CLC;
 			ins->argc = 0;
@@ -349,6 +359,16 @@ decode_next:
 				r->size = addr32wordsize;
 			} break;
 
+		/* JMP */
+		case 0xEB:
+			ins->opcode = MXOP_JMP;
+			ins->argc = 1; {
+				struct minx86dec_argv *r = &ins->argv[0];
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(r,curp + 1 + ((uint32_t)((char)fetch_u8())));
+				r->size = addr32wordsize;
+			} break;
+
 		/* MOV a,[memory addr] or
 		 * MOV [memory addr],a */
 		case 0xA0: case 0xA1: case 0xA2: case 0xA3:
@@ -422,6 +442,18 @@ decode_next:
 				mref->segval = fetch_u16();
 			} break;
 
+		case 0xEA:
+			ins->opcode = MXOP_JMP_FAR;
+			ins->argc = 1; {
+				struct minx86dec_argv *mref = &ins->argv[0];
+				mref->size = mref->memregsz = data32wordsize + 2;
+				mref->regtype = MX86_RT_IMM;
+				mref->segment = MX86_SEG_IMM;
+				if (isdata32)	mref->value = fetch_u32();
+				else		mref->value = fetch_u16();
+				mref->segval = fetch_u16();
+			} break;
+
 		COVER_2(0xF6): {
 			union x86_mrm mrm = fetch_modregrm();
 			switch (mrm.f.reg) {
@@ -481,7 +513,16 @@ decode_next:
 					struct minx86dec_argv *where = &ins->argv[0];
 					ins->argc = 1;
 					ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
-					where->size = where->memregsz = data32wordsize + 2;
+					where->size = where->memregsz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
+					where->segment = seg_can_override(MX86_SEG_DS);
+					where->regtype = MX86_RT_NONE;
+					decode_rm(mrm,where,isaddr32);
+				} break;
+				case 4: case 5: {
+					struct minx86dec_argv *where = &ins->argv[0];
+					ins->argc = 1;
+					ins->opcode = MXOP_JMP + (mrm.f.reg & 1);
+					where->size = where->memregsz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
 					where->segment = seg_can_override(MX86_SEG_DS);
 					where->regtype = MX86_RT_NONE;
 					decode_rm(mrm,where,isaddr32);

@@ -574,4 +574,14 @@ l2:
 	jnl	dword near l2			; 0F 8D iw
 	jle	dword near l2			; 0F 8E iw
 	jnle	dword near l2			; 0F 8F iw
+l3:
+	jmp	short l3			; EB ib
+	jmp	near l3				; E9 iw
+	jmp	dword near l3			; E9 id
+	jmp	ax				; FF /4
+	jmp	ecx				; FF /4
+	jmp	[bx]				; FF /4
+	jmp	[ecx]				; FF /4
+	jmp	0x1234:0x5678			; EA iw:iw
+	jmp	0x1234:dword 0x12345678		; EA iw:id
 
