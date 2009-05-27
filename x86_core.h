@@ -707,6 +707,11 @@ decode_next:
 						ins->argc = 0;
 						cip++;
 					}
+					else if (*cip == 0xC9) {
+						ins->opcode = MXOP_MWAIT;
+						ins->argc = 0;
+						cip++;
+					}
 					else {
 						union x86_mrm mrm = fetch_modregrm();
 						switch (mrm.f.reg) {

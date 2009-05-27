@@ -377,6 +377,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"MINPS",
 	"MINSD",
 	"MINSS",
+	"MWAIT",
 
 	NULL
 };
