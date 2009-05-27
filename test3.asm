@@ -684,4 +684,62 @@ l4:
 	mov	dr0,esi				; 0F 23 /r
 	mov	dr1,eax				; 0F 23 /r
 	mov	dr3,ecx				; 0F 23 /r
-
+;
+	movapd	xmm1,xmm2			; 66 0F 28 /r
+	movapd	xmm1,[ebx]			; 66 0F 28 /r
+	movapd	[ebx],xmm2			; 66 0F 29 /r
+	movaps	xmm1,xmm3			; 0F 28 /r
+	movaps	xmm1,[ebx]			; 0F 28 /r
+	movaps	[ebx],xmm2			; 0F 29 /r
+	movbe	cx,word [bx]			; 0F 38 F0 /r
+	movbe	ecx,dword [ebx]			; 0F 38 F0 /r
+	movbe	word [ebx],ax			; 0F 38 F1 /r
+	movbe	dword [ecx],esi			; 0F 38 F1 /r
+	movd	mm1,eax				; 0F 6E /r
+	movd	eax,mm2				; 0F 7E /r
+	movd	mm2,[ebx]			; 0F 6E /r
+	movd	[ecx],mm3			; 0F 7E /r
+	movd	xmm1,eax			; 66 0F 6E /r
+	movd	xmm2,[esi]			; 66 0F 6E /r
+	movd	ebx,xmm3			; 66 0F 7E /r
+	movd	[ebx],xmm4			; 66 0F 7E /r
+	movddup	xmm1,xmm2			; F2 0F 12 /r
+	movddup	xmm1,[ebx]			; F2 0F 12 /r
+	movdqa	xmm1,xmm2			; 66 0F 6F /r
+	movdqa	xmm1,[ebx]			; 66 0F 6F /r
+	movdqa	[ebx],xmm2			; 66 0F 7F /r
+	movdqu	xmm1,xmm2			; F3 0F 6F /r
+	movdqu	xmm1,[ebx]			; F3 0F 6F /r
+	movdqu	[ebx],xmm2			; F3 0F 7F /r
+	movdq2q	mm1,xmm3			; F2 0F D6 /r
+	movhlps	xmm1,xmm2			; 0F 12 /r
+	movhpd	xmm1,[ebx]			; 66 0F 16 /r
+	movhpd	[ebx],xmm1			; 66 0F 17 /r
+	movhps	xmm1,[ebx]			; 0F 16 /r
+	movhps	[ebx],xmm1			; 0F 17 /r
+	movlhps	xmm1,xmm2			; 0F 16 /r
+	movlpd	xmm1,[ebx]			; 66 0F 12 /r
+	movlpd	[ebx],xmm1			; 66 0F 13 /r
+	movlps	xmm1,[ebx]			; 0F 12 /r
+	movlps	[ebx],xmm1			; 0F 13 /r
+      movmskpd	eax,xmm1			; 66 0F 50 /r
+      movmskpd	ebx,xmm6			; 66 0F 50 /r
+      movmskps	ecx,xmm2			; 0F 50 /r
+      movmskps  edx,xmm3			; 0F 50 /r
+      movntdqa	xmm1,[esi]			; 66 0F 38 2A /r
+       movntdq	[esi],xmm1			; 66 0F E7 /r
+        movnti	[eax],eax			; 0F C3 /r
+       movntpd	[ebx],xmm1			; 66 0F 2B /r
+       movntps	[ecx],xmm3			; 0F 2B /r
+        movntq	[edx],mm3			; 0F E7 /r
+	movq	mm1,mm2				; 0F 6F /r
+	movq	mm2,[esi]			; 0F 6F /r
+	movq	[esi],mm3			; 0F 7F /r
+	movq	xmm1,xmm2			; F3 0F 7E /r
+	movq	xmm2,[esi]			; F3 0F 7E /r
+	movq	[esi],xmm3			; 66 0F D6 /r
+     movq2dq	xmm1,mm3			; F3 0F D6 /r
+	movsb					; A4
+	movsw					; A5
+	movsd					; A6
+	
