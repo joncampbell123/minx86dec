@@ -334,7 +334,8 @@ decode_next:
 			ins->opcode = MXOP_JO+(first_byte&0xF);
 			ins->argc = 1; {
 				struct minx86dec_argv *r = &ins->argv[0];
-				set_immediate(r,state->ip_value + 2 + ((uint32_t)((char)fetch_u8())));
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(r,curp + 1 + ((uint32_t)((char)fetch_u8())));
 				r->size = addr32wordsize;
 			} break;
 
@@ -343,7 +344,8 @@ decode_next:
 			ins->opcode = MXOP_JCXZ;
 			ins->argc = 1; {
 				struct minx86dec_argv *r = &ins->argv[0];
-				set_immediate(r,state->ip_value + 2 + ((uint32_t)((char)fetch_u8())));
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(r,curp + 1 + ((uint32_t)((char)fetch_u8())));
 				r->size = addr32wordsize;
 			} break;
 
@@ -648,7 +650,9 @@ decode_next:
 					ins->opcode = MXOP_JO+(second_byte&0xF);
 					ins->argc = 1; {
 						struct minx86dec_argv *r = &ins->argv[0];
-						set_immediate(r,state->ip_value + 2 + ((uint32_t)((int16_t)fetch_u16())));
+						uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+						if (isdata32)	set_immediate(r,curp + 4 + ((uint32_t)((int32_t)fetch_u32())));
+						else		set_immediate(r,curp + 2 + ((uint32_t)((int16_t)fetch_u16())));
 						r->size = addr32wordsize;
 					} break;
 				case 0xA3:

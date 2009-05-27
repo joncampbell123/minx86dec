@@ -558,3 +558,20 @@ l2:
 	jle	near l2				; 0F 8E iw
 	jnle	near l2				; 0F 8F iw
 
+	jo	dword near l2			; 0F 80 id
+	jno	dword near l2			; 0F 81 iw
+	jc	dword near l2			; 0F 82 iw
+	jnc	dword near l2			; 0F 83 iw
+	jz	dword near l2			; 0F 84 iw
+	jnz	dword near l2			; 0F 85 iw
+	jna	dword near l2			; 0F 86 iw
+	ja	dword near l2			; 0F 87 iw
+	js	dword near l2			; 0F 88 iw
+	jns	dword near l2			; 0F 89 iw
+	jp	dword near l2			; 0F 8A iw
+	jnp	dword near l2			; 0F 8B iw
+	jl	dword near l2			; 0F 8C iw
+	jnl	dword near l2			; 0F 8D iw
+	jle	dword near l2			; 0F 8E iw
+	jnle	dword near l2			; 0F 8F iw
+
