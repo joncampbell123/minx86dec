@@ -338,6 +338,15 @@ decode_next:
 				r->size = addr32wordsize;
 			} break;
 
+		/* JCXZ */
+		case 0xE3:
+			ins->opcode = MXOP_JCXZ;
+			ins->argc = 1; {
+				struct minx86dec_argv *r = &ins->argv[0];
+				set_immediate(r,state->ip_value + 2 + ((uint32_t)((char)fetch_u8())));
+				r->size = addr32wordsize;
+			} break;
+
 		/* MOV a,[memory addr] or
 		 * MOV [memory addr],a */
 		case 0xA0: case 0xA1: case 0xA2: case 0xA3:
@@ -478,6 +487,34 @@ decode_next:
 			}
 			break; }
 
+		/* INT 3 */
+		case 0xCC:
+			ins->opcode = MXOP_INT;
+			ins->argc = 1; {
+				struct minx86dec_argv *r = &ins->argv[0];
+				set_immediate(r,3);
+			} break;
+
+		/* INT N */
+		case 0xCD:
+			ins->opcode = MXOP_INT;
+			ins->argc = 1; {
+				struct minx86dec_argv *r = &ins->argv[0];
+				set_immediate(r,fetch_u8());
+			} break;
+
+		/* INTO */
+		case 0xCE:
+			ins->opcode = MXOP_INTO;
+			ins->argc = 0;
+			break;
+
+		/* IRET */
+		case 0xCF:
+			ins->opcode = isdata32 ? MXOP_IRETD : MXOP_IRET;
+			ins->argc = 0;
+			break;
+
 		/* REP/REPE/REPNE */
 		COVER_2(0xF2):
 			ins->rep = (first_byte & 1) + MX86_REPE;
@@ -558,6 +595,13 @@ decode_next:
 								m->size = 2;
 								decode_rm(mrm,m,isaddr32);
 							} break;
+						case 7:
+							ins->opcode = MXOP_INVLPG;
+							ins->argc = 1; {
+								struct minx86dec_argv *m = &ins->argv[0];
+								m->size = 4;
+								decode_rm(mrm,m,isaddr32);
+							} break;
 					}
 					break; }
 				case 0x02: /* LAR */
@@ -598,6 +642,14 @@ decode_next:
 						s->segment = seg_can_override(MX86_SEG_DS);
 						set_register(d,mrm.f.reg);
 						decode_rm(mrm,s,isaddr32);
+					} break;
+				/* Jcc near */
+				COVER_ROW(0x80):
+					ins->opcode = MXOP_JO+(second_byte&0xF);
+					ins->argc = 1; {
+						struct minx86dec_argv *r = &ins->argv[0];
+						set_immediate(r,state->ip_value + 2 + ((uint32_t)((int16_t)fetch_u16())));
+						r->size = addr32wordsize;
 					} break;
 				case 0xA3:
 					ins->opcode = MXOP_BT;
@@ -685,6 +737,10 @@ decode_next:
 						set_register(r,second_byte & 7);
 						r->size = data32wordsize;
 					}
+					break;
+				case 0x08:
+					ins->opcode = MXOP_INVD;
+					ins->argc = 0;
 					break;
 # endif
 # if core_level >= 5 /* --------------------- pentium or higher ------------------ */
@@ -1035,6 +1091,21 @@ decode_next:
 							s->size = 4;
 							s->segment = seg_can_override(MX86_SEG_DS);
 							decode_rm_ex(mrm,s,isaddr32,MX86_RT_REG);
+							i->size = 1;
+							set_immediate(i,fetch_u8());
+						} break;
+						case 0x21: {
+							union x86_mrm mrm = fetch_modregrm();
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							struct minx86dec_argv *i = &ins->argv[2];
+							ins->opcode = MXOP_INSERTPS;
+							ins->argc = 3;
+							d->size = 16;
+							set_sse_register(d,mrm.f.reg);
+							s->size = 16;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 							i->size = 1;
 							set_immediate(i,fetch_u8());
 						} break;

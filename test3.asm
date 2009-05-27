@@ -513,7 +513,8 @@ call1:	call	dword call1			; E8 id              CALL rel32
 	insd					; 6D
     insertps	xmm1,xmm2,2			; 66 0F 3A 21 /r ib
     insertps	xmm1,[esi],4			; 66 0F 3A 21 /r ib
-	int	3				; CC
+         db     0xCC				; CC   (INT 3---NASM won't encode this)
+	int	3				; CD 3
 	int	21h				; CD imm8
        into					; CE
        invd					; 0F 08

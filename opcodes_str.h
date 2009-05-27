@@ -335,6 +335,16 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"IMUL",
 /* 0x104-0x107 */
 	"IN",
+	"INSERTPS",
+	"INT",
+	"INTO",
+/* 0x108-0x10B */
+	"INVD",
+	"INVLPG",
+	"IRET",
+	"IRETD",
+/* 0x10C-0x10F */
+	"JCXZ",
 
 	NULL
 };
