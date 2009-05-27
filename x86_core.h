@@ -378,6 +378,27 @@ decode_next:
 			ins->argc = 0;
 			break;
 
+		COVER_2(0xE4):
+			ins->opcode = MXOP_IN;
+			ins->argc = 2; {
+				struct minx86dec_argv *d = &ins->argv[0];
+				struct minx86dec_argv *s = &ins->argv[1];
+				d->size = data32wordsize;
+				set_register(d,MX86_REG_AX);
+				set_immediate(s,fetch_u8());
+			} break;
+
+		COVER_2(0xEC):
+			ins->opcode = MXOP_IN;
+			ins->argc = 2; {
+				struct minx86dec_argv *d = &ins->argv[0];
+				struct minx86dec_argv *s = &ins->argv[1];
+				d->size = data32wordsize;
+				set_register(d,MX86_REG_AX);
+				s->size = 2;	/* always DX, Intel chips can only address 65536 I/O ports */
+				set_register(s,MX86_REG_DX);
+			} break;
+
 		case 0x9A:
 			ins->opcode = MXOP_CALL_FAR;
 			ins->argc = 1; {
@@ -427,6 +448,15 @@ decode_next:
 		COVER_2(0xFE): {
 			union x86_mrm mrm = fetch_modregrm();
 			switch (mrm.f.reg) {
+				case 0: {
+					struct minx86dec_argv *where = &ins->argv[0];
+					ins->argc = 1;
+					ins->opcode = MXOP_INC;
+					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
+					where->segment = seg_can_override(MX86_SEG_DS);
+					where->regtype = MX86_RT_NONE;
+					decode_rm(mrm,where,isaddr32);
+				} break;
 				case 1: {
 					struct minx86dec_argv *where = &ins->argv[0];
 					ins->argc = 1;
