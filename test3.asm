@@ -982,4 +982,324 @@ l4:
 prefetchnta	[esi]				; 0F 18 /0
      psadbw	mm1,mm2				; 0F F6 /r
      psadbw	xmm1,xmm2			; 0F F6 /r
+     pshufb	mm1,mm2				;    0F 38 00 /r
+     pshufb	xmm1,xmm2			; 66 0F 38 00 /r
+     pshufd	xmm1,xmm2,3			; 66 0F 70 /r ib
+    pshufhw	xmm1,xmm2,2			; F3 0F 70 /r ib
+    pshuflw	xmm1,xmm2,2			; F2 0F 70 /r ib
+     pshufw	mm1,mm2,2			;    0F 70 /r ib
+     psignb	mm1,mm2				;    0F 38 08 /r
+     psignb	xmm1,xmm2			; 66 0F 38 08 /r
+     psignw	mm1,mm2				;    0F 38 09 /r
+     psignw	xmm1,xmm2			; 66 0F 38 09 /r
+     psignd	mm1,mm2				;    0F 38 0A /r
+     psignd	xmm1,xmm2			; 66 0F 38 0A /r
+     pslldq	xmm1,2				; 66 0F 73 /7 ib
+      psllw	mm1,mm2				;    0F F1 /r
+      psllw	xmm1,xmm2			; 66 0F F1 /r
+      psllw	mm1,3				;    0F 71 /6 ib
+      psllw	xmm1,3				; 66 0F 71 /6 ib
+      pslld	mm1,mm2				;    0F F2 /r
+      pslld	xmm1,xmm2			; 66 0F F2 /r
+      pslld	mm1,3				;    0F 72 /6 ib
+      pslld	xmm1,3				; 66 0F 72 /6 ib
+      psllq	mm1,mm2				;    0F F3 /r
+      psllq	xmm1,xmm2			; 66 0F F3 /r
+      psllq	mm1,3				;    0F 73 /6 ib
+      psllq	xmm1,3				; 66 0F 73 /6 ib
+      psraw	mm1,mm2				;    0F E1 /r
+      psraw	xmm1,xmm2			; 66 0F E1 /r
+      psraw	mm1,4				;    0F 71 /4 ib
+      psraw	xmm1,5				; 66 0F 71 /4 ib
+      psrad	mm1,mm2				;    0F E2 /r
+      psrad	xmm1,xmm2			; 66 0F E2 /r
+      psrad	mm1,6				;    0F 72 /4 ib
+      psrad	xmm1,4				; 66 0F 72 /4 ib
+     psrldq	xmm1,2				; 66 0F 73 /3 ib
+      psrlw	mm1,mm2				;    0F D1 /r
+      psrlw	xmm1,xmm2			; 66 0F D1 /r
+      psrlw	mm1,2				;    0F 71 /2 ib
+      psrlw	xmm1,2				; 66 0F 71 /2 ib
+      psrld	mm1,mm2				;    0F D2 /r
+      psrld	xmm1,xmm2			; 66 0F D2 /r
+      psrld	mm1,2				;    0F 72 /2 ib
+      psrld	xmm1,3				; 66 0F 72 /2 ib
+      psrlq	mm1,mm2				;    0F D3 /r
+      psrlq	xmm1,xmm2			; 66 0F D3 /r
+      psrlq	mm1,2				;    0F 73 /2 ib
+      psrlq	xmm1,2				; 66 0F 73 /2 ib
+      psubb	mm1,mm2				;    0F F8 /r
+      psubb	xmm1,xmm2			; 66 0F F8 /r
+      psubw	mm1,mm2				;    0F F9 /r
+      psubw	xmm1,xmm2			; 66 0F F9 /r
+      psubd	mm1,mm2				;    0F FA /r
+      psubd	xmm1,xmm2			; 66 0F FA /r
+      psubq	mm1,mm2				;    0F FB /r
+      psubq	xmm1,xmm2			; 66 0F FB /r
+     psubsb	mm1,mm2				;    0F E8 /r
+     psubsb	xmm1,xmm2			; 66 0F E8 /r
+     psubsw	mm1,mm2				;    0F E9 /r
+     psubsw	xmm1,xmm2			; 66 0F E9 /r
+    psubusb	mm1,mm2				;    0F D8 /r
+    psubusb	xmm1,xmm2			; 66 0F D8 /r
+    psubusw	mm1,mm2				;    0F D9 /r
+    psubusw	xmm1,xmm2			; 66 0F D9 /r
+      ptest	xmm1,xmm2			; 66 0F 38 17 /r
+  punpckhbw	mm1,mm2				;    0F 68 /r
+  punpckhbw	xmm1,xmm2			; 66 0F 68 /r
+  punpckhwd	mm1,mm2				;    0F 69 /r
+  punpckhwd	xmm1,xmm2			; 66 0F 69 /r
+  punpckhdq	xmm1,xmm2			; 66 0F 6A /r
+ punpckhqdq	xmm1,xmm2			; 66 0F 6D /r
+  punpcklbw	mm1,mm2				;    0F 60 /r
+  punpcklbw	xmm1,xmm2			; 66 0F 60 /r
+  punpcklwd	mm1,mm2				;    0F 61 /r
+  punpcklwd	xmm1,xmm2			; 66 0F 61 /r
+  punpckldq	mm1,mm2				;    0F 62 /r
+  punpckldq	xmm1,xmm2			; 66 0F 62 /r
+ punpcklqdq	xmm1,xmm2			; 66 0F 6C /r
+       push	word [si]			; FF /6
+       push	dword [si]			; FF /6
+       push	ax				; 50+reg
+       push	cx				; 50+reg
+       push	byte 12h			; 6A ib
+       push	word 1234h			; 68 iw
+       push	dword 12345678h			; 68 id
+       push	cs				; 0E
+       push	ss				; 16
+       push	ds				; 1E
+       push	es				; 06
+       push	fs				; 0F A0
+       push	gs				; 0F A8
+      pusha					; 60
+     pushad					; 60
+      pushf					; 9C
+     pushfd					; 9C
+       pxor	mm1,mm2				;    0F EF /r
+       pxor	xmm1,xmm2			; 66 0F EF /r
+	rcl	bh,1				; D0 /2
+        rcl	bh,cl				; D2 /2
+        rcl	bh,4				; CO /2 ib
+        rcl	bx,1				; D1 /2
+        rcl	bx,cl				; D3 /2
+        rcl	bx,3				; C1 /2 ib
+        rcl	ebx,1				; D1 /2
+        rcl	ebx,cl				; D3 /2
+        rcl	ebx,3				; C1 /2 ib
+      rcpps	xmm1,xmm2			;    0F 53 /r
+      rcpss	xmm1,xmm2			; F3 0F 53 /r
+      rdmsr					; 0F 32
+      rdpmc					; 0F 33
+      rdtsc					; 0F 31
+     rdtscp					; 0F 01 F9
+	rep	movsb				; F3 A4
+	rep	movsw				; F3 A5
+	ret					; C3
+       retf					; CB
+	ret	4				; C2 ib
+       retf	4				; CA ib
+    roundpd	xmm1,xmm2,2			; 66 0F 3A 09 /r ib
+    roundps	xmm1,xmm2,3			; 66 0F 3A 08 /r ib
+    roundsd	xmm1,xmm2,2			; 66 0F 3A 0B /r ib
+    roundss	xmm1,xmm2,2			; 66 0F 3A 0A /r ib
+	rsm					; 0F AA
+    rsqrtps	xmm1,xmm2			;    0F 52 /r
+    rsqrtss	xmm1,xmm2			; F3 0F 52 /r
+       sahf					; 9E
+
+; SAL = SHL
+        shl	bl,1				; D0 /4
+        shl	bl,cl				; D2 /4
+        shl	bl,4				; C0 /4 ib
+        shl	bx,1				; D1 /4
+        shl	bx,cl				; D3 /4
+        shl	bx,4				; C1 /4 ib
+        shl	ebx,1				; D1 /4
+        shl	ebx,cl				; D3 /4 ib
+        shl	ebx,4				; C1 /4 ib
+
+        shr	bl,1				; D0 /5
+        shr	bl,cl				; D2 /5
+        shr	bl,4				; C0 /5 ib
+        shr	bx,1				; D1 /5
+        shr	bx,cl				; D3 /5
+        shr	bx,4				; C1 /5 ib
+        shr	ebx,1				; D1 /5
+        shr	ebx,cl				; D3 /5 ib
+        shr	ebx,4				; C1 /5 ib
+
+        sar	bl,1				; D0 /7
+        sar	bl,cl				; D2 /7
+        sar	bl,4				; C0 /7 ib
+        sar	bx,1				; D1 /7
+        sar	bx,cl				; D3 /7
+        sar	bx,4				; C1 /7 ib
+        sar	ebx,1				; D1 /7
+        sar	ebx,cl				; D3 /7 ib
+        sar	ebx,4				; C1 /7 ib
+
+	sbb	al,12h				; 1C ib
+	sbb	ax,1234h			; 1D iw
+	sbb	eax,12345678h			; 1D id
+	sbb	ch,12h				; 80 /3 ib
+	sbb	bx,1234h			; 81 /3 iw
+	sbb	eax,12345678h			; 81 /3 id
+	sbb	ax,12h				; 83 /3 ib
+	sbb	eax,12h				; 83 /3 ib
+	sbb	cl,bl				; 18 /r
+	sbb	cx,bx				; 19 /r
+	sbb	cl,byte [si]			; 1A /r
+	sbb	cx,word [si]			; 1B /r
+
+      scasb					; AE
+      scasw					; AF
+      scasd					; AF
+
+	seto	al				; 0F 90
+	setno	al				; 0F 91
+	setb	al				; 0F 92
+	setnb	al				; 0F 93
+	sete	al				; 0F 94
+	setne	al				; 0F 95
+	setbe	al				; 0F 96
+	setnbe	al				; 0F 97
+	sets	al				; 0F 98
+	setns	al				; 0F 99
+	setp	al				; 0F 9A
+	setnp	al				; 0F 9B
+	setl	al				; 0F 9C
+	setnl	al				; 0F 9D
+	setle	al				; 0F 9E
+	setnle	al				; 0F 9F
+
+	sfence					; 0F AE /7
+	sgdt	[bx]				; 0F 01 /0
+
+	shld	ax,bx,3				; 0F A4 /r ib
+	shld	ax,bx,cl			; 0F A5 /r
+	shld	eax,ebx,3			; 0F A4 /r ib
+	shld	eax,ebx,cl			; 0F A5 /r
+
+	shrd	ax,bx,3				; 0F AC /r ib
+	shrd	ax,bx,cl			; 0F AD /r
+	shrd	eax,ebx,3			; 0F AC /r ib
+	shrd	eax,ebx,cl			; 0F AD /r
+
+     shufpd	xmm1,xmm2,3			; 66 0F C6 /r ib
+     shufps	xmm1,xmm2,3			;    0F C6 /r ib
+
+       sidt	[bx]				; 0F 01 /1
+       sldt	[bx]				; 0F 00 /0
+       smsw	[bx]				; 0F 01 /4
+     sqrtps	xmm1,xmm2			;    0F 51 /r
+     sqrtsd	xmm1,xmm2			; F2 0F 51 /r
+     sqrtss	xmm1,xmm2			; F3 0F 51 /r
+	stc					; F9
+	std					; FD
+	sti					; FB
+    stmxcsr	[esi]				; 0F AE /3
+	stosb					; AA
+	stosw					; AB
+	stosd					; AB
+	str	[bx]				; 0F 00 /1
+
+	sub	al,12h				; 2C ib
+	sub	ax,1234h			; 2D iw
+	sub	eax,12345678h			; 2D id
+	sub	bl,12h				; 80 /5 ib
+	sub	bx,1234h			; 81 /5 iw
+	sub	ebx,12345678h			; 81 /5 id
+	sub	bx,12h				; 83 /5 ib
+	sub	ebx,12h				; 83 /5 ib
+	sub	bl,cl				; 28 /r
+	sub	bx,cx				; 29 /r
+	sub	byte [si],cl			; 2A /r
+	sub	word [si],cx			; 2B /r
+
+      subpd	xmm1,xmm2			; 66 0F 5C /r
+      subps	xmm1,xmm2			;    0F 5C /r
+      subsd	xmm1,xmm2			; F2 05 5C /r
+      subss	xmm1,xmm2			; F3 05 5C /r
+
+; this is 64-bit only, someday when you write x86-64 test cases use this
+;     swapgs					; 0F 01 /7
+
+    syscall					; 0F 05
+   sysenter					; 0F 34
+    sysexit					; 0F 35
+     sysret					; 0F 07
+
+	test	al,12h				; A8 ib
+	test	ax,1234h			; A9 iw
+	test	eax,12345678h			; A9 id
+	test	cl,12h				; F6 /0 ib
+	test	cx,1234h			; F7 /0 iw
+	test	ecx,12345678h			; F7 /0 id
+	test	cl,dh				; 84 /r
+	test	cx,dx				; 85 /r
+	test	ebx,edx				; 85 /r
+
+     ucomisd	xmm1,xmm2			; 66 0F 2E /r
+     ucomiss	xmm1,xmm2			;    0F 2E /r
+
+	ud2					; 0F 0B
+
+    unpckhpd	xmm1,xmm2			; 66 0F 15 /r
+    unpckhps	xmm1,xmm2			;    0F 15 /r
+    unpcklpd	xmm1,xmm2			; 66 0F 14 /r
+    unpcklps	xmm1,xmm2			;    0F 14 /r
+
+	verr	ax				; 0F 00 /4
+	verr	[bx]				; 0F 00 /4
+	verw	ax				; 0F 00 /5
+	verw	[bx]				; 0F 00 /5
+
+	wait					; 9B
+	fwait					; 9B
+
+	wbinvd					; 0F 09
+	wrmsr					; 0F 30
+	xadd	cl,ch				; 0F C0 /r
+	xadd	bx,cx				; 0F C1 /r
+	xadd	eax,ebx				; 0F C1 /r
+	xchg	al,ah				; 86 /r
+	xchg	ax,bx				; 90+reg
+	xchg	eax,ebx				; 90+reg
+	xchg	cx,bx				; 87 /r
+	xchg	ecx,ebx				; 87 /r
+	xgetbv					; 0F 01 D0
+	xlat					; D7
+
+	xor	al,12h				; 34 ib
+	xor	ax,1234h			; 35 iw
+	xor	eax,12345678h			; 35 id
+	xor	cl,12h				; 80 /6 ib
+	xor	cx,1234h			; 81 /6 iw
+	xor	ecx,12345678h			; 81 /6 id
+	xor	cx,12h				; 83 /6 ib
+	xor	ecx,12h				; 83 /6 ib
+	xor	ah,cl				; 30 /r
+	xor	bx,dx				; 31 /r
+	xor	ebx,edx				; 31 /r
+	xor	byte [si],dl			; 32 /r
+	xor	word [si],bx			; 33 /r
+	xorpd	xmm1,xmm2			; 66 0F 57 /r
+	xorps	xmm1,xmm2			;    0F 57 /r
+	xrstor	[esi]				; 0F AE /5
+	xsave	[esi]				; 0F AE /4
+	xsetbv					; 0F 01 D1
+
+; and now the VMX extensions!
+	invept	eax,[esi]			; 66 0F 38 80
+	invvpid	eax,[esi]			; 66 0F 38 81
+	vmcall					; 0F 01 C1
+	vmclear	[esi]				; 66 0F C7 /6
+	vmlaunch				; 0F 01 C2
+	vmresume				; 0F 01 C3
+	vmptrld	[esi]				; 0F C7 /6
+	vmptrst	[esi]				; 0F C7 /7
+	vmread	[esi],eax			; 0F 78
+	vmwrite	eax,[esi]			; 0F 79
+	vmxoff					; 0F 01 C4
+	vmxon	[esi]				; F3 0F C7 /6
 
