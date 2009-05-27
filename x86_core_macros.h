@@ -90,6 +90,16 @@ static inline void set_immediate(struct minx86dec_argv *a,uint32_t reg) {
 	a->value = reg;
 }
 
+static inline void set_control_register(struct minx86dec_argv *a,uint32_t reg) {
+	a->regtype = MX86_RT_CR;
+	a->reg = reg;
+}
+
+static inline void set_debug_register(struct minx86dec_argv *a,uint32_t reg) {
+	a->regtype = MX86_RT_DR;
+	a->reg = reg;
+}
+
 static inline union x86_mrm fetch_modregrm() {
 	union x86_mrm r;
 	r.raw = fetch_u8();

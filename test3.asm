@@ -585,3 +585,103 @@ l3:
 	jmp	0x1234:0x5678			; EA iw:iw
 	jmp	0x1234:dword 0x12345678		; EA iw:id
 
+	lahf					; 9F
+	lar	ax,ax				; 0F 02 /r
+	lar	cx,dx				; 0F 02 /r
+	lar	bx,[si]				; 0F 02 /r
+	lar	bx,[eax]			; 0F 02 /r
+	lddqu	xmm1,[esi]			; F2 0F F0 /r
+	lddqu	xmm2,[ebx*4+ecx+8]		; F2 0F F0 /r
+	ldmxcsr	[bx]				; 0F AE /2
+	ldmxcsr	[esi]				; 0F AE /2
+	lds	si,[bx]				; C5 /r
+	lds	esi,[eax]			; C5 /r
+	lss	si,[bx]				; 0F B2 /r
+	lss	esi,[ebx]			; 0F B2 /r
+	les	si,[bx]				; C4 /r
+	les	esi,[ebx]			; C4 /r
+	lfs	si,[bx]				; 0F B4 /r
+	lfs	esi,[ebx]			; 0F B4 /r
+	lgs	si,[bx]				; 0F B5 /r
+	lgs	esi,[ebx]			; 0F B5 /r
+	lea	ax,[bx+si]			; 8D /r
+	lea	eax,[eax+eax]			; 8D /r
+	lea	ebx,[ebx*4+ecx+16]		; 8D /r
+	leave					; C9
+	lfence					; 0F AE /5
+	lgdt	[bx]				; 0F 01 /2
+	lidt	[bx]				; 0F 01 /3
+	lldt	[bx]				; 0F 00 /2
+	lmsw	[bx]				; 0F 01 /6
+	lock	add ax,ax			; F0, 01 /r
+	lodsb					; AC
+	lodsw					; AD
+	lodsd					; AD
+l4:
+	loop	l4				; E2 ib
+	loopz	l4				; E1 ib
+	loopnz	l4				; E0 ib
+	lsl	ax,[bx]				; 0F 03 /r
+	lsl	eax,[eax]			; 0F 03 /r
+	ltr	ax				; 0F 00 /3
+	ltr	[bx]				; 0F 00 /3
+ maskmovdqu	xmm1,xmm2			; 66 0F F7 /r
+   maskmovq	mm1,mm2				; 0F F7 /r
+      maxpd	xmm1,xmm2			; 66 0F 5F /r
+      maxpd	xmm1,[ebx]			; 66 0F 5F /r
+      maxps	xmm1,xmm2			; 0F 5F /r
+      maxps	xmm1,[ebx]			; 0F 5F /r
+      maxsd	xmm1,xmm2			; F2 0F 5F /r
+      maxsd	xmm1,[ebx]			; F2 0F 5F /r
+      maxss	xmm1,xmm2			; F3 0F 5F /r
+      maxss	xmm1,[ebx]			; F3 0F 5F /r
+     mfence					; 0F AE /6
+      minpd	xmm1,xmm2			; 66 0F 5D /r
+      minps	xmm1,xmm2			; 0F 5D /r
+      minsd	xmm1,xmm2			; F2 0F 5D /r
+      minss	xmm1,xmm2			; F3 0F 5D /r
+    monitor					; 0F 01 C8
+; oh boy! all the various flavors of MOV
+	mov	cl,ch				; 88 /r
+	mov	bx,si				; 89 /r
+	mov	edx,esi				; 8B /r
+	mov	cl,[bx]				; 88 /r
+	mov	bx,[si]				; 89 /r
+	mov	edx,[edx]			; 8B /r
+	mov	ax,cs				; 8C /r
+	mov	[bx],ds				; 8C /r
+	mov	ds,bx				; 8E /r
+	mov	ds,[si]				; 8E /r
+	mov	al,[0x1234]			; A0 iw
+	mov	al,[dword 0x12345568]		; A0 id
+	mov	ax,[0x1234]			; A1 iw
+	mov	ax,[dword 0x12345678]		; A1 id
+	mov	eax,[0x1234]			; A1 iw
+	mov	eax,[dword 0x12345678]		; A1 id
+	mov	[0x1234],al			; A2 iw
+	mov	[dword 0x12345568],al		; A2 id
+	mov	[0x1234],ax			; A3 iw
+	mov	[dword 0x12345678],ax		; A3 id
+	mov	[0x1234],eax			; A3 iw
+	mov	[dword 0x12345678],eax		; A3 id
+	mov	cl,0x13				; B0+reg ib
+	mov	si,0x1234			; B8+reg iw
+	mov	ebx,0x12345667			; B8+reg id
+	mov	byte [bx],0x12			; C6 /0
+	mov	word [bx],0x1234		; C7 /0
+	mov	dword [bx],0x12345678		; C7 /0
+; now MOV with control regs
+	mov	eax,cr0				; 0F 20 /r
+	mov	eax,cr3				; 0F 20 /r
+	mov	ebx,cr0				; 0F 20 /r
+	mov	ecx,cr1				; 0F 20 /r
+	mov	cr0,eax				; 0F 22 /r
+	mov	cr1,ecx				; 0F 22 /r
+	mov	cr3,esi				; 0F 22 /r
+	mov	eax,dr0				; 0F 21 /r
+	mov	ebx,dr2				; 0F 21 /r
+	mov	ecx,dr3				; 0F 21 /r
+	mov	dr0,esi				; 0F 23 /r
+	mov	dr1,eax				; 0F 23 /r
+	mov	dr3,ecx				; 0F 23 /r
+

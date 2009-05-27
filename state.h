@@ -69,6 +69,8 @@ enum {	MX86_RT_NONE=0,	/* not a register reference */
 	MX86_RT_ST,	/* FPU register */
 	MX86_RT_MMX,	/* MMX register */
 	MX86_RT_SSE,	/* SSE register */
+	MX86_RT_CR,	/* CR0...CR7 control registers */
+	MX86_RT_DR,	/* DR0...DR7 debug registers */
 };
 
 /* decoded instruction operand (32-bit or 16-bit) */

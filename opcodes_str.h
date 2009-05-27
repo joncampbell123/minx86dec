@@ -347,6 +347,36 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"JCXZ",
 	"JMP",
 	"JMP FAR",
+	"LAHF",
+/* 0x110-0x113 */
+	"LFENCE",
+	"LDDQU",
+	"LDMXCSR",
+	"LDS",
+/* 0x114-0x117 */
+	"LSS",
+	"LES",
+	"LFS",
+	"LGS",
+/* 0x118-0x11B */
+	"LOOP",
+	"LOOPE",
+	"LOOPNE",
+	"MASKMOVDQU",
+/* 0x11C-0x11F */
+	"MASKMOVQ",
+	"MFENCE",
+	"MONITOR",
+	"MAXPD",
+/* 0x120-0x123 */
+	"MAXPS",
+	"MAXSD",
+	"MAXSS",
+	"MINPD",
+/* 0x124-0x127 */
+	"MINPS",
+	"MINSD",
+	"MINSS",
 
 	NULL
 };

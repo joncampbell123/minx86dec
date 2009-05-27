@@ -55,6 +55,7 @@ int main(int argc,char **argv) {
 			printf("%s",arg_c);
 			if (++c < i.argc) printf(",");
 		}
+		if (i.lock) printf("  ; LOCK#");
 		printf("\n");
 	}
 
