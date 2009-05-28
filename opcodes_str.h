@@ -378,6 +378,12 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"MINSD",
 	"MINSS",
 	"MWAIT",
+/* 0x128-0x12B */
+	"MOVAPD",
+	"MOVAPS",
+	"MOVBE",
+	"MOVD",
+/* 0x12C-0x12F */
 
 	NULL
 };
