@@ -1224,6 +1224,36 @@ decode_next:
 					break; }
 #  endif
 #  if sse_level >= 2 /* SSE2 */
+				COVER_2(0x12): {
+					const unsigned int which = second_byte & 1;
+					struct minx86dec_argv *d = &ins->argv[which];
+					struct minx86dec_argv *s = &ins->argv[which^1];
+					union x86_mrm mrm = fetch_modregrm();
+					ins->opcode = (ins->rep == MX86_REPE) ? MXOP_MOVDDUP : (dataprefix32 ? MXOP_MOVLPD : MXOP_MOVLPS);
+					ins->argc = 2;
+					d->size = 16;
+					s->size = 8;
+					set_sse_register(d,mrm.f.reg);
+					decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+					/* Hm..... so the reg-reg version of MXOP_MOVLPS is MXOP_MOVHLPS? */
+					if (ins->opcode == MXOP_MOVLPS && s->regtype != MX86_RT_NONE)
+						ins->opcode = MXOP_MOVHLPS;
+					} break;
+				COVER_2(0x16): {
+					const unsigned int which = second_byte & 1;
+					struct minx86dec_argv *d = &ins->argv[which];
+					struct minx86dec_argv *s = &ins->argv[which^1];
+					union x86_mrm mrm = fetch_modregrm();
+					ins->opcode = (ins->rep == MX86_REPNE) ? MXOP_MOVSHDUP : (dataprefix32 ? MXOP_MOVHPD : MXOP_MOVHPS);
+					ins->argc = 2;
+					d->size = 16;
+					s->size = 8;
+					set_sse_register(d,mrm.f.reg);
+					decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+					/* Hm..... so the reg-reg version of MXOP_MOVLPS is MXOP_MOVHLPS? */
+					if (ins->opcode == MXOP_MOVHPS && s->regtype != MX86_RT_NONE)
+						ins->opcode = MXOP_MOVLHPS;
+					} break;
 				COVER_2(0x28):
 					ins->opcode = MXOP_MOVAPS - (dataprefix32 & 1);
 					ins->argc = 2; {
@@ -1234,6 +1264,18 @@ decode_next:
 						re->size = rm->size = 16;
 						set_sse_register(re,mrm.f.reg);
 						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
+					} break;
+				case 0x50:
+					ins->opcode = MXOP_MOVMSKPS - (dataprefix32 & 1);
+					ins->argc = 2; {
+						struct minx86dec_argv *reg = &ins->argv[0];
+						struct minx86dec_argv *rm = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						reg->size = 4;
+						rm->size = 16;
+						set_register(reg,mrm.f.reg);
+						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
+						/* FIXME: Intel docs imply that MXOP_MOVMSKPD applies to the r/m = reg form. what else is here? */
 					} break;
 				case 0x5D:
 					ins->opcode = (ins->rep >= MX86_REPE) ? (ins->rep + MXOP_MINSD - MX86_REPE) : (MXOP_MINPS - dataprefix32);
@@ -1273,6 +1315,57 @@ decode_next:
 						set_sse_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					} break;
+				case 0x6F:
+				case 0x7F:
+					if (ins->rep == MX86_REPE) {
+					}
+					else {
+						const unsigned int which = (second_byte >> 4) & 1;
+						struct minx86dec_argv *d = &ins->argv[which];
+						struct minx86dec_argv *s = &ins->argv[which^1];
+						union x86_mrm mrm = fetch_modregrm();
+
+						ins->argc = 2;
+						ins->opcode = (ins->rep >= MX86_REPE) ? MXOP_MOVDQU :
+							(dataprefix32 ? MXOP_MOVDQA : MXOP_MOVQ);
+
+						if (dataprefix32 || ins->rep >= MX86_REPE) {
+							s->size = d->size = 16;
+							set_sse_register(d,mrm.f.reg);
+							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+						}
+						else {
+							s->size = d->size = 8;
+							set_sse_register(d,mrm.f.reg);
+							decode_rm_ex(mrm,s,isaddr32,MX86_RT_MMX);
+						}
+					}
+					break;
+				case 0xD6:
+					if (ins->rep >= MX86_REPE) {
+						const unsigned int which = ins->rep - MX86_REPE;
+						struct minx86dec_argv *mm = &ins->argv[which];
+						struct minx86dec_argv *xmm = &ins->argv[which^1];
+						union x86_mrm mrm = fetch_modregrm();
+						ins->opcode = which ? MXOP_MOVQ2DQ : MXOP_MOVDQ2Q;
+						ins->argc = 2;
+						mm->size = 8;
+						xmm->size = 16;
+						set_mmx_register(mm,mrm.f.reg);
+						decode_rm_ex(mrm,xmm,isaddr32,MX86_RT_SSE);
+					}
+					else if (dataprefix32) {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						ins->opcode = MXOP_MOVQ;
+						ins->argc = 2;
+						d->size = 8;
+						s->size = 16;
+						set_sse_register(d,mrm.f.reg);
+						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+					}
+					break;
 				case 0xF7: {
 					struct minx86dec_argv *d = &ins->argv[0];
 					struct minx86dec_argv *s = &ins->argv[1];
@@ -1413,6 +1506,23 @@ decode_next:
 							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 							i->size = 16;
 							set_sse_register(i,MX86_XMM0);
+						} break;
+						case 0x2A: {
+							if (ins->rep >= MX86_REPE) {
+							}
+							else if (dataprefix32) {
+								union x86_mrm mrm = fetch_modregrm();
+								struct minx86dec_argv *d = &ins->argv[0];
+								struct minx86dec_argv *s = &ins->argv[1];
+								ins->opcode = MXOP_MOVNTDQA;
+								ins->argc = 2;
+								d->size = s->size = 16;
+								set_sse_register(d,mrm.f.reg);
+								s->segment = seg_can_override(MX86_SEG_DS);
+								decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+							}
+							else {
+							}
 						} break;
 						COVER_2(0xF0):
 							if (ins->rep == MX86_REPE) {
