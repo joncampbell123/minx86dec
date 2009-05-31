@@ -672,6 +672,27 @@ decode_next:
 				else		set_immediate(r,((char)fetch_u8() + curp + 1) & 0x0000FFFFUL);
 			} break;
 
+		COVER_2(0xE6):
+			ins->opcode = MXOP_OUT;
+			ins->argc = 2; {
+				struct minx86dec_argv *ioport = &ins->argv[0];
+				struct minx86dec_argv *reg = &ins->argv[1];
+				set_immediate(ioport,fetch_u8());
+				reg->size = (first_byte & 1) ? data32wordsize : 1;
+				set_register(reg,MX86_REG_AX);
+			} break;
+
+		COVER_2(0xEE):
+			ins->opcode = MXOP_OUT;
+			ins->argc = 2; {
+				struct minx86dec_argv *rdx = &ins->argv[0];
+				struct minx86dec_argv *rax = &ins->argv[1];
+				rax->size = (first_byte & 1) ? data32wordsize : 1;
+				rdx->size = 2;
+				set_register(rax,MX86_REG_AX);
+				set_register(rdx,MX86_REG_DX);
+			} break;
+
 		/* REP/REPE/REPNE */
 		COVER_2(0xF2):
 			ins->rep = (first_byte & 1) + MX86_REPE;

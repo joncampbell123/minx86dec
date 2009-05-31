@@ -426,6 +426,7 @@ enum {
 /* 0x150-0x153 */
 	MXOP_ORPS,
 	MXOP_ORPD,
+	MXOP_OUT,
 
 	MXOP_LAST
 };
