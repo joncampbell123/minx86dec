@@ -464,6 +464,11 @@ decode_next:
 				mref->segval = fetch_u16();
 			} break;
 
+		case 0x9D:
+			ins->opcode = isdata32 ? MXOP_POPFD : MXOP_POPF;
+			ins->argc = 0;
+			break;
+
 		case 0xEA:
 			ins->opcode = MXOP_JMP_FAR;
 			ins->argc = 1; {
@@ -855,6 +860,12 @@ decode_next:
 						else		set_immediate(r,curp + 2 + ((uint32_t)((int16_t)fetch_u16())));
 						r->size = addr32wordsize;
 					} break;
+				case 0xA1:
+					ins->opcode = MXOP_POP;
+					ins->argc = 1; {
+						struct minx86dec_argv *r = &ins->argv[0];
+						set_segment_register(r,MX86_SEG_FS);
+					} break;
 				case 0xA3:
 					ins->opcode = MXOP_BT;
 					ins->argc = 2; {
@@ -865,6 +876,12 @@ decode_next:
 						d->segment = seg_can_override(MX86_SEG_DS);
 						set_register(s,mrm.f.reg);
 						decode_rm(mrm,d,isaddr32);
+					} break;
+				case 0xA9:
+					ins->opcode = MXOP_POP;
+					ins->argc = 1; {
+						struct minx86dec_argv *r = &ins->argv[0];
+						set_segment_register(r,MX86_SEG_GS);
 					} break;
 				case 0xAB:
 					ins->opcode = MXOP_BTS;
@@ -1495,6 +1512,16 @@ decode_next:
 						}
 					}
 					break;
+				case 0xB8:
+					ins->opcode = MXOP_POPCNT;
+					ins->argc = 2; {
+						struct minx86dec_argv *re = &ins->argv[0];
+						struct minx86dec_argv *rm = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						re->size = rm->size = data32wordsize;
+						set_register(re,mrm.f.reg);
+						decode_rm(mrm,rm,isaddr32);
+					} break;
 				case 0xC3:
 					if (dataprefix32) {
 					}

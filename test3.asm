@@ -1079,8 +1079,10 @@ prefetchnta	[esi]				; 0F 18 /0
      pushad					; 60
       pushf					; 9C
      pushfd					; 9C
+%if 0
        pxor	mm1,mm2				;    0F EF /r
        pxor	xmm1,xmm2			; 66 0F EF /r
+%endif
 	rcl	bh,1				; D0 /2
         rcl	bh,cl				; D2 /2
         rcl	bh,4				; CO /2 ib

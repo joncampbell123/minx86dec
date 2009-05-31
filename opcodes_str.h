@@ -432,6 +432,10 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"ORPS",
 	"ORPD",
 	"OUT",
+	"POPCNT",
+/* 0x154-0x157 */
+	"POPF",
+	"POPFD",
 
 	NULL
 };

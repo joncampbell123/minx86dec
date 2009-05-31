@@ -55,7 +55,8 @@ enum {	MX86_ST0,	MX86_ST1,	MX86_ST2,	MX86_ST3,
 #define MX86_ST(x) (MX86_ST0+(x))
 
 /* segment registers */
-enum {	MX86_SEG_ES=0,	MX86_SEG_CS,	MX86_SEG_SS,	MX86_SEG_DS };
+enum {	MX86_SEG_ES=0,	MX86_SEG_CS,	MX86_SEG_SS,	MX86_SEG_DS,
+	MX86_SEG_FS,	MX86_SEG_GS};
 #define MX86_SEG_IMM -2
 
 /* REP modes */
