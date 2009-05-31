@@ -428,6 +428,9 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"MULSS",
 	"NEG",
 	"NOT",
+/* 0x150-0x153 */
+	"ORPS",
+	"ORPD",
 
 	NULL
 };

@@ -1375,6 +1375,16 @@ decode_next:
 						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
 						/* FIXME: Intel docs imply that MXOP_MOVMSKPD applies to the r/m = reg form. what else is here? */
 					} break;
+				case 0x56:
+					ins->opcode = MXOP_ORPS + (dataprefix32 & 1);
+					ins->argc = 2; {
+						struct minx86dec_argv *reg = &ins->argv[0];
+						struct minx86dec_argv *rm = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						reg->size = rm->size = 16;
+						set_sse_register(reg,mrm.f.reg);
+						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
+					} break;
 				case 0x59:
 					ins->argc = 2;
 					ins->opcode = (ins->rep >= MX86_REPE) ?

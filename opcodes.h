@@ -423,6 +423,9 @@ enum {
 	MXOP_MULSS,
 	MXOP_NEG,
 	MXOP_NOT,
+/* 0x150-0x153 */
+	MXOP_ORPS,
+	MXOP_ORPD,
 
 	MXOP_LAST
 };
