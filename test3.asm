@@ -827,6 +827,7 @@ l4:
 	outsb					; 6E
 	outsw					; 6F
 	outsd					; 6F
+%if 0
 	pabsb	mm1,mm2				;    0F 38 1C /r
 	pabsb	xmm2,xmm3			; 66 0F 38 1C /r
 	pabsw	mm2,mm3				;    0F 38 1D /r
@@ -957,6 +958,7 @@ l4:
        pmullw	xmm1,xmm2			; 66 0F D5 /r
       pmuludq	mm1,mm2				;    0F F4 /r
       pmuludq	xmm1,xmm2			; 66 0F F4 /r
+%endif
         pop	word [si]			; 8F /0
         pop	dword [esi]			; 8F /0
 	pop	ax				; 58+reg
@@ -974,6 +976,7 @@ l4:
 	popcnt	eax,ebx				; F3 0F B8 /r
 	popf					; 9D
 	popfd					; 9D
+%if 0
 	por	mm1,mm2				;    0F EB /r
 	por	xmm1,xmm2			; 66 0F EB /r
  prefetcht0	[esi]				; 0F 18 /1
@@ -1058,6 +1061,7 @@ prefetchnta	[esi]				; 0F 18 /0
   punpckldq	mm1,mm2				;    0F 62 /r
   punpckldq	xmm1,xmm2			; 66 0F 62 /r
  punpcklqdq	xmm1,xmm2			; 66 0F 6C /r
+%endif
        push	word [si]			; FF /6
        push	dword [si]			; FF /6
        push	ax				; 50+reg
@@ -1086,18 +1090,21 @@ prefetchnta	[esi]				; 0F 18 /0
         rcl	ebx,1				; D1 /2
         rcl	ebx,cl				; D3 /2
         rcl	ebx,3				; C1 /2 ib
+%if 0
       rcpps	xmm1,xmm2			;    0F 53 /r
       rcpss	xmm1,xmm2			; F3 0F 53 /r
       rdmsr					; 0F 32
       rdpmc					; 0F 33
       rdtsc					; 0F 31
      rdtscp					; 0F 01 F9
+%endif
 	rep	movsb				; F3 A4
 	rep	movsw				; F3 A5
 	ret					; C3
        retf					; CB
 	ret	4				; C2 ib
        retf	4				; CA ib
+%if 0
     roundpd	xmm1,xmm2,2			; 66 0F 3A 09 /r ib
     roundps	xmm1,xmm2,3			; 66 0F 3A 08 /r ib
     roundsd	xmm1,xmm2,2			; 66 0F 3A 0B /r ib
@@ -1106,6 +1113,7 @@ prefetchnta	[esi]				; 0F 18 /0
     rsqrtps	xmm1,xmm2			;    0F 52 /r
     rsqrtss	xmm1,xmm2			; F3 0F 52 /r
        sahf					; 9E
+%endif
 
 ; SAL = SHL
         shl	bl,1				; D0 /4
@@ -1244,10 +1252,12 @@ prefetchnta	[esi]				; 0F 18 /0
 
 	ud2					; 0F 0B
 
+%if 0
     unpckhpd	xmm1,xmm2			; 66 0F 15 /r
     unpckhps	xmm1,xmm2			;    0F 15 /r
     unpcklpd	xmm1,xmm2			; 66 0F 14 /r
     unpcklps	xmm1,xmm2			;    0F 14 /r
+%endif
 
 	verr	ax				; 0F 00 /4
 	verr	[bx]				; 0F 00 /4
@@ -1283,12 +1293,15 @@ prefetchnta	[esi]				; 0F 18 /0
 	xor	ebx,edx				; 31 /r
 	xor	byte [si],dl			; 32 /r
 	xor	word [si],bx			; 33 /r
+%if 0
 	xorpd	xmm1,xmm2			; 66 0F 57 /r
 	xorps	xmm1,xmm2			;    0F 57 /r
 	xrstor	[esi]				; 0F AE /5
 	xsave	[esi]				; 0F AE /4
 	xsetbv					; 0F 01 D1
+%endif
 
+%if 0
 ; and now the VMX extensions!
 	invept	eax,[esi]			; 66 0F 38 80
 	invvpid	eax,[esi]			; 66 0F 38 81
@@ -1302,4 +1315,5 @@ prefetchnta	[esi]				; 0F 18 /0
 	vmwrite	eax,[esi]			; 0F 79
 	vmxoff					; 0F 01 C4
 	vmxon	[esi]				; F3 0F C7 /6
+%endif
 

@@ -274,6 +274,18 @@ decode_next:
 				im->size = 1;
 			} break;
 
+		case 0x8F: {
+			struct minx86dec_argv *d = &ins->argv[0];
+			union x86_mrm mrm = fetch_modregrm();
+			switch (mrm.f.reg) {
+				case 0:
+					ins->opcode = MXOP_POP;
+					ins->argc = 1;
+					decode_rm(mrm,d,isaddr32);
+					break;
+			}
+			} break;
+
 		case 0x9B:
 			/* hold on... check next opcode */
 			if (cip[0] == 0xD9) {
