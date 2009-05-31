@@ -403,6 +403,31 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"MOVMSKPD",
 	"MOVMSKPS",
 	"MOVNTDQA",
+/* 0x13C-0x13F */
+	"MOVNTDQ",
+	"MOVNTI",
+	"MOVNTPD",
+	"MOVNTPS",
+/* 0x140-0x143 */
+	"MOVNTQ",
+	"MOVSLDUP",
+	"MOVSS",
+	"MOVSX",
+/* 0x144-0x147 */
+	"MOVUPD",
+	"MOVUPS",
+	"MOVZX",
+	"MOVSD",
+/* 0x148-0x14B */
+	"MPSADBW",
+	"MUL",
+	"MULPS",
+	"MULPD",
+/* 0x14C-0x14F */
+	"MULSD",
+	"MULSS",
+	"NEG",
+	"NOT",
 
 	NULL
 };
