@@ -1698,6 +1698,32 @@ decode_next:
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
 
+				COVER_2(0x64): case 0x66: {
+					union x86_mrm mrm = fetch_modregrm();
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					ins->opcode = MXOP_PCMPGTB + (second_byte & 3);
+					ins->argc = 2;
+					d->size = s->size = dataprefix32 ? 16 : 8;
+					if (dataprefix32) set_sse_register(d,mrm.f.reg);
+					else set_mmx_register(d,mrm.f.reg);
+					s->segment = seg_can_override(MX86_SEG_DS);
+					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+				} break;
+
+				COVER_2(0x74): case 0x76: {
+					union x86_mrm mrm = fetch_modregrm();
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					ins->opcode = MXOP_PCMPEQB + (second_byte & 3);
+					ins->argc = 2;
+					d->size = s->size = dataprefix32 ? 16 : 8;
+					if (dataprefix32) set_sse_register(d,mrm.f.reg);
+					else set_mmx_register(d,mrm.f.reg);
+					s->segment = seg_can_override(MX86_SEG_DS);
+					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+				} break;
+
 				COVER_2(0x78):
 					ins->opcode = MXOP_VMREAD + (second_byte & 1);
 					ins->argc = 2; {
@@ -2189,6 +2215,20 @@ decode_next:
 							struct minx86dec_argv *s = &ins->argv[1];
 							struct minx86dec_argv *i = &ins->argv[2];
 							ins->opcode = MXOP_DPPS + (third_byte & 1);
+							ins->argc = 3;
+							d->size = s->size = 16;
+							set_sse_register(d,mrm.f.reg);
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+							i->size = 1;
+							set_immediate(i,fetch_u8());
+						} break;
+						COVER_4(0x60): {
+							union x86_mrm mrm = fetch_modregrm();
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							struct minx86dec_argv *i = &ins->argv[2];
+							ins->opcode = MXOP_PCMPESTRM + (third_byte & 3);
 							ins->argc = 3;
 							d->size = s->size = 16;
 							set_sse_register(d,mrm.f.reg);

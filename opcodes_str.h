@@ -568,6 +568,19 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PADDSW",
 	"PADDUSB",
 	"PADDUSW",
+/* 0x1C0-0x1C3 */
+	"PCMPEQB",
+	"PCMPEQW",
+	"PCMPEQD",
+	"PCMPGTB",
+/* 0x1C4-0x1C7 */
+	"PCMPGTW",
+	"PCMPGTD",
+	"PCMPESTRM",
+	"PCMPESTRI",
+/* 0x1C8-0x1CB */
+	"PCMPISTRM",
+	"PCMPISTRI",
 
 	NULL
 };

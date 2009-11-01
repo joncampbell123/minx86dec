@@ -875,13 +875,16 @@ l4:
      pblendvb	xmm1,xmm2,xmm0			; 66 0F 38 10 /r
       pblendw	xmm1,xmm2,4			; 66 0F 3A 0E /r ib
       pblendw	xmm2,xmm3,6			; 66 0F 3A 0E /r ib
+%endif
       pcmpeqb	mm1,mm2				;    0F 74 /r
       pcmpeqb	xmm1,xmm2			; 66 0F 74 /r
       pcmpeqw	mm1,mm3				;    0F 75 /r
       pcmpeqw	xmm2,xmm3			; 66 0F 75 /r
       pcmpeqd	mm2,mm3				;    0F 76 /r
       pcmpeqd	xmm1,xmm4			; 66 0F 76 /r
+%if 0
       pcmpeqq	xmm2,xmm3			; 66 0F 38 29 /r
+%endif
     pcmpestri	xmm1,xmm2,3			; 66 0F 3A 61 /r ib
     pcmpestrm	xmm1,xmm2,2			; 66 0F 3A 60 /r ib
     pcmpistri	xmm1,xmm2,4			; 66 0F 3A 63 /r ib
@@ -892,6 +895,7 @@ l4:
       pcmpgtw	xmm1,xmm2			; 66 0F 65 /r
       pcmpgtd	mm1,mm2				;    0F 66 /r
       pcmpgtd	xmm1,xmm2			; 66 0F 66 /r
+%if 0
       pcmpgtq	xmm1,xmm2			; 66 0F 38 37 /r
        pextrb	eax,xmm1,4			; 66 0F 3A 14 /r ib
        pextrd	ebx,xmm4,2			; 66 0F 3A 16 /r ib
