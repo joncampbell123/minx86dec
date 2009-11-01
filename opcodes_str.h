@@ -511,6 +511,16 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x190-0x193 */
 	"XSETBV",
 	"PXOR",
+	"UNPCKLPS",
+	"UNPCKLPD",
+/* 0x194-0x197 */
+	"UNPCKHPS",
+	"UNPCKHPD",
+	"ROUNDPS",
+	"ROUNDPD",
+/* 0x198-0x19B */
+	"ROUNDSS",
+	"ROUNDSD",
 
 	NULL
 };

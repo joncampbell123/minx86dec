@@ -1117,11 +1117,11 @@ prefetchnta	[esi]				; 0F 18 /0
        retf					; CB
 	ret	4				; C2 ib
        retf	4				; CA ib
-%if 0
     roundpd	xmm1,xmm2,2			; 66 0F 3A 09 /r ib
     roundps	xmm1,xmm2,3			; 66 0F 3A 08 /r ib
     roundsd	xmm1,xmm2,2			; 66 0F 3A 0B /r ib
     roundss	xmm1,xmm2,2			; 66 0F 3A 0A /r ib
+%if 0
 	rsm					; 0F AA
     rsqrtps	xmm1,xmm2			;    0F 52 /r
     rsqrtss	xmm1,xmm2			; F3 0F 52 /r
@@ -1284,12 +1284,10 @@ prefetchnta	[esi]				; 0F 18 /0
 
 	ud2					; 0F 0B
 
-%if 0
     unpckhpd	xmm1,xmm2			; 66 0F 15 /r
     unpckhps	xmm1,xmm2			;    0F 15 /r
     unpcklpd	xmm1,xmm2			; 66 0F 14 /r
     unpcklps	xmm1,xmm2			;    0F 14 /r
-%endif
 
 	verr	ax				; 0F 00 /4
 	verr	[bx]				; 0F 00 /4

@@ -1306,16 +1306,27 @@ decode_next:
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = isdata32 ? 16 : 8; /* 128 bit = 16 bytes */
-						if (isdata32) set_sse_register(d,mrm.f.reg);
+						d->size = s->size = dataprefix32 ? 16 : 8; /* 128 bit = 16 bytes */
+						if (dataprefix32) set_sse_register(d,mrm.f.reg);
 						else set_mmx_register(d,mrm.f.reg);
 						s->segment = seg_can_override(MX86_SEG_DS);
-						decode_rm_ex(mrm,s,isaddr32,isdata32 ? MX86_RT_SSE : MX86_RT_MMX);
+						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					} break;
 				case 0x0B:
 					ins->opcode = MXOP_UD2;
 					ins->argc = 0;
 					break;
+				COVER_2(0x14): /* MXOP_UNPCKLPS, MXOP_UNPCKLPD, MXOP_UNPCKHPS, MXOP_UNPCKHPD */
+					ins->opcode = MXOP_UNPCKLPS + ((second_byte & 1) << 1) + (dataprefix32 & 1);
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = 16; /* 128 bit = 16 bytes */
+						set_sse_register(d,mrm.f.reg);
+						s->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+					} break;
 				case 0x77:
 					ins->opcode = MXOP_EMMS;
 					ins->argc = 0;
@@ -2001,6 +2012,20 @@ decode_next:
 							d->size = 16;
 							set_sse_register(d,mrm.f.reg);
 							s->size = 16;
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+							i->size = 1;
+							set_immediate(i,fetch_u8());
+						} break;
+						COVER_4(0x08): {
+							union x86_mrm mrm = fetch_modregrm();
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							struct minx86dec_argv *i = &ins->argv[2];
+							ins->opcode = MXOP_ROUNDPS + (third_byte & 3); /* PS/PD/SS/SD */
+							ins->argc = 3;
+							d->size = s->size = 16;
+							set_sse_register(d,mrm.f.reg);
 							s->segment = seg_can_override(MX86_SEG_DS);
 							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 							i->size = 1;
