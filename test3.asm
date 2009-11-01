@@ -856,11 +856,11 @@ l4:
 	paddsb	xmm1,xmm2			; 66 0F EC /r
 	paddsw	mm1,mm2				;    0F ED /r
 	paddsw	xmm1,xmm2			; 66 0F ED /r
-%if 0
 	paddusb	mm1,mm2				;    0F DC /r
 	paddusb	xmm1,xmm2			; 66 0F DC /r
 	paddusw	mm1,mm2				;    0F DD /r
 	paddusw	xmm1,xmm2			; 66 0F DD /r
+%if 0
 	palignr	mm1,mm2,2			;    0F 3A 0F /r ib
 	palignr	xmm1,xmm2,3			; 66 0F 3A 0F /r ib
 	pand	mm1,mm2				;    0F DB /r
