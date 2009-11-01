@@ -521,6 +521,40 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x198-0x19B */
 	"ROUNDSS",
 	"ROUNDSD",
+	"RSM",
+	"SAHF",
+/* 0x19C-0x19F */
+	"RSQRTPS",
+	"RSQRTSS",
+	"RDTSC",
+	"RDMSR",
+/* 0x1A0-0x1A3 */
+	"RDPMC",
+	"RDTSCP",
+	"RCPPS",
+	"RCPSS",
+/* 0x1A4-0x1A7 */
+	"INVEPT",
+	"INVVPID",
+	"VMCLEAR",
+	"VMCALL",
+/* 0x1A8-0x1AB */
+	"VMLAUNCH",
+	"VMRESUME",
+	"VMPTRLD",
+	"VMPTRST",
+/* 0x1AC-0x1AF */
+	"VMREAD",
+	"VMWRITE",
+	"VMXOFF",
+	"VMXON",
+/* 0x1B0-0x1B3 */
+	"POR",
+	"PREFETCHNTA",
+	"PREFETCHT0",
+	"PREFETCHT1",
+/* 0x1B4-0x1B5 */
+	"PREFETCHT2",
 
 	NULL
 };
