@@ -901,8 +901,14 @@ decode_next:
 						ins->argc = 0;
 						cip++;
 					}
+					else if (*cip == 0xD1) {
+						/* extended control registers!?!? C'mon intel your damn standard has enough extensions of extensions! */
+						ins->opcode = MXOP_XSETBV;
+						ins->argc = 0;
+						cip++;
+					}
 #  endif
-					else {
+					else if (*cip < 0xC0) {
 						union x86_mrm mrm = fetch_modregrm();
 						switch (mrm.f.reg) {
 							case 0: case 1:
@@ -1294,6 +1300,18 @@ decode_next:
 					break;
 #  endif
 #  if sse_level >= 1 /* SSE instructions */
+				case 0xEF:
+					ins->opcode = MXOP_PXOR;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = isdata32 ? 16 : 8; /* 128 bit = 16 bytes */
+						if (isdata32) set_sse_register(d,mrm.f.reg);
+						else set_mmx_register(d,mrm.f.reg);
+						s->segment = seg_can_override(MX86_SEG_DS);
+						decode_rm_ex(mrm,s,isaddr32,isdata32 ? MX86_RT_SSE : MX86_RT_MMX);
+					} break;
 				case 0x0B:
 					ins->opcode = MXOP_UD2;
 					ins->argc = 0;
@@ -1663,6 +1681,16 @@ decode_next:
 						set_sse_register(reg,mrm.f.reg);
 						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
 					} break;
+				case 0x57:
+					ins->opcode = MXOP_XORPS + (dataprefix32 & 1);
+					ins->argc = 2; {
+						struct minx86dec_argv *reg = &ins->argv[0];
+						struct minx86dec_argv *rm = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						reg->size = rm->size = 16;
+						set_sse_register(reg,mrm.f.reg);
+						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
+					} break;
 				case 0x59:
 					ins->argc = 2;
 					ins->opcode = (ins->rep >= MX86_REPE) ?
@@ -1885,7 +1913,16 @@ decode_next:
 						case 1:	ins->opcode = MXOP_FXRSTOR; m = 1; break;
 						case 2:	ins->opcode = MXOP_LDMXCSR; m = 0; break;
 						case 3:	ins->opcode = MXOP_STMXCSR; m = 0; break;
-						case 5:	ins->opcode = MXOP_LFENCE; ins->argc = 0; break;
+						case 4: if (isaddr32) {
+							ins->opcode = MXOP_XSAVE; ins->argc = 0;
+							} else {
+							/* undefined */
+							} break;
+						case 5:	if (isaddr32) {
+							ins->opcode = MXOP_XRSTOR; ins->argc = 0; /* Intel you oughta be ashamed of yourself. this is a sick way to extend your instruction set. Oh, and why doesn't your documentation mention the need for the 0x67 prefix? */
+							} else {
+							ins->opcode = MXOP_LFENCE; ins->argc = 0;
+							} break;
 						case 6:	ins->opcode = MXOP_MFENCE; ins->argc = 0; break;
 						case 7: if (mrm.f.mod == 3) {
 							ins->opcode = MXOP_SFENCE; /* hah, get it? CLFLUSH with non-memory ref would not make sense, so let's use it for SFENCE! Pfffh... --J.C. */

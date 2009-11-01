@@ -1079,10 +1079,10 @@ prefetchnta	[esi]				; 0F 18 /0
      pushad					; 60
       pushf					; 9C
      pushfd					; 9C
-%if 0
+
        pxor	mm1,mm2				;    0F EF /r
        pxor	xmm1,xmm2			; 66 0F EF /r
-%endif
+
 	rcl	bh,1				; D0 /2
         rcl	bh,cl				; D2 /2
         rcl	bh,4				; CO /2 ib
@@ -1325,13 +1325,12 @@ prefetchnta	[esi]				; 0F 18 /0
 	xor	ebx,edx				; 31 /r
 	xor	byte [si],dl			; 32 /r
 	xor	word [si],bx			; 33 /r
-%if 0
+
 	xorpd	xmm1,xmm2			; 66 0F 57 /r
 	xorps	xmm1,xmm2			;    0F 57 /r
 	xrstor	[esi]				; 0F AE /5
 	xsave	[esi]				; 0F AE /4
 	xsetbv					; 0F 01 D1
-%endif
 
 %if 0
 ; and now the VMX extensions!

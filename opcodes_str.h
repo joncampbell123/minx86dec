@@ -503,6 +503,14 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"XADD",
 	"XGETBV",
 	"XLAT",
+/* 0x18C-0x18F */
+	"XORPS",
+	"XORPD",
+	"XRSTOR",
+	"XSAVE",
+/* 0x190-0x193 */
+	"XSETBV",
+	"PXOR",
 
 	NULL
 };
