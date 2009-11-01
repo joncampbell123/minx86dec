@@ -1257,8 +1257,11 @@ prefetchnta	[esi]				; 0F 18 /0
       subsd	xmm1,xmm2			; F2 0F 5C /r
       subss	xmm1,xmm2			; F3 0F 5C /r
 
-; this is 64-bit only, someday when you write x86-64 test cases use this
-;     swapgs					; 0F 01 /7
+; this is here for completeness, we're just abusing NASM's trust to get it in here so we can test decoding it.
+; the instruction is not valid in 16- and 32-bit modes, so we have to tell NASM we're assembling 64-bit here.
+bits 64
+     swapgs					; 0F 01 /7
+bits 16
 
     syscall					; 0F 05
    sysenter					; 0F 34

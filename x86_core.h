@@ -928,6 +928,11 @@ decode_next:
 						ins->argc = 0;
 						cip++;
 					}
+					else if (*cip == 0xF8) { /* we decode for completeness, but this is only valid in x86-64 mode */
+						ins->opcode = MXOP_SWAPGS;
+						ins->argc = 0;
+						cip++;
+					}
 					else if (*cip < 0xC0) {
 						union x86_mrm mrm = fetch_modregrm();
 						switch (mrm.f.reg) {
