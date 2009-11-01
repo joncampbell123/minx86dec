@@ -833,25 +833,201 @@ l4:
 	pabsw	xmm2,xmm4			; 66 0F 38 1D /r
 	pabsd	mm3,mm1				;    0F 38 1E /r
 	pabsd	xmm1,xmm3			; 66 0F 38 1E /r
+       pshufb	mm1,mm2				;    0F 38 00 /r
+       pshufb	xmm1,xmm2			; 66 0F 38 00 /r
+       phaddw	mm1,mm2				;    0F 38 01 /r
+       phaddw	xmm1,xmm2			; 66 0F 38 01 /r
+       phaddd	mm3,mm4				;    0F 38 02 /r
+       phaddd	xmm2,xmm6			; 66 0F 38 02 /r
+      phaddsw	mm1,mm2				;    0F 38 03 /r
+      phaddsw	xmm1,xmm2			; 66 0F 38 03 /r
+    pmaddubsw	mm1,mm2				;    0F 38 04 /r
+    pmaddubsw	xmm1,xmm2			; 66 0F 38 04 /r
+       phsubw	mm1,mm2				;    0F 38 05 /r
+       phsubw	xmm1,xmm2			; 66 0F 38 05 /r
+       phsubd	mm1,mm2				;    0F 38 06 /r
+       phsubd	xmm1,xmm2			; 66 0F 38 06 /r
+      phsubsw	mm1,mm2				;    0F 38 07 /r
+      phsubsw	xmm1,xmm2			; 66 0F 38 07 /r
+       psignb	mm1,mm2				;    0F 38 08 /r
+       psignb	xmm1,xmm2			; 66 0F 38 08 /r
+       psignw	mm1,mm2				;    0F 38 09 /r
+       psignw	xmm1,xmm2			; 66 0F 38 09 /r
+       psignd	mm1,mm2				;    0F 38 0A /r
+       psignd	xmm1,xmm2			; 66 0F 38 0A /r
+     pmulhrsw	mm1,mm2				;    0F 38 0B /r
+     pmulhrsw	xmm1,xmm2			; 66 0F 38 0B /r
+     pblendvb	xmm1,xmm2,xmm0			; 66 0F 38 10 /r
+        ptest	xmm1,xmm2			; 66 0F 38 17 /r
+     pmovsxbw	xmm1,xmm2			; 66 0F 38 20 /r
+     pmovsxbd	xmm1,xmm2			; 66 0F 38 21 /r
+     pmovsxbq	xmm1,xmm2			; 66 0F 38 22 /r
+     pmovsxwd	xmm1,xmm2			; 66 0F 38 23 /r
+     pmovsxwq	xmm1,xmm2			; 66 0F 38 24 /r
+     pmovsxdq	xmm1,xmm2			; 66 0F 38 25 /r
+       pmuldq	xmm1,xmm2			; 66 0F 38 28 /r
+      pcmpeqq	xmm2,xmm3			; 66 0F 38 29 /r
 %if 0
+     packusdw	xmm1,xmm2			; 66 0F 38 2B /r
+
+     pmovzxbw	xmm1,xmm2			; 66 0F 38 30 /r
+     pmovzxbd	xmm1,xmm2			; 66 0F 38 31 /r
+     pmovzxbq	xmm1,xmm2			; 66 0F 38 32 /r
+     pmovzxwd	xmm1,xmm2			; 66 0F 38 33 /r
+     pmovzxwq	xmm1,xmm2			; 66 0F 38 34 /r
+     pmovzxdq	xmm1,xmm2			; 66 0F 38 35 /r
+
+      pcmpgtq	xmm1,xmm2			; 66 0F 38 37 /r
+       pminsb	xmm1,xmm2			; 66 0F 38 38 /r
+       pminsd	xmm1,xmm2			; 66 0F 38 39 /r
+       pminuw	xmm1,xmm2			; 66 0F 38 3A /r
+       pminud	xmm1,xmm2			; 66 0F 38 3B /r
+       pmaxsb	xmm1,xmm2			; 66 0F 38 3C /r
+       pmaxsd	xmm2,xmm3			; 66 0F 38 3D /r
+       pmaxuw	xmm3,xmm1			; 66 0F 38 3E /r
+       pmaxud	xmm2,xmm3			; 66 0F 38 3F /r
+       pmulld	xmm1,xmm2			; 66 0F 38 40 /r
+   phminposuw	xmm1,xmm2			; 66 0F 38 41 /r
+
+      pblendw	xmm1,xmm2,4			; 66 0F 3A 0E /r ib
+      pblendw	xmm2,xmm3,6			; 66 0F 3A 0E /r ib
+      palignr	mm1,mm2,2			;    0F 3A 0F /r ib
+      palignr	xmm1,xmm2,3			; 66 0F 3A 0F /r ib
+       pextrb	eax,xmm1,4			; 66 0F 3A 14 /r ib
+       pextrd	ebx,xmm4,2			; 66 0F 3A 16 /r ib
+       pinsrb	xmm1,byte [si],2		; 66 0F 3A 20 /r ib
+       pinsrb	xmm1,eax,3			; 66 0F 3A 22 /r ib
+
+    punpcklbw	mm1,mm2				;    0F 60 /r
+    punpcklbw	xmm1,xmm2			; 66 0F 60 /r
+    punpcklwd	mm1,mm2				;    0F 61 /r
+    punpcklwd	xmm1,xmm2			; 66 0F 61 /r
+    punpckldq	mm1,mm2				;    0F 62 /r
+    punpckldq	xmm1,xmm2			; 66 0F 62 /r
      packsswb	mm1,mm2				;    0F 63 /r
      packsswb	xmm1,xmm2			; 66 0F 63 /r
-     packssdw	mm1,mm2				;    0F 6B /r
-     packssdw	xmm1,xmm2			; 66 0F 6B /r
-     packusdw	xmm1,xmm2			; 66 0F 38 2B /r
+
      packuswb	mm1,mm2				;    0F 67 /r
      packuswb	xmm1,xmm2			; 66 0F 67 /r
+    punpckhbw	mm1,mm2				;    0F 68 /r
+    punpckhbw	xmm1,xmm2			; 66 0F 68 /r
+    punpckhwd	mm1,mm2				;    0F 69 /r
+    punpckhwd	xmm1,xmm2			; 66 0F 69 /r
+    punpckhdq	xmm1,xmm2			; 66 0F 6A /r
+     packssdw	mm1,mm2				;    0F 6B /r
+     packssdw	xmm1,xmm2			; 66 0F 6B /r
+   punpcklqdq	xmm1,xmm2			; 66 0F 6C /r
+   punpckhqdq	xmm1,xmm2			; 66 0F 6D /r
+
+       pshufd	xmm1,xmm2,3			; 66 0F 70 /r ib
+      pshufhw	xmm1,xmm2,2			; F3 0F 70 /r ib
+      pshuflw	xmm1,xmm2,2			; F2 0F 70 /r ib
+       pshufw	mm1,mm2,2			;    0F 70 /r ib
+        psrlw	mm1,2				;    0F 71 /2 ib
+        psrlw	xmm1,2				; 66 0F 71 /2 ib
+        psraw	mm1,4				;    0F 71 /4 ib
+        psraw	xmm1,5				; 66 0F 71 /4 ib
+        psllw	mm1,3				;    0F 71 /6 ib
+        psllw	xmm1,3				; 66 0F 71 /6 ib
+        psrld	mm1,2				;    0F 72 /2 ib
+        psrld	xmm1,3				; 66 0F 72 /2 ib
+        psrad	mm1,6				;    0F 72 /4 ib
+        psrad	xmm1,4				; 66 0F 72 /4 ib
+        pslld	mm1,3				;    0F 72 /6 ib
+        pslld	xmm1,3				; 66 0F 72 /6 ib
+        psrlq	mm1,2				;    0F 73 /2 ib
+        psrlq	xmm1,2				; 66 0F 73 /2 ib
+       psrldq	xmm1,2				; 66 0F 73 /3 ib
+        psllq	mm1,3				;    0F 73 /6 ib
+        psllq	xmm1,3				; 66 0F 73 /6 ib
+       pslldq	xmm1,2				; 66 0F 73 /7 ib
+
+       pinsrw	mm1,eax,5			;    0F C4 /r ib
+       pinsrw	mm2,word [si],3			;    0F C4 /r ib
+       pinsrw	xmm1,ecx,2			; 66 0F C4 /r ib
+       pinsrw	xmm3,word [si],1		; 66 0F C4 /r ib
+       pextrw	ecx,mm2,2			;    0F C5 /r ib
+       pextrw	edx,xmm1,3			; 66 0F C5 /r ib
+
+        psrlw	mm1,mm2				;    0F D1 /r
+        psrlw	xmm1,xmm2			; 66 0F D1 /r
+        psrld	mm1,mm2				;    0F D2 /r
+        psrld	xmm1,xmm2			; 66 0F D2 /r
+        psrlq	mm1,mm2				;    0F D3 /r
+        psrlq	xmm1,xmm2			; 66 0F D3 /r
+	paddq	mm1,mm2				;    0F D4 /r
+	paddq	xmm1,xmm2			; 66 0F D4 /r
+       pmullw	mm1,mm2				;    0F D5 /r
+       pmullw	xmm1,xmm2			; 66 0F D5 /r
+
+     pmovmskb	eax,mm1				;    0F D7 /r
+     pmovmskb	ebx,xmm1			; 66 0F D7 /r
+      psubusb	mm1,mm2				;    0F D8 /r
+      psubusb	xmm1,xmm2			; 66 0F D8 /r
+      psubusw	mm1,mm2				;    0F D9 /r
+      psubusw	xmm1,xmm2			; 66 0F D9 /r
+       pminub	mm1,mm2				;    0F DA /r
+       pminub	xmm1,xmm2			; 66 0F DA /r
+         pand	mm1,mm2				;    0F DB /r
+         pand	xmm1,xmm2			; 66 0F DB /r
+
+       pmaxub	mm1,mm2				;    0F DE /r
+       pmaxub	xmm1,xmm2			; 66 0F DE /r
+	pandn	mm1,mm2				;    0F DF /r
+	pandn	xmm1,xmm2			; 66 0F DF /r
+	pavgb	mm1,mm2				;    0F E0 /r
+	pavgb	xmm1,xmm2			; 66 0F E0 /r
+        psraw	mm1,mm2				;    0F E1 /r
+        psraw	xmm1,xmm2			; 66 0F E1 /r
+        psrad	mm1,mm2				;    0F E2 /r
+        psrad	xmm1,xmm2			; 66 0F E2 /r
+	pavgw	mm1,mm2				;    0F E3 /r
+	pavgw	xmm1,xmm2			; 66 0F E3 /r
+      pmulhuw	mm1,mm2				;    0F E4 /r
+      pmulhuw	xmm1,xmm2			; 66 0F E4 /r
+       pmulhw	mm1,mm2				;    0F E5 /r
+       pmulhw	xmm1,xmm2			; 66 0F E5 /r
+
+       psubsb	mm1,mm2				;    0F E8 /r
+       psubsb	xmm1,xmm2			; 66 0F E8 /r
+       psubsw	mm1,mm2				;    0F E9 /r
+       psubsw	xmm1,xmm2			; 66 0F E9 /r
+       pminsw	mm2,mm3				;    0F EA /r
+       pminsw	xmm2,xmm4			; 66 0F EA /r
+
+       pmaxsw	mm2,mm4				;    0F EE /r
+       pmaxsw	xmm2,xmm4			; 66 0F EE /r
+
+        psllw	mm1,mm2				;    0F F1 /r
+        psllw	xmm1,xmm2			; 66 0F F1 /r
+        pslld	mm1,mm2				;    0F F2 /r
+        pslld	xmm1,xmm2			; 66 0F F2 /r
+        psllq	mm1,mm2				;    0F F3 /r
+        psllq	xmm1,xmm2			; 66 0F F3 /r
+      pmuludq	mm1,mm2				;    0F F4 /r
+      pmuludq	xmm1,xmm2			; 66 0F F4 /r
+      pmaddwd	mm2,mm3				;    0F F5 /r
+      pmaddwd	xmm3,xmm2			; 66 0F F5 /r
+       psadbw	mm1,mm2				;    0F F6 /r
+       psadbw	xmm1,xmm2			;    0F F6 /r
+
+        psubb	mm1,mm2				;    0F F8 /r
+        psubb	xmm1,xmm2			; 66 0F F8 /r
+        psubw	mm1,mm2				;    0F F9 /r
+        psubw	xmm1,xmm2			; 66 0F F9 /r
+        psubd	mm1,mm2				;    0F FA /r
+        psubd	xmm1,xmm2			; 66 0F FA /r
+        psubq	mm1,mm2				;    0F FB /r
+        psubq	xmm1,xmm2			; 66 0F FB /r
+
 %endif
+	pause					;    F3 90
 	paddb	mm1,mm2				;    0F FC /r
 	paddb	xmm1,xmm2			; 66 0F FC /r
 	paddw	mm1,mm2				;    0F FD /r
 	paddw	xmm1,xmm2			; 66 0F FD /r
 	paddd	mm1,mm2				;    0F FE /r
 	paddd	xmm1,xmm2			; 66 0F FE /r
-%if 0
-	paddq	mm1,mm2				;    0F D4 /r
-	paddq	xmm1,xmm2			; 66 0F D4 /r
-%endif
 	paddsb	mm1,mm2				;    0F EC /r
 	paddsb	xmm1,xmm2			; 66 0F EC /r
 	paddsw	mm1,mm2				;    0F ED /r
@@ -860,31 +1036,12 @@ l4:
 	paddusb	xmm1,xmm2			; 66 0F DC /r
 	paddusw	mm1,mm2				;    0F DD /r
 	paddusw	xmm1,xmm2			; 66 0F DD /r
-%if 0
-	palignr	mm1,mm2,2			;    0F 3A 0F /r ib
-	palignr	xmm1,xmm2,3			; 66 0F 3A 0F /r ib
-	pand	mm1,mm2				;    0F DB /r
-	pand	xmm1,xmm2			; 66 0F DB /r
-	pandn	mm1,mm2				;    0F DF /r
-	pandn	xmm1,xmm2			; 66 0F DF /r
-	pause					; F3 90
-	pavgb	mm1,mm2				;    0F E0 /r
-	pavgb	xmm1,xmm2			; 66 0F E0 /r
-	pavgw	mm1,mm2				;    0F E3 /r
-	pavgw	xmm1,xmm2			; 66 0F E3 /r
-     pblendvb	xmm1,xmm2,xmm0			; 66 0F 38 10 /r
-      pblendw	xmm1,xmm2,4			; 66 0F 3A 0E /r ib
-      pblendw	xmm2,xmm3,6			; 66 0F 3A 0E /r ib
-%endif
       pcmpeqb	mm1,mm2				;    0F 74 /r
       pcmpeqb	xmm1,xmm2			; 66 0F 74 /r
       pcmpeqw	mm1,mm3				;    0F 75 /r
       pcmpeqw	xmm2,xmm3			; 66 0F 75 /r
       pcmpeqd	mm2,mm3				;    0F 76 /r
       pcmpeqd	xmm1,xmm4			; 66 0F 76 /r
-%if 0
-      pcmpeqq	xmm2,xmm3			; 66 0F 38 29 /r
-%endif
     pcmpestri	xmm1,xmm2,3			; 66 0F 3A 61 /r ib
     pcmpestrm	xmm1,xmm2,2			; 66 0F 3A 60 /r ib
     pcmpistri	xmm1,xmm2,4			; 66 0F 3A 63 /r ib
@@ -895,78 +1052,6 @@ l4:
       pcmpgtw	xmm1,xmm2			; 66 0F 65 /r
       pcmpgtd	mm1,mm2				;    0F 66 /r
       pcmpgtd	xmm1,xmm2			; 66 0F 66 /r
-%if 0
-      pcmpgtq	xmm1,xmm2			; 66 0F 38 37 /r
-       pextrb	eax,xmm1,4			; 66 0F 3A 14 /r ib
-       pextrd	ebx,xmm4,2			; 66 0F 3A 16 /r ib
-       pextrw	ecx,mm2,2			;    0F C5 /r ib
-       pextrw	edx,xmm1,3			; 66 0F C5 /r ib
-       phaddw	mm1,mm2				;    0F 38 01 /r
-       phaddw	xmm1,xmm2			; 66 0F 38 01 /r
-       phaddd	mm3,mm4				;    0F 38 02 /r
-       phaddd	xmm2,xmm6			; 66 0F 38 02 /r
-      phaddsw	mm1,mm2				;    0F 38 03 /r
-      phaddsw	xmm1,xmm2			; 66 0F 38 03 /r
-   phminposuw	xmm1,xmm2			; 66 0F 38 41 /r
-       phsubw	mm1,mm2				;    0F 38 05 /r
-       phsubw	xmm1,xmm2			; 66 0F 38 05 /r
-       phsubd	mm1,mm2				;    0F 38 06 /r
-       phsubd	xmm1,xmm2			; 66 0F 38 06 /r
-      phsubsw	mm1,mm2				;    0F 38 07 /r
-      phsubsw	xmm1,xmm2			; 66 0F 38 07 /r
-       pinsrb	xmm1,eax,3			; 66 0F 3A 22 /r ib
-       pinsrb	xmm1,byte [si],2		; 66 0F 3A 20 /r ib
-       pinsrw	mm1,eax,5			;    0F C4 /r ib
-       pinsrw	mm2,word [si],3			;    0F C4 /r ib
-       pinsrw	xmm1,ecx,2			; 66 0F C4 /r ib
-       pinsrw	xmm3,word [si],1		; 66 0F C4 /r ib
-    pmaddubsw	mm1,mm2				;    0F 38 04 /r
-    pmaddubsw	xmm1,xmm2			; 66 0F 38 04 /r
-      pmaddwd	mm2,mm3				;    0F F5 /r
-      pmaddwd	xmm3,xmm2			; 66 0F F5 /r
-       pmaxsb	xmm1,xmm2			; 66 0F 38 3C /r
-       pmaxsd	xmm2,xmm3			; 66 0F 38 3D /r
-       pmaxsw	mm2,mm4				;    0F EE /r
-       pmaxsw	xmm2,xmm4			; 66 0F EE /r
-       pmaxub	mm1,mm2				;    0F DE /r
-       pmaxub	xmm1,xmm2			; 66 0F DE /r
-       pmaxud	xmm2,xmm3			; 66 0F 38 3F /r
-       pmaxuw	xmm3,xmm1			; 66 0F 38 3E /r
-       pminsb	xmm1,xmm2			; 66 0F 38 38 /r
-       pminsd	xmm1,xmm2			; 66 0F 38 39 /r
-       pminsw	mm2,mm3				;    0F EA /r
-       pminsw	xmm2,xmm4			; 66 0F EA /r
-       pminub	mm1,mm2				;    0F DA /r
-       pminub	xmm1,xmm2			; 66 0F DA /r
-       pminud	xmm1,xmm2			; 66 0F 38 3B /r
-       pminuw	xmm1,xmm2			; 66 0F 38 3A /r
-     pmovmskb	eax,mm1				;    0F D7 /r
-     pmovmskb	ebx,xmm1			; 66 0F D7 /r
-     pmovsxbw	xmm1,xmm2			; 66 0F 38 20 /r
-     pmovsxbd	xmm1,xmm2			; 66 0F 38 21 /r
-     pmovsxbq	xmm1,xmm2			; 66 0F 38 22 /r
-     pmovsxwd	xmm1,xmm2			; 66 0F 38 23 /r
-     pmovsxwq	xmm1,xmm2			; 66 0F 38 24 /r
-     pmovsxdq	xmm1,xmm2			; 66 0F 38 25 /r
-     pmovzxbw	xmm1,xmm2			; 66 0F 38 30 /r
-     pmovzxbd	xmm1,xmm2			; 66 0F 38 31 /r
-     pmovzxbq	xmm1,xmm2			; 66 0F 38 32 /r
-     pmovzxwd	xmm1,xmm2			; 66 0F 38 33 /r
-     pmovzxwq	xmm1,xmm2			; 66 0F 38 34 /r
-     pmovzxdq	xmm1,xmm2			; 66 0F 38 35 /r
-       pmuldq	xmm1,xmm2			; 66 0F 38 28 /r
-     pmulhrsw	mm1,mm2				;    0F 38 0B /r
-     pmulhrsw	xmm1,xmm2			; 66 0F 38 0B /r
-      pmulhuw	mm1,mm2				;    0F E4 /r
-      pmulhuw	xmm1,xmm2			; 66 0F E4 /r
-       pmulhw	mm1,mm2				;    0F E5 /r
-       pmulhw	xmm1,xmm2			; 66 0F E5 /r
-       pmulld	xmm1,xmm2			; 66 0F 38 40 /r
-       pmullw	mm1,mm2				;    0F D5 /r
-       pmullw	xmm1,xmm2			; 66 0F D5 /r
-      pmuludq	mm1,mm2				;    0F F4 /r
-      pmuludq	xmm1,xmm2			; 66 0F F4 /r
-%endif
         pop	word [si]			; 8F /0
         pop	dword [esi]			; 8F /0
 	pop	ax				; 58+reg
@@ -990,86 +1075,6 @@ l4:
  prefetcht1	[esi]				; 0F 18 /2
  prefetcht2	[esi]				; 0F 18 /3
 prefetchnta	[esi]				; 0F 18 /0
-%if 0
-     psadbw	mm1,mm2				; 0F F6 /r
-     psadbw	xmm1,xmm2			; 0F F6 /r
-     pshufb	mm1,mm2				;    0F 38 00 /r
-     pshufb	xmm1,xmm2			; 66 0F 38 00 /r
-     pshufd	xmm1,xmm2,3			; 66 0F 70 /r ib
-    pshufhw	xmm1,xmm2,2			; F3 0F 70 /r ib
-    pshuflw	xmm1,xmm2,2			; F2 0F 70 /r ib
-     pshufw	mm1,mm2,2			;    0F 70 /r ib
-     psignb	mm1,mm2				;    0F 38 08 /r
-     psignb	xmm1,xmm2			; 66 0F 38 08 /r
-     psignw	mm1,mm2				;    0F 38 09 /r
-     psignw	xmm1,xmm2			; 66 0F 38 09 /r
-     psignd	mm1,mm2				;    0F 38 0A /r
-     psignd	xmm1,xmm2			; 66 0F 38 0A /r
-     pslldq	xmm1,2				; 66 0F 73 /7 ib
-      psllw	mm1,mm2				;    0F F1 /r
-      psllw	xmm1,xmm2			; 66 0F F1 /r
-      psllw	mm1,3				;    0F 71 /6 ib
-      psllw	xmm1,3				; 66 0F 71 /6 ib
-      pslld	mm1,mm2				;    0F F2 /r
-      pslld	xmm1,xmm2			; 66 0F F2 /r
-      pslld	mm1,3				;    0F 72 /6 ib
-      pslld	xmm1,3				; 66 0F 72 /6 ib
-      psllq	mm1,mm2				;    0F F3 /r
-      psllq	xmm1,xmm2			; 66 0F F3 /r
-      psllq	mm1,3				;    0F 73 /6 ib
-      psllq	xmm1,3				; 66 0F 73 /6 ib
-      psraw	mm1,mm2				;    0F E1 /r
-      psraw	xmm1,xmm2			; 66 0F E1 /r
-      psraw	mm1,4				;    0F 71 /4 ib
-      psraw	xmm1,5				; 66 0F 71 /4 ib
-      psrad	mm1,mm2				;    0F E2 /r
-      psrad	xmm1,xmm2			; 66 0F E2 /r
-      psrad	mm1,6				;    0F 72 /4 ib
-      psrad	xmm1,4				; 66 0F 72 /4 ib
-     psrldq	xmm1,2				; 66 0F 73 /3 ib
-      psrlw	mm1,mm2				;    0F D1 /r
-      psrlw	xmm1,xmm2			; 66 0F D1 /r
-      psrlw	mm1,2				;    0F 71 /2 ib
-      psrlw	xmm1,2				; 66 0F 71 /2 ib
-      psrld	mm1,mm2				;    0F D2 /r
-      psrld	xmm1,xmm2			; 66 0F D2 /r
-      psrld	mm1,2				;    0F 72 /2 ib
-      psrld	xmm1,3				; 66 0F 72 /2 ib
-      psrlq	mm1,mm2				;    0F D3 /r
-      psrlq	xmm1,xmm2			; 66 0F D3 /r
-      psrlq	mm1,2				;    0F 73 /2 ib
-      psrlq	xmm1,2				; 66 0F 73 /2 ib
-      psubb	mm1,mm2				;    0F F8 /r
-      psubb	xmm1,xmm2			; 66 0F F8 /r
-      psubw	mm1,mm2				;    0F F9 /r
-      psubw	xmm1,xmm2			; 66 0F F9 /r
-      psubd	mm1,mm2				;    0F FA /r
-      psubd	xmm1,xmm2			; 66 0F FA /r
-      psubq	mm1,mm2				;    0F FB /r
-      psubq	xmm1,xmm2			; 66 0F FB /r
-     psubsb	mm1,mm2				;    0F E8 /r
-     psubsb	xmm1,xmm2			; 66 0F E8 /r
-     psubsw	mm1,mm2				;    0F E9 /r
-     psubsw	xmm1,xmm2			; 66 0F E9 /r
-    psubusb	mm1,mm2				;    0F D8 /r
-    psubusb	xmm1,xmm2			; 66 0F D8 /r
-    psubusw	mm1,mm2				;    0F D9 /r
-    psubusw	xmm1,xmm2			; 66 0F D9 /r
-      ptest	xmm1,xmm2			; 66 0F 38 17 /r
-  punpckhbw	mm1,mm2				;    0F 68 /r
-  punpckhbw	xmm1,xmm2			; 66 0F 68 /r
-  punpckhwd	mm1,mm2				;    0F 69 /r
-  punpckhwd	xmm1,xmm2			; 66 0F 69 /r
-  punpckhdq	xmm1,xmm2			; 66 0F 6A /r
- punpckhqdq	xmm1,xmm2			; 66 0F 6D /r
-  punpcklbw	mm1,mm2				;    0F 60 /r
-  punpcklbw	xmm1,xmm2			; 66 0F 60 /r
-  punpcklwd	mm1,mm2				;    0F 61 /r
-  punpcklwd	xmm1,xmm2			; 66 0F 61 /r
-  punpckldq	mm1,mm2				;    0F 62 /r
-  punpckldq	xmm1,xmm2			; 66 0F 62 /r
- punpcklqdq	xmm1,xmm2			; 66 0F 6C /r
-%endif
        push	word [si]			; FF /6
        push	dword [si]			; FF /6
        push	ax				; 50+reg

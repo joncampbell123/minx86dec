@@ -581,6 +581,35 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x1C8-0x1CB */
 	"PCMPISTRM",
 	"PCMPISTRI",
+	"PAUSE",
+	"PSHUFB",
+/* 0x1CC-0x1CF */
+	"PHADDW",
+	"PHADDD",
+	"PHADDSW",
+	"PMADDUBSW",
+/* 0x1D0-0x1D3 */
+	"PHSUBW",
+	"PHSUBD",
+	"PHSUBSW",
+	"PSIGNB",
+/* 0x1D4-0x1D7 */
+	"PSIGNW",
+	"PSIGND",
+	"PMULHRSW",
+	"PBLENDVB",
+/* 0x1D8-0x1DB */
+	"PTEST",
+	"PMOVSXBW",
+	"PMOVSXBD",
+	"PMOVSXBQ",
+/* 0x1DC-0x1DF */
+	"PMOVSXWD",
+	"PMOVSXWQ",
+	"PMOVSXDQ",
+	"PMULDQ",
+/* 0x1E0-0x1E3 */
+	"PCMPEQQ",
 
 	NULL
 };
