@@ -436,6 +436,73 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x154-0x157 */
 	"POPF",
 	"POPFD",
+	"PUSHF",
+	"PUSHFD",
+/* 0x158-0x15B */
+	"RCL",
+	"RET",
+	"RETF",
+	"SHL",
+/* 0x15C-0x15F */
+	"SHR",
+	"SAR",
+	"SFENCE",
+	"--DUMMY_2--",
+/* 0x160-0x163 */
+	"SETO",
+	"SETNO",
+	"SETB",
+	"SETNB",
+/* 0x164-0x167 */
+	"SETZ",
+	"SETNZ",
+	"SETBE",
+	"SETA",
+/* 0x168-0x16B */
+	"SETS",
+	"SETNS",
+	"SETP",
+	"SETNP",
+/* 0x16C-0x16F */
+	"SETL",
+	"SETGE",
+	"SETLE",
+	"SETG",
+/* 0x170-0x173 */
+	"SHLD",
+	"SHRD",
+	"SHUFPS",
+	"SHUFPD",
+/* 0x174-0x177 */
+	"SQRTPS",
+	"SQRTSD",
+	"SQRTSS",
+	"STC",
+/* 0x178-0x17B */
+	"STD",
+	"STI",
+	"STMXCSR",
+	"RCR",
+/* 0x17C-0x17F */
+	"SUBPD",
+	"SUBPS",
+	"SUBSD",
+	"SUBSS",
+/* 0x180-0x183 */
+	"SYSCALL",
+	"SYSENTER",
+	"SYSEXIT",
+	"SYSRET",
+/* 0x184-0x187 */
+	"UCOMISS",
+	"UCOMISD",
+	"#UD2",
+	"WBINVD",
+/* 0x188-0x18B */
+	"WRMSR",
+	"XADD",
+	"XGETBV",
+	"XLAT",
 
 	NULL
 };

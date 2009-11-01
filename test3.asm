@@ -1092,6 +1092,16 @@ prefetchnta	[esi]				; 0F 18 /0
         rcl	ebx,1				; D1 /2
         rcl	ebx,cl				; D3 /2
         rcl	ebx,3				; C1 /2 ib
+
+	rcr	bh,1				; D0 /3
+        rcr	bh,cl				; D2 /3
+        rcr	bh,4				; CO /3 ib
+        rcr	bx,1				; D1 /3
+        rcr	bx,cl				; D3 /3
+        rcr	bx,3				; C1 /3 ib
+        rcr	ebx,1				; D1 /3
+        rcr	ebx,cl				; D3 /3
+        rcr	ebx,3				; C1 /3 ib
 %if 0
       rcpps	xmm1,xmm2			;    0F 53 /r
       rcpss	xmm1,xmm2			; F3 0F 53 /r
@@ -1102,6 +1112,7 @@ prefetchnta	[esi]				; 0F 18 /0
 %endif
 	rep	movsb				; F3 A4
 	rep	movsw				; F3 A5
+	rep	movsd				; 66 F3 A5
 	ret					; C3
        retf					; CB
 	ret	4				; C2 ib
@@ -1182,6 +1193,25 @@ prefetchnta	[esi]				; 0F 18 /0
 	setle	al				; 0F 9E
 	setnle	al				; 0F 9F
 
+	seto	bl				; 0F 90
+	setno	bl				; 0F 91
+	setb	bl				; 0F 92
+	setnb	bl				; 0F 93
+	sete	bl				; 0F 94
+	setne	bl				; 0F 95
+	setbe	bl				; 0F 96
+	setnbe	bl				; 0F 97
+	sets	bl				; 0F 98
+	setns	bl				; 0F 99
+	setp	bl				; 0F 9A
+	setnp	bl				; 0F 9B
+	setl	bl				; 0F 9C
+	setnl	bl				; 0F 9D
+	setle	bl				; 0F 9E
+	setnle	bl				; 0F 9F
+
+	seto	[bx]				; 0F 90
+
 	sfence					; 0F AE /7
 	sgdt	[bx]				; 0F 01 /0
 
@@ -1228,8 +1258,8 @@ prefetchnta	[esi]				; 0F 18 /0
 
       subpd	xmm1,xmm2			; 66 0F 5C /r
       subps	xmm1,xmm2			;    0F 5C /r
-      subsd	xmm1,xmm2			; F2 05 5C /r
-      subss	xmm1,xmm2			; F3 05 5C /r
+      subsd	xmm1,xmm2			; F2 0F 5C /r
+      subss	xmm1,xmm2			; F3 0F 5C /r
 
 ; this is 64-bit only, someday when you write x86-64 test cases use this
 ;     swapgs					; 0F 01 /7
