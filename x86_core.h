@@ -2178,6 +2178,18 @@ decode_next:
 							i->size = 16;
 							set_sse_register(i,MX86_XMM0);
 						} break;
+						COVER_2(0x1C): case 0x1E: {
+							union x86_mrm mrm = fetch_modregrm();
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							ins->opcode = MXOP_PABSB + (third_byte & 3);
+							ins->argc = 2;
+							d->size = s->size = dataprefix32 ? 16 : 8;
+							if (dataprefix32) set_sse_register(d,mrm.f.reg);
+							else set_mmx_register(d,mrm.f.reg);
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+						} break;
 						case 0x2A: {
 							if (ins->rep >= MX86_REPE) {
 							}

@@ -556,6 +556,10 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x1B4-0x1B5 */
 	"PREFETCHT2",
 	"SWAPGS",
+	"PABSB",
+	"PABSW",
+/* 0x1B8-0x1BB */
+	"PABSD",
 
 	NULL
 };

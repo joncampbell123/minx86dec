@@ -827,13 +827,13 @@ l4:
 	outsb					; 6E
 	outsw					; 6F
 	outsd					; 6F
-%if 0
 	pabsb	mm1,mm2				;    0F 38 1C /r
 	pabsb	xmm2,xmm3			; 66 0F 38 1C /r
 	pabsw	mm2,mm3				;    0F 38 1D /r
 	pabsw	xmm2,xmm4			; 66 0F 38 1D /r
 	pabsd	mm3,mm1				;    0F 38 1E /r
 	pabsd	xmm1,xmm3			; 66 0F 38 1E /r
+%if 0
      packsswb	mm1,mm2				;    0F 63 /r
      packsswb	xmm1,xmm2			; 66 0F 63 /r
      packssdw	mm1,mm2				;    0F 6B /r
