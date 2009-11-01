@@ -1659,6 +1659,32 @@ decode_next:
 					break; }
 #  endif
 #  if sse_level >= 2 /* SSE2 */
+				COVER_2(0xEC): {
+					union x86_mrm mrm = fetch_modregrm();
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					ins->opcode = MXOP_PADDSB + (second_byte & 1);
+					ins->argc = 2;
+					d->size = s->size = dataprefix32 ? 16 : 8;
+					if (dataprefix32) set_sse_register(d,mrm.f.reg);
+					else set_mmx_register(d,mrm.f.reg);
+					s->segment = seg_can_override(MX86_SEG_DS);
+					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+				} break;
+
+				COVER_2(0xFC): case 0xFE: {
+					union x86_mrm mrm = fetch_modregrm();
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					ins->opcode = MXOP_PADDB + (second_byte & 3);
+					ins->argc = 2;
+					d->size = s->size = dataprefix32 ? 16 : 8;
+					if (dataprefix32) set_sse_register(d,mrm.f.reg);
+					else set_mmx_register(d,mrm.f.reg);
+					s->segment = seg_can_override(MX86_SEG_DS);
+					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+				} break;
+
 				COVER_2(0x78):
 					ins->opcode = MXOP_VMREAD + (second_byte & 1);
 					ins->argc = 2; {

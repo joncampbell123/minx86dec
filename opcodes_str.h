@@ -560,6 +560,12 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PABSW",
 /* 0x1B8-0x1BB */
 	"PABSD",
+	"PADDB",
+	"PADDW",
+	"PADDD",
+/* 0x1BC-0x1BF */
+	"PADDSB",
+	"PADDSW",
 
 	NULL
 };

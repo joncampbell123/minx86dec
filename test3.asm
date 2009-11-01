@@ -841,18 +841,22 @@ l4:
      packusdw	xmm1,xmm2			; 66 0F 38 2B /r
      packuswb	mm1,mm2				;    0F 67 /r
      packuswb	xmm1,xmm2			; 66 0F 67 /r
+%endif
 	paddb	mm1,mm2				;    0F FC /r
 	paddb	xmm1,xmm2			; 66 0F FC /r
 	paddw	mm1,mm2				;    0F FD /r
 	paddw	xmm1,xmm2			; 66 0F FD /r
 	paddd	mm1,mm2				;    0F FE /r
 	paddd	xmm1,xmm2			; 66 0F FE /r
+%if 0
 	paddq	mm1,mm2				;    0F D4 /r
 	paddq	xmm1,xmm2			; 66 0F D4 /r
+%endif
 	paddsb	mm1,mm2				;    0F EC /r
 	paddsb	xmm1,xmm2			; 66 0F EC /r
 	paddsw	mm1,mm2				;    0F ED /r
 	paddsw	xmm1,xmm2			; 66 0F ED /r
+%if 0
 	paddusb	mm1,mm2				;    0F DC /r
 	paddusb	xmm1,xmm2			; 66 0F DC /r
 	paddusw	mm1,mm2				;    0F DD /r
