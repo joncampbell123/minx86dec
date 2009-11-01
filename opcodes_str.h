@@ -610,6 +610,28 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PMULDQ",
 /* 0x1E0-0x1E3 */
 	"PCMPEQQ",
+	"PACKUSDW",
+	"PMOVZXBW",
+	"PMOVZXBD",
+	"PMOVZXBQ",
+/* 0x1E4-0x1E7 */
+	"PMOVZXWD",
+	"PMOVZXWQ",
+	"PMOVZXDQ",
+	"PCMPGTQ",
+/* 0x1E8-0x1EB */
+	"PMINSB",
+	"PMINSD",
+	"PMINUW",
+	"PMINUD",
+/* 0x1EC-0x1EF */
+	"PMAXSB",
+	"PMAXSD",
+	"PMAXUW",
+	"PMAXUD",
+/* 0x1F0-0x1F3 */
+	"PMULLD",
+	"PHMINPOSUW",
 
 	NULL
 };

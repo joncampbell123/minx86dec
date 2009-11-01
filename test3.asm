@@ -867,16 +867,13 @@ l4:
      pmovsxdq	xmm1,xmm2			; 66 0F 38 25 /r
        pmuldq	xmm1,xmm2			; 66 0F 38 28 /r
       pcmpeqq	xmm2,xmm3			; 66 0F 38 29 /r
-%if 0
      packusdw	xmm1,xmm2			; 66 0F 38 2B /r
-
      pmovzxbw	xmm1,xmm2			; 66 0F 38 30 /r
      pmovzxbd	xmm1,xmm2			; 66 0F 38 31 /r
      pmovzxbq	xmm1,xmm2			; 66 0F 38 32 /r
      pmovzxwd	xmm1,xmm2			; 66 0F 38 33 /r
      pmovzxwq	xmm1,xmm2			; 66 0F 38 34 /r
      pmovzxdq	xmm1,xmm2			; 66 0F 38 35 /r
-
       pcmpgtq	xmm1,xmm2			; 66 0F 38 37 /r
        pminsb	xmm1,xmm2			; 66 0F 38 38 /r
        pminsd	xmm1,xmm2			; 66 0F 38 39 /r
@@ -888,7 +885,7 @@ l4:
        pmaxud	xmm2,xmm3			; 66 0F 38 3F /r
        pmulld	xmm1,xmm2			; 66 0F 38 40 /r
    phminposuw	xmm1,xmm2			; 66 0F 38 41 /r
-
+%if 0
       pblendw	xmm1,xmm2,4			; 66 0F 3A 0E /r ib
       pblendw	xmm2,xmm3,6			; 66 0F 3A 0E /r ib
       palignr	mm1,mm2,2			;    0F 3A 0F /r ib
