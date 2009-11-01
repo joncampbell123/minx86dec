@@ -1016,8 +1016,8 @@ l4:
         psubd	xmm1,xmm2			; 66 0F FA /r
         psubq	mm1,mm2				;    0F FB /r
         psubq	xmm1,xmm2			; 66 0F FB /r
-
 %endif
+
 	pause					;    F3 90
 	paddb	mm1,mm2				;    0F FC /r
 	paddb	xmm1,xmm2			; 66 0F FC /r
