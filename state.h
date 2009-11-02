@@ -10,7 +10,15 @@ struct minx86dec_state {
 	minx86_read_ptr_t	prefetch_fence,fence; /* decoding stops at prefetch_fence, so that no reads go past fence */
 	uint8_t			data32:1;	/* 386+ 32-bit opcode data operand decoding */
 	uint8_t			addr32:1;	/* 386+ 32-bit opcode address operand decoding */
-	uint8_t			code64:1;	/* AMD64 long mode decoding (for your reference) */
+};
+
+struct minx86dec_state_x64 {
+	uint64_t		ip_value;	/* IP instruction pointer value */
+	minx86_read_ptr_t	read_ip;	/* decoding reads from here */
+	minx86_read_ptr_t	prefetch_fence,fence; /* decoding stops at prefetch_fence, so that no reads go past fence */
+	uint8_t			data32:1;	/* 386+ 32-bit opcode data operand decoding */
+	uint8_t			addr32:1;	/* 386+ 32-bit opcode address operand decoding */
+	uint8_t			data64:1;	/* x86-64 64-bit operand size */
 };
 
 /* 8-bit, CPU reg order */
@@ -104,6 +112,40 @@ struct minx86dec_instruction {
 
 	uint8_t				addr32:1;	/* 32-bit addr */
 	uint8_t				data32:1;	/* 32-bit data */
+};
+
+/* decoded instruction operand (64-bit) */
+struct minx86dec_argv_x64 {
+	int				segment;	/* which segment */
+	uint16_t			segval;		/* segment value (if segment == -2) */
+	unsigned int			size;		/* size of the operand (1=byte 2=word 4=dword etc) */
+	int				regtype;	/* type of register (0 if memory ref) */
+	int				reg;
+	uint64_t			memref_base;	/* base immediate offset */
+	uint64_t			value;
+	int				memregsz;
+	int				memregs;	/* number of memory references to add together */
+	int				memreg[4];	/* memory register offsets to add together. note that [0] is scaled by SIB scalar part */
+	int				scalar;
+};
+
+/* decoded instruction (64-bit) */
+struct minx86dec_instruction_x64 {
+	unsigned int			opcode;		/* MXOP_... */
+	minx86_read_ptr_t		start;		/* read_ip value at start of decoding */
+	minx86_read_ptr_t		end;		/* read_ip after decoding (first byte of next instruction) */
+
+	uint8_t				rex;		/* REX prefix */
+	uint8_t				lock;		/* LOCK prefix */
+	int				segment;	/* segment override (used during decode) or -1 */
+	int				rep;		/* REP prefix or 0 */
+
+	int				argc;		/* number of instruction operands */
+	struct minx86dec_argv_x64	argv[4];	/* instruction operands */
+
+	uint8_t				addr32:1;	/* 32-bit addr */
+	uint8_t				data32:1;	/* 32-bit data */
+	uint8_t				data64:1;	/* 64-bit operand override */
 };
 
 #endif
