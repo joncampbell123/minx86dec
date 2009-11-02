@@ -2,7 +2,8 @@ FIXME:
    Some of your MMX/SSE decoding routines might have corner cases where
    an incorrect sequence of LOCK+66h instructions might crash or otherwise
    produce incorrect behavior. What should ultimately happen is flagging these
-   incorrect sequences as undefined.
+   incorrect sequences as undefined. But assuming common cases works as well,
+   so far.
 TODO:
    There's a lot of redundant code in the X86 core, specifically related to
    register assignment and such. Can you reduce that down to macros to provide

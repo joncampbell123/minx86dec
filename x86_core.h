@@ -2521,6 +2521,7 @@ decode_next:
 #endif
 #if 1 /* TODO: #define for FPU support */
 /* ---------------------------------- FPU instructions ---------------------------------- */
+/* TODO: separate out FPU instructions according to whether we are decoding for 286, 386, etc.. */
 		case 0xD8: {
 			/* alright this is where it gets messy: second byte can be opcode OR a mod/reg/rm combination! */
 			const uint8_t second_byte = *cip;
