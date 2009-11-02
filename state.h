@@ -16,14 +16,17 @@ struct minx86dec_state_x64 {
 	uint64_t		ip_value;	/* IP instruction pointer value */
 	minx86_read_ptr_t	read_ip;	/* decoding reads from here */
 	minx86_read_ptr_t	prefetch_fence,fence; /* decoding stops at prefetch_fence, so that no reads go past fence */
-	uint8_t			data32:1;	/* 386+ 32-bit opcode data operand decoding */
 	uint8_t			addr32:1;	/* 386+ 32-bit opcode address operand decoding */
 	uint8_t			data64:1;	/* x86-64 64-bit operand size */
 };
 
 /* 8-bit, CPU reg order */
 enum {	MX86_REG_AL=0,	MX86_REG_CL,	MX86_REG_DL,	MX86_REG_BL,
-	MX86_REG_AH,	MX86_REG_CH,	MX86_REG_DH,	MX86_REG_BH };
+	MX86_REG_AH,	MX86_REG_CH,	MX86_REG_DH,	MX86_REG_BH,
+	MX86_REG_R8L,	MX86_REG_R9L,	MX86_REG_R10L,	MX86_REG_R11L,
+	MX86_REG_R12L,	MX86_REG_R13L,	MX86_REG_R14L,	MX86_REG_R15L,
+	MX86_REG_SPL,	MX86_REG_BPL,	MX86_REG_SIL,	MX86_REG_DIL
+};
 
 /* 16-bit, CPU reg order */
 enum {	MX86_REG_AX=0,	MX86_REG_CX,	MX86_REG_DX,	MX86_REG_BX,
@@ -129,13 +132,25 @@ struct minx86dec_argv_x64 {
 	int				scalar;
 };
 
+/* REX state variables */
+union minx86dec_rex_x64 {
+	struct {
+		uint8_t				b:1;		/* mod/reg/rm becomes 4th bit of r/m or 4th bit of SIB base */
+		uint8_t				x:1;		/* SIB becomes 4th bit of index */
+		uint8_t				r:1;		/* mod/reg/rm becomes 4th bit of reg */
+		uint8_t				w:1;		/* 64-bit operand wide */
+		uint8_t				prefix:4;	/* 0100 */
+	} f;
+	uint8_t				raw;
+};
+
 /* decoded instruction (64-bit) */
 struct minx86dec_instruction_x64 {
 	unsigned int			opcode;		/* MXOP_... */
 	minx86_read_ptr_t		start;		/* read_ip value at start of decoding */
 	minx86_read_ptr_t		end;		/* read_ip after decoding (first byte of next instruction) */
 
-	uint8_t				rex;		/* REX prefix */
+	union minx86dec_rex_x64		rex;		/* REX prefix */
 	uint8_t				lock;		/* LOCK prefix */
 	int				segment;	/* segment override (used during decode) or -1 */
 	int				rep;		/* REP prefix or 0 */

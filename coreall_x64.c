@@ -4,10 +4,14 @@
 static minx86_read_ptr_t cip;
 #include "minx86dec/x64_core_macros.h"
 
+/* NOTE: x64 decoding seems to demand that 32-bit data is on by default. */
+
 void minx86dec_decodeall_x64(struct minx86dec_state_x64 *state,struct minx86dec_instruction_x64 *ins) {
 	unsigned int dataprefix32 = 0,addrprefix32 = 0;
+	unsigned int __data32 = 1;
 	register unsigned int patience = 6;
 	cip = state->read_ip;
+#define isdata64 ins->data64
 #define isdata32 ins->data32
 #define isaddr32 ins->addr32
 #define core_level 99
@@ -22,7 +26,8 @@ void minx86dec_decodeall_x64(struct minx86dec_state_x64 *state,struct minx86dec_
 #define ssse3
 #define mmx
 
-	ins->data32 = state->data32;
+	ins->data64 = state->data64;
+	ins->data32 = __data32;
 	ins->addr32 = state->addr32;
 	ins->start = state->read_ip;
 	ins->opcode = MXOP_UD;

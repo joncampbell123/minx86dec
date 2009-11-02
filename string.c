@@ -3,9 +3,11 @@
 #include <string.h>
 #include <stdio.h>
 
-const char *regnames[9][17] = {
+const char *regnames[9][32+1] = {
 /* 0 */	{	NULL								},
-/* 1 */	{	"AL",	"CL",	"DL",	"BL",	"AH",	"CH",	"DH",	"BH"	},
+/* 1 */	{	"AL",	"CL",	"DL",	"BL",	"AH",	"CH",	"DH",	"BH",
+		"R8L",	"R9L",	"R10L",	"R11L",	"R12L",	"R13L",	"R14L",	"R15L",
+		"SPL",	"BPL",	"SIL",	"DIL"					},
 /* 2 */	{	"AX",	"CX",	"DX",	"BX",	"SP",	"BP",	"SI",	"DI"	},
 /* 3 */	{	NULL								},
 /* 4 */	{	"EAX",	"ECX",	"EDX",	"EBX",	"ESP",	"EBP",	"ESI",	"EDI"	},
@@ -104,7 +106,7 @@ void minx86dec_regprint(struct minx86dec_argv *a,char *output) {
 			sprintf(output,"0x%X",a->value);
 			break;
 		case MX86_RT_REG:
-			if (a->size >= 0 && a->size <= 8 && a->reg >= 0 && a->reg <= 16)
+			if (a->size >= 0 && a->size <= 8 && a->reg >= 0 && a->reg <= 32)
 				x = regnames[a->size][a->reg];
 			else
 				x = NULL;
@@ -173,13 +175,13 @@ static void minx86dec_memref_print_x64(struct minx86dec_argv_x64 *a,char *output
 		uint32_t pofs = a->memref_base;
 		char sgn = '+';
 
-		if (pofs & 0x80000000) {
+		if (pofs & 0x8000000000000000ULL) {
 			pofs = (uint32_t)(-pofs);
 			sgn = '-';
 		}
 
 		if (doop++) *output++ = sgn;
-		output += sprintf(output,"0x%X",pofs);
+		output += sprintf(output,"0x%llX",pofs);
 	}
 
 	*output++ = ']';
@@ -197,10 +199,10 @@ void minx86dec_regprint_x64(struct minx86dec_argv_x64 *a,char *output) {
 			if (a->segment == MX86_SEG_IMM)
 				output += sprintf(output,"0x%04X:",a->segval);
 
-			sprintf(output,"0x%X",a->value);
+			sprintf(output,"0x%llX",a->value);
 			break;
 		case MX86_RT_REG:
-			if (a->size >= 0 && a->size <= 8 && a->reg >= 0 && a->reg <= 16)
+			if (a->size >= 0 && a->size <= 8 && a->reg >= 0 && a->reg <= 32)
 				x = regnames[a->size][a->reg];
 			else
 				x = NULL;
