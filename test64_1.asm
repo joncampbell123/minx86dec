@@ -33,5 +33,9 @@ bits 64
 	sub	eax,012345678h
 	sub	eax,0FFEAAAAAh
 	sub	rax,012345678h
+	mov	rbx,088776655332211h
+	mov	rsi,02483475827353h
+	mov	r12,03278954623874623h
+	mov	r15,023897412789614h
 	nop
 
