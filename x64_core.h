@@ -8,14 +8,15 @@
  * #define isdata32 0 or state->data32
  * #define isaddr32 0 or state->addr32
  *
- * this code can be built to decompile like an 8086 (from core8086.c), or else like any 32-bit
- * processor (from other core sources). x86-64 decoding however is handled elsewhere, since
- * that is a different mode.
+ * This code decompiles x86-64 64-bit instructions. Be warned that as a hack/kludge of the existing
+ * 32-bit instruction set, it's a goddamn mess to parse and handle these opcodes. But hey, it's
+ * possible!
  *
- * This code assumes that the native "optimal" datatype is at least 16 bits (for 8086 decoding)
- * or 32 bits (for 386+ decoding). This is separated from x86_64 decoding which assumes a 64-bit
- * datatype is present. That way, compiling this code is possible even on a target that has no
- * 64-bit native support (such as: older DOS compilers!)
+ * This code assumes that the native "optimal" datatype is at least 64 bits, since everything is
+ * either 64-bits or 32-bit sign-extended to 64-bit. Obviously, if you're trying to compile this
+ * for DOS and the compiler doesn't support 64-bit integers, you're out of luck. sorry.
+ *
+ * WARNING: this code is very incomplete at this time!
  *
  * ready? here we go! */
 #define data32wordsize (isdata32 ? 4 : 2)
