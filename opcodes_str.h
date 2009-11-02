@@ -642,6 +642,7 @@ extern const char *opcode_string[MXOP_LAST+1];
 
 /* register argv printing (output must be at least 100 chars) */
 void minx86dec_regprint(struct minx86dec_argv *a,char *output);
+void minx86dec_regprint_x64(struct minx86dec_argv_x64 *a,char *output);
 
 #endif /* */
 

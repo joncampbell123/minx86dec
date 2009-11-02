@@ -3,6 +3,7 @@
 #include "minx86dec/opcodes.h"
 #include "minx86dec/coreall.h"
 #include "minx86dec/opcodes_str.h"
+#include "minx86dec/coreall_x64.h"
 #include <string.h>
 #include <stdio.h>
 
