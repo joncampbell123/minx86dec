@@ -1353,3 +1353,6 @@ bits 16
 	vmxoff					; 0F 01 C4
 	vmxon	[esi]				; F3 0F C7 /6
 
+; SMX extensions
+	getsec					; 0F 37
+

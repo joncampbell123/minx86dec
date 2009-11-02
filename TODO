@@ -1,3 +1,10 @@
+TODO:
+   Finish adding the rest of the MMX/SSE instructions and you'll be done!
+   Check latest Intel docs and AMD docs for any new instructions that might
+   have been added.
+TODO:
+   Write test asm with 64-bit code to test against, and then start building
+   the x86-64 core header file and test decompiler.
 FIXME:
    Some of your MMX/SSE decoding routines might have corner cases where
    an incorrect sequence of LOCK+66h instructions might crash or otherwise

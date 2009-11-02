@@ -1660,6 +1660,10 @@ decode_next:
 					break; }
 #  endif
 #  if sse_level >= 2 /* SSE2 */
+				case 0x37:
+					ins->opcode = MXOP_GETSEC;
+					ins->argc = 0;
+					break;
 				COVER_2(0xDC): {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];

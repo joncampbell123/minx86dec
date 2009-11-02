@@ -632,6 +632,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x1F0-0x1F3 */
 	"PMULLD",
 	"PHMINPOSUW",
+	"GETSEC",
 
 	NULL
 };
