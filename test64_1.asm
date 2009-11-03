@@ -70,5 +70,7 @@ bits 64
 	add	bl,[ecx*8+edx+54h]
 	add	bl,[edx*2+esi+12345678h]
 
+	add	bl,r9b
+
 	nop
 
