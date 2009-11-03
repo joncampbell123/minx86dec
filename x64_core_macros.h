@@ -78,8 +78,20 @@ static inline uint64_t imm32sbysize(struct minx86dec_instruction_x64 *s) {
 	return (uint64_t)fetch_u16();
 }
 
+/* read immediate, 32-bit zero-extended if 64-bit enabled */
+static inline uint64_t imm32zbysize(struct minx86dec_instruction_x64 *s) {
+	if (s->data64) return (uint64_t)fetch_u32();
+	if (s->data32) return (uint64_t)fetch_u32();
+	return (uint64_t)fetch_u16();
+}
+
 static inline uint64_t data32_64_signextend(int is64,uint32_t x) {
 	if (is64) return (uint64_t)((int32_t)(x));
+	return (uint64_t)x;
+}
+
+static inline uint64_t data32_64_zeroextend(int is64,uint32_t x) {
+	if (is64) return (uint64_t)(x);
 	return (uint64_t)x;
 }
 
@@ -160,67 +172,67 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 	}
 	a->regtype = MX86_RT_NONE;
 
-	if (s->addr32) {
-		a->scalar = 0;
-		a->memregsz = 4;
-		a->memref_base = 0;
+	a->scalar = 0;
+	a->memregsz = s->addr32 ? 4 : 8;
+	a->memref_base = 0;
 
-		if (mrm.f.mod == 0) {
-			if (mrm.f.rm == 5) {
-				a->memregs = 0;
-				a->memref_base = (uint64_t)((int32_t)fetch_u32()); /* sign-extended */
-				return mrm;
+	if (mrm.f.mod == 0) {
+		if (mrm.f.rm == 5) {
+			if (!s->addr32) { /* RIP relative */
+				a->memreg[0] = MX86_REG_RIP;
+				a->memregs = 1;
 			}
+			else {
+				a->memregs = 0;
+			}
+			a->memref_base = (uint64_t)((int32_t)fetch_u32()); /* sign-extended */
+			return mrm;
 		}
+	}
 
-		if ((mrm.f.rm&7) == 4) { /* SIB byte follows */
-			union x64_sib_byte sib;
-			mrm.f.rm &= 7;
-			sib.raw = fetch_u8();
-			mrm.f.scale = sib.f.scale;
-			mrm.f.index = sib.f.index | (rex.f.x << 3);
-			mrm.f.base = sib.f.base | (rex.f.b << 3);
-			if (sib.f.index == 4) {
+	if ((mrm.f.rm&7) == 4) { /* SIB byte follows */
+		union x64_sib_byte sib;
+		mrm.f.rm &= 7;
+		sib.raw = fetch_u8();
+		mrm.f.scale = sib.f.scale;
+		mrm.f.index = sib.f.index | (rex.f.x << 3);
+		mrm.f.base = sib.f.base | (rex.f.b << 3);
+
+		if (sib.f.index == 4) {
+			if (sib.f.base != 5) {
 				a->memregs = 1;
 				a->memreg[0] = sib.f.base;
 			}
 			else {
+				a->memregs = 0;
+			}
+		}
+		else {
+			if (sib.f.base != 5) {
 				a->memregs = 2;
 				a->scalar = sib.f.scale;
 				a->memreg[0] = sib.f.index;
 				a->memreg[1] = sib.f.base;
 			}
-		}
-		else {
-			a->memregs = 1;
-			a->memreg[0] = mrm.f.rm;
+			else {
+				a->memregs = 1;
+				a->scalar = sib.f.scale;
+				a->memreg[0] = sib.f.index;
+			}
 		}
 
-		if (mrm.f.mod == 2)
+		if (sib.f.base == 5 && mrm.f.mod == 0)
 			a->memref_base = (uint64_t)((int32_t)fetch_u32());
-		else if (mrm.f.mod == 1)
-			a->memref_base = (uint64_t)((char)fetch_u8());
 	}
 	else {
-		a->scalar = 0;
-		a->memregsz = 2;
-		if (mrm.f.mod == 0) {
-			if (mrm.f.rm == 6) {
-				a->memregs = 0;
-				a->memref_base = fetch_u16();
-				return mrm;
-			}
-			a->memref_base = 0;
-		}
-		else if (mrm.f.mod == 2)
-			a->memref_base = fetch_u16();
-		else
-			a->memref_base = (uint64_t)((char)fetch_u8());
-
-		a->memregs = 2 - (mrm.f.rm >> 2);
-		a->memreg[0] = rm_addr16_mapping[mrm.f.rm];
-		a->memreg[1] = MX86_REG_SI + (mrm.f.rm & 1);
+		a->memregs = 1;
+		a->memreg[0] = mrm.f.rm;
 	}
+
+	if (mrm.f.mod == 2)
+		a->memref_base = (uint64_t)((int32_t)fetch_u32());
+	else if (mrm.f.mod == 1)
+		a->memref_base = (uint64_t)((char)fetch_u8());
 
 	return mrm;
 }

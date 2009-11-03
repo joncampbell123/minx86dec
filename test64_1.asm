@@ -37,5 +37,38 @@ bits 64
 	mov	rsi,02483475827353h
 	mov	r12,03278954623874623h
 	mov	r15,023897412789614h
+	add	r8b,r9b
+	add	r8w,r9w
+	add	r8d,r9d
+
+	add	bl,[rax]
+	add	bl,[rbx]
+	add	bl,[rcx]
+	add	bl,[rdx]
+	add	bl,[rsi]
+	add	bl,[rdi]
+	add	bl,[rbp]
+	add	bl,[rsp]
+
+	add	bl,[eax]
+	add	bl,[ebx]
+	add	bl,[ecx]
+	add	bl,[edx]
+	add	bl,[esi]
+	add	bl,[edi]
+	add	bl,[ebp]
+	add	bl,[esp]
+
+	add	bl,[rax+rbx]
+	add	bl,[eax+ebx]
+	add	bl,[rax*4+rbx]
+	add	bl,[eax*4+ebx]
+	add	bl,[rcx*8+rdx+54h]
+	add	bl,[rdx*2+rsi+12345678h]
+	add	bl,[abs 1]
+	add	bl,[rel 1]
+	add	bl,[ecx*8+edx+54h]
+	add	bl,[edx*2+esi+12345678h]
+
 	nop
 

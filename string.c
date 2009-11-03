@@ -6,11 +6,13 @@
 const char *regnames[9][32+1] = {
 /* 0 */	{	NULL								},
 /* 1 */	{	"AL",	"CL",	"DL",	"BL",	"AH",	"CH",	"DH",	"BH",
-		"R8L",	"R9L",	"R10L",	"R11L",	"R12L",	"R13L",	"R14L",	"R15L",
+		"R8B",	"R9B",	"R10B",	"R11B",	"R12B",	"R13B",	"R14B",	"R15B",
 		"SPL",	"BPL",	"SIL",	"DIL"					},
-/* 2 */	{	"AX",	"CX",	"DX",	"BX",	"SP",	"BP",	"SI",	"DI"	},
+/* 2 */	{	"AX",	"CX",	"DX",	"BX",	"SP",	"BP",	"SI",	"DI",
+		"R8W",	"R9W",	"R10W",	"R11W",	"R12W",	"R13W",	"R14W",	"R15W"	},
 /* 3 */	{	NULL								},
-/* 4 */	{	"EAX",	"ECX",	"EDX",	"EBX",	"ESP",	"EBP",	"ESI",	"EDI"	},
+/* 4 */	{	"EAX",	"ECX",	"EDX",	"EBX",	"ESP",	"EBP",	"ESI",	"EDI",
+		"R8D",	"R9D",	"R10D",	"R11D",	"R12D",	"R13D",	"R14D",	"R15D"	},
 /* 5 */	{	NULL								},
 /* 6 */	{	NULL								},
 /* 7 */	{	NULL								},
@@ -84,7 +86,7 @@ static void minx86dec_memref_print(struct minx86dec_argv *a,char *output) {
 			sgn = '-';
 		}
 
-		if (doop++) *output++ = sgn;
+		if (doop++ || sgn == '-') *output++ = sgn;
 		output += sprintf(output,"0x%X",pofs);
 	}
 
@@ -172,15 +174,15 @@ static void minx86dec_memref_print_x64(struct minx86dec_argv_x64 *a,char *output
 	}
 
 	if (a->memref_base || a->memregs == 0) {
-		uint32_t pofs = a->memref_base;
+		uint64_t pofs = a->memref_base;
 		char sgn = '+';
 
 		if (pofs & 0x8000000000000000ULL) {
-			pofs = (uint32_t)(-pofs);
+			pofs = (uint64_t)(-pofs);
 			sgn = '-';
 		}
 
-		if (doop++) *output++ = sgn;
+		if (doop++ || sgn == '-') *output++ = sgn;
 		output += sprintf(output,"0x%llX",pofs);
 	}
 

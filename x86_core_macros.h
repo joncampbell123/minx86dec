@@ -147,15 +147,30 @@ static inline void decode_rm(union x86_mrm mrm,struct minx86dec_argv *a,const in
 			union x86_sib sib;
 			sib.raw = fetch_u8();
 			if (sib.f.index == 4) {
-				a->memregs = 1;
-				a->memreg[0] = sib.f.base;
+				if (sib.f.base != 5) {
+					a->memregs = 1;
+					a->memreg[0] = sib.f.base;
+				}
+				else {
+					a->memregs = 0;
+				}
 			}
 			else {
-				a->memregs = 2;
-				a->scalar = sib.f.scale;
-				a->memreg[0] = sib.f.index;
-				a->memreg[1] = sib.f.base;
+				if (sib.f.base != 5) {
+					a->memregs = 2;
+					a->scalar = sib.f.scale;
+					a->memreg[0] = sib.f.index;
+					a->memreg[1] = sib.f.base;
+				}
+				else {
+					a->memregs = 1;
+					a->scalar = sib.f.scale;
+					a->memreg[0] = sib.f.index;
+				}
 			}
+
+			if (sib.f.base == 5 && mrm.f.mod == 0)
+				a->memref_base = (uint64_t)((int32_t)fetch_u32());
 		}
 		else {
 			a->memregs = 1;
