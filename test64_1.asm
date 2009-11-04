@@ -127,6 +127,10 @@ bits 64
 	sub	ax,1234h
 	xor	ax,1234h
 	cmp	ax,1234h
+	lea	eax,[abs 1234h]
+	lea	eax,[rax-3]
+	lea	eax,[rbx+7fh]
+	lea	eax,[rcx+0x180]
 
 	nop
 
