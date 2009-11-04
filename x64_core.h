@@ -116,12 +116,14 @@ decode_next:
 				rm->segment = seg_can_override(MX86_SEG_DS);
 				set_register(reg,plusr_transform(ins->rex,reg->size,mrm.f.reg));
 			} break;
+
 		/* REX prefix */
 		COVER_ROW(0x40):
 			ins->data64 = (first_byte >> 3) & 1;
 			ins->rex.raw = first_byte;
 			if (--patience) goto decode_next;
 			goto decode_next;
+
 		/* 386+ instruction 32-bit prefixes */
 		case 0x66: /* 32-bit data override */
 			ins->data32 ^= 1;
@@ -160,7 +162,7 @@ decode_next:
 				struct minx86dec_argv_x64 *imm = &ins->argv[1];
 				r->size = imm->size = (first_byte & 8) ? data64wordsize : 1;
 				set_immediate(imm,(first_byte & 8) ? imm64bysize(ins) : fetch_u8());
-				set_register(r,first_byte & 7);
+				set_register(r,plusr_transform(ins->rex,r->size,(first_byte & 7) | (ins->rex.f.b << 3)));
 			} break;
 
 		default:

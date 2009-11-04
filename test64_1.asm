@@ -132,5 +132,11 @@ bits 64
 	lea	eax,[rbx+7fh]
 	lea	eax,[rcx+0x180]
 
+	mov	al,12h
+	mov	bh,34h
+	mov	sil,23h
+	mov	r8b,24h
+	mov	r14b,24h
+
 	nop
 
