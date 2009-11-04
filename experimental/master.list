@@ -1,0 +1,139 @@
+/* conventions used here:
+
+   INSTRUCTION [arguments] : byte sequence descriptor
+
+
+   arguments: [arg, [arg]]
+   zero or more comma-separated declarations of what the registers are and
+   how they map to the bytes. can be a register description, 
+   
+   w[regname] is used to say that the non-byte-wide version of the register is
+   used, depending on 32-bit/64-bit override. "wax" for example would represent
+   "ax", or "eax" if the 32-bit data override is in use, or "rax" if the 64-bit
+   data override is in use.
+
+   "rm" means the register is defined by the "rm" field of the mod/reg/rm byte.
+   by default, it is assumed to be word-override sized "wrm" (such as: rm=0 means
+   "ax" and it's treated here as if "wax"), it can be byte-sized if the instruction
+   indicates a byte-size version is possible. it can be declared to always be
+   one byte by writing "rm/b", word-sized by "rm/w", long-sized (32-bit) by "rm/l",
+   quad-sized (64-bit) by "rm/q", or a specific byte size by rm[size] where size
+   is a nonnegative nonzero integer.
+
+   "reg" means the register is defined by the "reg" field, subject to the same rules
+   for "rm".
+
+   "r/m" means that the data at the memory address, or the register, is used as
+   the argument. if w=1 it is 16/32/64-bit word-sized, w=0 is byte-sized.
+   wr/m always uses word-sizes. r/m[size] says that the memory location will
+   be treated as if size bytes large. r/m[+size] says it's size bytes larger
+   than normal.
+
+   some instructions encode the register according to the lower 7 bits of the
+   opcode itself. you can represent these by "ocreg", which on x86-64 also
+   indicates that the register value decoded may also be combined with the
+   appropriate bit from the REX extension to reference all 16 registers.
+
+   most instructions take either a word, or byte reference. some encode this
+   into the opcode, some implicitly have this on. you can say it always takes
+   a byte by writing w=0 in the list, word by writing w=1, or that the opcode
+   encodes it by saying w=&1 (to say the least significant bit indicates
+   word-sized or not). here "word-sized" means 16-bit, 32-bit, or 64-bit.
+   if no other hint is given, w=1 by default.
+
+   the byte range descriptor represents immediates. you can refer to those
+   immediates using i1, i2... etc. in the argument encoding.
+
+
+   byte range descriptor:
+
+   this describes the byte sequence of the instruction opcode. the byte values
+   themselves do not include the prefixes, though based on our wonderful mess
+   called the x86 instruction set, can say that this encoding is only valid
+   if certain prefixes are present.
+
+   0x90              direct byte value
+   0x91-0x97         direct byte range
+   0x0F 0xAA         direct multibyte value
+   0x0F 0xC0-0xC3    direct multibyte value and range of values
+   0xF6&1            direct byte range, with number of least significant bits ignored. 0xF6 & 1 => 0xF6 masking 1 LSB => 0xF6-0xF7
+   0xF6&1 mrm        direct byte range, followed by mod/reg/rm byte
+   0xF6&1 mrm /6     direct byte range, followed by mod/reg/rm byte where reg == 6 (aka the DIV instruction). "mrm" is implied if the /N notation is present.
+   0xF6&1 mrm mod!=3 direct byte range, with mod/reg/rm where mod is not 3
+
+   also allowed:
+
+   d32               when 32-bit data mode enabled (such as: 32-bit code segment or 16-bit code segment used 0x66 prefix)
+   a32               when 32-bit addressing mode enabled
+   =d32              when 32-bit data prefix occured (regardless of code segment)
+   =a32              when 32-bit address prefix occured (regardless of code segment)
+   =!d32             when 32-bit data prefix did NOT occur
+   =!a32             when 32-bit address prefix did NOT occur
+   =d64              when 64-bit REX prefix is present
+   x64               when 64-bit mode is active
+   !x64              when 64-bit mode is not active
+   lock              when the LOCK prefix is present
+   rep               when the REP prefix is present
+   repe              when the REPE prefix is present
+   286               if 286 or higher
+   386               if 386 or higher
+   486               if 486 or higher
+
+   wi: word-sized immediate (8-bit if w=0, 16/32 if w=1. in 64-bit mode w=1 still means 32-bit)
+   wil: as "wi" but can be 64-bit wide if 64-bit mode
+   ib: immediate byte
+   iw: immediate word
+   id: immediate dword
+   iq: immediate qword
+   /rip: immediate value is relative to the instruction pointer (implies /s)
+   /s: immediate value should be sign-extended
+   /u: immediate value should be zero-extended (default)
+
+   */
+
+{JO,JNO,JB,JNB,JZ,JNZ,JBE,JA,JS,JNS,JP,JNP,JL,JGE,JLE,JG} i1: 0x0F 0x80&4 wi/rip
+{SETO,SETNO,SETB,SETNB,SETZ,SETNZ,SETBE,SETJA,SETJS,SETJNS,SETJP,SETJNP,SETJL,SETJGE,SETJLE,SETJG} r/m/b: 0x0F 0x90&4
+DATA32+:				0x66 386
+ADDR32+:				0x67 386
+{JO,JNO,JB,JNB,JZ,JNZ,JBE,JA,JS,JNS,JP,JNP,JL,JGE,JLE,JG} i1: 0x70&4 ib/rip
+MOV w=1 r/m, sreg:			0x8C
+LEA w=1 reg, r/m:			0x8D mod!=3
+MOV w=1 sreg, r/m:			0x8E
+NOP:					0x90
+XCHG wax, ocreg:			0x91-0x97
+MOVS w=&1 es:wdi, seg:wsi:		0xA4&1
+CMPS w=&1 es:wdi, seg:wsi:		0xA6&1
+STOS w=&1 es:wdi:			0xAA&1
+LODS w=&1 seg:wsi:			0xAC&1
+SCAS w=&1 seg:wsi:			0xAE&1
+RET i1:					0xC2 iw
+RET:					0xC3
+RETF i1:				0xCA iw
+RETF:					0xCB
+INT3:					0xCC
+INT i1:					0xCD ib
+INTO:					0xCE
+IRET:					0xCF
+XLAT:					0xD7
+LOOPNE i1:				0xE0 ib/rip
+LOOPE i1:				0xE1 ib/rip
+LOOP i1:				0xE2 ib/rip
+JCXZ:					0xE3 ib/rip
+CALL i1:				0xE8 wi/rip
+JMP i1:					0xE9 wi/rip
+JMPF i1, i2:				0xEA iw wi !x64
+JMP i1:					0xEB ib/rip
+LOCK+:					0xF0
+REPE+:					0xF2
+REPNE+:					0xF3
+HLT:					0xF4
+CMC:					0xF5
+CLC:					0xF8
+STC:					0xF9
+CLI:					0xFA
+STI:					0xFB
+CLD:					0xFC
+STD:					0xFD
+JMP r/m:				0xFF /4
+JMPF r/m[+2]:   		        0xFF /5
+
