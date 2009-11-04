@@ -72,5 +72,27 @@ bits 64
 
 	add	bl,r9b
 
+	add	ax,1235h
+	add	ax,cx
+	add	ax,r9w
+	add	r10w,r15w
+	add	r13w,[rel 0x100]
+	add	rbx,[rel 0x100000]
+	add	rbx,[rel 0x80000000]
+	add	rbx,[rel 0x90000000]	; OOPS! NASM will happily encode this, even though it now makes a negative number!
+	add	rbx,[rel 0x100000000]	; NASM will happily let this overflow, giving a relative addr of 0
+	lea	rsi,[rel 0]
+	lea	esi,[rel 0]
+	lea	si,[rel 0]
+	add	bl,[r8]
+	add	bl,[r13]
+	add	bl,[r15]
+	add	bl,[r8+r9]
+	add	bl,[rsi+r9]
+	add	bl,[rdi*4+r14+222h]
+
+	lea	rsi,[r8*8+r9+22224444h]
+	lea	r15,[r15*2+r14-7ffffffh]
+
 	nop
 

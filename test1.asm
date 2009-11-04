@@ -4,6 +4,7 @@ org 0
 _start:
 	add	bl,[esp]
 	add	bl,[a32 12345678h]
+	add	bl,[a32 12345678h+edx+eax]
 	add	bl,[ebp]
 	add	bl,[ebp+42h]
 

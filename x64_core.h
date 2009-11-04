@@ -135,6 +135,17 @@ decode_next:
 			if (--patience) goto decode_next;
 			break;
 
+		case 0x8D: /* LEA reg,mem */
+			ins->opcode = MXOP_LEA;
+			ins->argc = 2; {
+				struct minx86dec_argv_x64 *reg = &ins->argv[0];
+				struct minx86dec_argv_x64 *rm = &ins->argv[1];
+				struct x64_mrm mrm = decode_rm_x64(rm,ins,reg->size,PLUSR_TRANSFORM);
+				rm->segment = seg_can_override(MX86_SEG_DS);
+				rm->size = reg->size = data64wordsize;
+				set_register(reg,mrm.f.reg);
+			} break;
+
 		/* NOP */
 		case 0x90:
 			if (ins->rep == MX86_REPNE) ins->opcode = MXOP_PAUSE;

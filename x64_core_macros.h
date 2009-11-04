@@ -201,7 +201,7 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 		if (sib.f.index == 4) {
 			if (sib.f.base != 5) {
 				a->memregs = 1;
-				a->memreg[0] = sib.f.base;
+				a->memreg[0] = mrm.f.base;
 			}
 			else {
 				a->memregs = 0;
@@ -210,14 +210,14 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 		else {
 			if (sib.f.base != 5) {
 				a->memregs = 2;
-				a->scalar = sib.f.scale;
-				a->memreg[0] = sib.f.index;
-				a->memreg[1] = sib.f.base;
+				a->scalar = mrm.f.scale;
+				a->memreg[0] = mrm.f.index;
+				a->memreg[1] = mrm.f.base;
 			}
 			else {
 				a->memregs = 1;
-				a->scalar = sib.f.scale;
-				a->memreg[0] = sib.f.index;
+				a->scalar = mrm.f.scale;
+				a->memreg[0] = mrm.f.index;
 			}
 		}
 
