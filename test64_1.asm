@@ -94,5 +94,39 @@ bits 64
 	lea	rsi,[r8*8+r9+22224444h]
 	lea	r15,[r15*2+r14-7ffffffh]
 
+	; group 0x00-0x3F test
+	add	rsi,r15
+	or	rsi,r15
+	adc	rsi,r15
+	sbb	rsi,r15
+	and	rsi,r15
+	sub	rsi,r15
+	xor	rsi,r15
+	cmp	rsi,r15
+	add	rax,12345678h		; sadly, you can't do 64-bit immediates
+	or	rax,12345678h		; sadly, you can't do 64-bit immediates
+	adc	rax,12345678h		; sadly, you can't do 64-bit immediates
+	sbb	rax,12345678h		; sadly, you can't do 64-bit immediates
+	and	rax,12345678h		; sadly, you can't do 64-bit immediates
+	sub	rax,12345678h		; sadly, you can't do 64-bit immediates
+	xor	rax,12345678h		; sadly, you can't do 64-bit immediates
+	cmp	rax,12345678h		; sadly, you can't do 64-bit immediates
+	add	eax,12345678h		; sadly, you can't do 64-bit immediates
+	or	eax,12345678h		; sadly, you can't do 64-bit immediates
+	adc	eax,12345678h		; sadly, you can't do 64-bit immediates
+	sbb	eax,12345678h		; sadly, you can't do 64-bit immediates
+	and	eax,12345678h		; sadly, you can't do 64-bit immediates
+	sub	eax,12345678h		; sadly, you can't do 64-bit immediates
+	xor	eax,12345678h		; sadly, you can't do 64-bit immediates
+	cmp	eax,12345678h		; sadly, you can't do 64-bit immediates
+	add	ax,1234h		; sadly, you can't do 64-bit immediates
+	or	ax,1234h		; sadly, you can't do 64-bit immediates
+	adc	ax,1234h		; sadly, you can't do 64-bit immediates
+	sbb	ax,1234h		; sadly, you can't do 64-bit immediates
+	and	ax,1234h		; sadly, you can't do 64-bit immediates
+	sub	ax,1234h		; sadly, you can't do 64-bit immediates
+	xor	ax,1234h		; sadly, you can't do 64-bit immediates
+	cmp	ax,1234h		; sadly, you can't do 64-bit immediates
+
 	nop
 
