@@ -134,9 +134,24 @@ bits 64
 
 	mov	al,12h
 	mov	bh,34h
+	mov	dh,34h
 	mov	sil,23h
 	mov	r8b,24h
 	mov	r14b,24h
+	mov	ax,1234h
+	mov	bx,1234h
+	mov	si,1234h
+	mov	r8w,1234h
+	mov	r15w,1234h
+	mov	eax,12345678h
+	mov	ebx,12345678h
+	mov	esi,12345678h
+	mov	r8d,12345678h
+	mov	r14d,12345678h
+	mov	rax,0123456789ABCDEFh
+	mov	rcx,0123456789ABCDEFh
+	mov	r8,0123456789ABCDEFh
+	mov	r13,0123456789ABCDEFh
 
 	nop
 
