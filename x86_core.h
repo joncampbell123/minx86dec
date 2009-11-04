@@ -571,75 +571,19 @@ decode_next:
 			} break;
 
 		COVER_2(0xF6): {
+			ins->argc = 1;
+			struct minx86dec_argv *where = &ins->argv[0];
+			struct minx86dec_argv *imm = &ins->argv[1];
 			union x86_mrm mrm = fetch_modregrm();
-			switch (mrm.f.reg) {
-				case 0: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					struct minx86dec_argv *imm = &ins->argv[1];
-					ins->argc = 2;
-					ins->opcode = MXOP_TEST;
-					where->size = where->memregsz = imm->size = (first_byte & 1) ? data32wordsize : 1;
-					where->segment = seg_can_override(MX86_SEG_DS);
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-					if (isdata32) set_immediate(imm,fetch_u32());
-					else if (first_byte & 1) set_immediate(imm,fetch_u16());
-					else set_immediate(imm,fetch_u8());
-				} break;
-				case 2: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					ins->argc = 1;
-					ins->opcode = MXOP_NOT;
-					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
-					where->segment = seg_can_override(MX86_SEG_DS);
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
-				case 3: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					ins->argc = 1;
-					ins->opcode = MXOP_NEG;
-					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
-					where->segment = seg_can_override(MX86_SEG_DS);
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
-				case 4: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					ins->argc = 1;
-					ins->opcode = MXOP_MUL;
-					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
-					where->segment = seg_can_override(MX86_SEG_DS);
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
-				case 5: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					ins->argc = 1;
-					ins->opcode = MXOP_IMUL;
-					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
-					where->segment = seg_can_override(MX86_SEG_DS);
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
-				case 6: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					ins->argc = 1;
-					ins->opcode = MXOP_DIV;
-					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
-					where->segment = seg_can_override(MX86_SEG_DS);
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
-				case 7: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					ins->argc = 1;
-					ins->opcode = MXOP_IDIV;
-					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
-					where->segment = seg_can_override(MX86_SEG_DS);
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
+			where->size = where->memregsz = imm->size = (first_byte & 1) ? data32wordsize : 1;
+			where->segment = seg_can_override(MX86_SEG_DS);
+			where->regtype = MX86_RT_NONE;
+			decode_rm(mrm,where,isaddr32);
+			static int map_f6[8] = {MXOP_TEST,MXOP_UD,MXOP_NOT,MXOP_NEG, MXOP_MUL,MXOP_IMUL,MXOP_DIV,MXOP_IDIV};
+			ins->opcode = map_f6[mrm.f.reg]; ins->argc = 1;
+			if (mrm.f.reg == 0) {
+				ins->argc++;
+				set_immediate(imm,(first_byte & 1) ? imm32bysize(ins) : fetch_u8());
 			}
 			break; }
 

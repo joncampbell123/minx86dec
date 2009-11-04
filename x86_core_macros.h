@@ -45,6 +45,11 @@ union x86_sib {
 	uint8_t		raw;
 };
 
+static inline uint32_t imm32bysize(struct minx86dec_instruction *s) {
+	if (s->data32) return (uint32_t)fetch_u32();
+	return (uint32_t)fetch_u16();
+}
+
 static inline void set_mem_ref_reg(struct minx86dec_argv *a,int reg_base) {
 	a->regtype = MX86_RT_NONE;
 	a->scalar = 0;

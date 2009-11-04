@@ -127,10 +127,15 @@ bits 64
 	sub	ax,1234h
 	xor	ax,1234h
 	cmp	ax,1234h
+
 	lea	eax,[abs 1234h]
 	lea	eax,[rax-3]
 	lea	eax,[rbx+7fh]
 	lea	eax,[rcx+0x180]
+	lea	rax,[rbx*4+rcx-5]
+	lea	ax,[esi+ebx]
+	lea	r14,[r8d+esi]
+	lea	r8,[r9+rdi]
 
 	mov	al,12h
 	mov	bh,34h
@@ -152,6 +157,85 @@ bits 64
 	mov	rcx,0123456789ABCDEFh
 	mov	r8,0123456789ABCDEFh
 	mov	r13,0123456789ABCDEFh
+
+; taken from test1.asm
+	add	bl,[esp]
+	add	bl,[a32 12345678h]
+	add	bl,[a32 12345678h+edx+eax]
+	add	bl,[ebp]
+	add	bl,[ebp+42h]
+
+	idiv	eax
+	idiv	ebx
+	idiv	ecx
+	idiv	edx
+	idiv	esi
+	idiv	edi
+	idiv	word [eax]
+	idiv	word [ebx]
+	idiv	word [ecx]
+	idiv	word [edx]
+	idiv	word [esi]
+	idiv	word [edi]
+
+	idiv	rax
+	idiv	rbx
+	idiv	rcx
+	idiv	rdx
+	idiv	rsi
+	idiv	rdi
+	idiv	word [rax]
+	idiv	word [rbx]
+	idiv	word [rcx]
+	idiv	word [rdx]
+	idiv	word [rsi]
+	idiv	word [rdi]
+
+	imul	rax
+	imul	rbx
+	imul	rcx
+	imul	rdx
+	imul	rsi
+	imul	rdi
+	imul	word [rax]
+	imul	word [rbx]
+	imul	word [rcx]
+	imul	word [rdx]
+	imul	word [rsi]
+	imul	word [rdi]
+
+	nop
+	lea	bx,[esi+3]
+	lea	cx,[ebx+edi+33h]
+	mov	ax,es
+	mov	ds,ax
+	mov	bx,cs
+	mov	cs,bx
+	mov	cx,ds
+	mov	dx,ss
+	mov	[edi],es
+	mov	[esi],ds
+	test	ax,bx
+	test	si,cx
+	test	cl,bh
+	test	[edi],bx
+	test	[esi+ebx+43],cx
+	xchg	bl,dl
+	xchg	[esi],cl
+	xchg	[edi],si
+	cmp	bl,44h
+	cmp	bx,2446h
+	cmp	byte [ebx+3],35h
+	cmp	word [ebp-3],2244h
+	cmp	word [edi],62h
+	mov	ah,dh
+	mov	bl,[esi+ebx+3]
+	mov	si,[edi+ebx+34h]
+	inc	ax
+	inc	bx
+	inc	cx
+	inc	dx
+;
 
 	nop
 

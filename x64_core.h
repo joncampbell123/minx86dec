@@ -142,7 +142,7 @@ decode_next:
 			ins->argc = 2; {
 				struct minx86dec_argv_x64 *reg = &ins->argv[0];
 				struct minx86dec_argv_x64 *rm = &ins->argv[1];
-				struct x64_mrm mrm = decode_rm_x64(rm,ins,reg->size,PLUSR_TRANSFORM);
+				struct x64_mrm mrm = decode_rm_x64(rm,ins,data64wordsize,PLUSR_TRANSFORM);
 				rm->segment = seg_can_override(MX86_SEG_DS);
 				rm->size = reg->size = data64wordsize;
 				set_register(reg,mrm.f.reg);
@@ -165,9 +165,19 @@ decode_next:
 				set_register(r,plusr_transform(ins->rex,r->size,(first_byte & 7) | (ins->rex.f.b << 3)));
 			} break;
 
-		default:
-			/* fall through */
-			break;
+		COVER_2(0xF6): {
+			struct minx86dec_argv_x64 *where = &ins->argv[0];
+			struct minx86dec_argv_x64 *imm = &ins->argv[1];
+			where->segment = seg_can_override(MX86_SEG_DS); where->regtype = MX86_RT_NONE;
+			where->size = where->memregsz = imm->size = (first_byte & 1) ? data64wordsize : 1;
+			struct x64_mrm mrm = decode_rm_x64(where,ins,where->size,PLUSR_TRANSFORM);
+			static int map_f6[8] = {MXOP_TEST,MXOP_UD,MXOP_NOT,MXOP_NEG, MXOP_MUL,MXOP_IMUL,MXOP_DIV,MXOP_IDIV};
+			ins->opcode = map_f6[mrm.f.reg]; ins->argc = 1;
+			if (mrm.f.reg == 0) {
+				ins->argc++;
+				set_immediate(imm,(first_byte & 1) ? imm32zbysize(ins) : fetch_u8());
+			}
+			} break;
 	};
 }
 
