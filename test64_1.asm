@@ -111,22 +111,22 @@ bits 64
 	sub	rax,12345678h		; sadly, you can't do 64-bit immediates
 	xor	rax,12345678h		; sadly, you can't do 64-bit immediates
 	cmp	rax,12345678h		; sadly, you can't do 64-bit immediates
-	add	eax,12345678h		; sadly, you can't do 64-bit immediates
-	or	eax,12345678h		; sadly, you can't do 64-bit immediates
-	adc	eax,12345678h		; sadly, you can't do 64-bit immediates
-	sbb	eax,12345678h		; sadly, you can't do 64-bit immediates
-	and	eax,12345678h		; sadly, you can't do 64-bit immediates
-	sub	eax,12345678h		; sadly, you can't do 64-bit immediates
-	xor	eax,12345678h		; sadly, you can't do 64-bit immediates
-	cmp	eax,12345678h		; sadly, you can't do 64-bit immediates
-	add	ax,1234h		; sadly, you can't do 64-bit immediates
-	or	ax,1234h		; sadly, you can't do 64-bit immediates
-	adc	ax,1234h		; sadly, you can't do 64-bit immediates
-	sbb	ax,1234h		; sadly, you can't do 64-bit immediates
-	and	ax,1234h		; sadly, you can't do 64-bit immediates
-	sub	ax,1234h		; sadly, you can't do 64-bit immediates
-	xor	ax,1234h		; sadly, you can't do 64-bit immediates
-	cmp	ax,1234h		; sadly, you can't do 64-bit immediates
+	add	eax,12345678h
+	or	eax,12345678h
+	adc	eax,12345678h
+	sbb	eax,12345678h
+	and	eax,12345678h
+	sub	eax,12345678h
+	xor	eax,12345678h
+	cmp	eax,12345678h
+	add	ax,1234h
+	or	ax,1234h
+	adc	ax,1234h
+	sbb	ax,1234h
+	and	ax,1234h
+	sub	ax,1234h
+	xor	ax,1234h
+	cmp	ax,1234h
 
 	nop
 
