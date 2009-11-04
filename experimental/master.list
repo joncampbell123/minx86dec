@@ -151,15 +151,15 @@ POPF						0x9D !d32
 POPFD						0x9D d32
 SAHF:						0x9E
 LAHF:						0x9F
-MOV w=&1 wax, &i1:				0xA0&1 wi
-MOV w=&1 &i1, wax:				0xA2&1 wi
+MOV w=&1 wax, &i1:				0xA0&1 wil
+MOV w=&1 &i1, wax:				0xA2&1 wil
 MOVS w=&1 es:wdi, seg:wsi:			0xA4&1
 CMPS w=&1 es:wdi, seg:wsi:			0xA6&1
 TEST wax, i1:					0xA8&1 wi
 STOS w=&1 es:wdi:				0xAA&1
 LODS w=&1 seg:wsi:				0xAC&1
 SCAS w=&1 seg:wsi:				0xAE&1
-MOV w=&4 ocreg, i1:				0xB0&4 wi
+MOV w=&4 ocreg, i1:				0xB0&4 wil
 @common_shifts[reg] w=&1 r/m, i1:		0xC0&1 ib
 RET i1:						0xC2 iw
 RET:						0xC3
