@@ -215,6 +215,6 @@ POP w=1 r/m:					0xFF /7
 
 /* opcodes that start with 0x0F. there are so many of them they deserve their own section */
 [f_extension]
-@common_conditional_jumps[maskop] i1:	0x0F 0x80&4 wi/rip cpu>=386
-@set_conditional_names[maskop] r/m/b:	0x0F 0x90&4 cpu>=386
+@common_conditional_jumps[maskop] i1:		0x0F 0x80&4 wi/rip cpu>=386
+@set_conditional_names[maskop] r/m/b:		0x0F 0x90&4 cpu>=386
 
