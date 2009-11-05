@@ -204,7 +204,6 @@ bits 64
 	imul	word [rsi]
 	imul	word [rdi]
 
-	nop
 	lea	bx,[esi+3]
 	lea	cx,[ebx+edi+33h]
 	mov	ax,es
@@ -235,6 +234,13 @@ bits 64
 	inc	bx
 	inc	cx
 	inc	dx
+	inc	esi
+	inc	eax
+	inc	r8d
+	inc	r9b
+	inc	r10w
+	inc	r11
+	inc	rsi
 ;
 
 	nop

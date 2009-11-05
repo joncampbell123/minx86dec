@@ -137,6 +137,66 @@ decode_next:
 			if (--patience) goto decode_next;
 			break;
 
+		COVER_4(0x80):	/* immediate group 1 */
+			ins->argc = 2; {
+				struct minx86dec_argv_x64 *rm = &ins->argv[0];
+				struct minx86dec_argv_x64 *imm = &ins->argv[1];
+				rm->size = imm->size = (first_byte & 1) ? data32wordsize : 1;
+				rm->segment = seg_can_override(MX86_SEG_DS);
+				struct x64_mrm mrm = decode_rm_x64(rm,ins,rm->size,PLUSR_TRANSFORM);
+				ins->opcode = MXOP_ADD+mrm.f.reg;
+				imm->regtype = MX86_RT_IMM;
+				if (first_byte == 0x83)		imm->value = (uint32_t)((char)fetch_u8());
+				else if (first_byte == 0x81)	imm->value = imm32sbysize(ins);
+				else				imm->value = fetch_u8();
+			} break;
+
+		COVER_2(0x84):	/* TEST */
+			ins->opcode = MXOP_TEST;
+			ins->argc = 2; {
+				struct minx86dec_argv_x64 *rm = &ins->argv[0];
+				struct minx86dec_argv_x64 *reg = &ins->argv[1];
+				rm->size = reg->size = (first_byte & 1) ? data64wordsize : 1;
+				rm->segment = seg_can_override(MX86_SEG_DS);
+				struct x64_mrm mrm = decode_rm_x64(rm,ins,rm->size,PLUSR_TRANSFORM);
+				set_register(reg,mrm.f.reg);
+			} break;
+
+		COVER_2(0x86):	/* XCHG */
+			ins->opcode = MXOP_XCHG;
+			ins->argc = 2; {
+				struct minx86dec_argv_x64 *rm = &ins->argv[0];
+				struct minx86dec_argv_x64 *reg = &ins->argv[1];
+				rm->size = reg->size = (first_byte & 1) ? data64wordsize : 1;
+				rm->segment = seg_can_override(MX86_SEG_DS);
+				struct x64_mrm mrm = decode_rm_x64(rm,ins,rm->size,PLUSR_TRANSFORM);
+				set_register(reg,mrm.f.reg);
+			} break;
+
+		COVER_4(0x88):	/* MOV */
+			ins->opcode = MXOP_MOV;
+			ins->argc = 2; {
+				const int which = (first_byte>>1)&1;
+				struct minx86dec_argv_x64 *rm = &ins->argv[which];
+				struct minx86dec_argv_x64 *reg = &ins->argv[which^1];
+				rm->size = reg->size = (first_byte & 1) ? data64wordsize : 1;
+				struct x64_mrm mrm = decode_rm_x64(rm,ins,rm->size,PLUSR_TRANSFORM);
+				rm->segment = seg_can_override(MX86_SEG_DS);
+				set_register(reg,mrm.f.reg);
+			} break;
+
+		case 0x8C: case 0x8E: /* mov r/m, seg reg */
+			ins->opcode = MXOP_MOV;
+			ins->argc = 2; {
+				const int which = (first_byte>>1)&1;
+				struct minx86dec_argv_x64 *rm = &ins->argv[which];
+				struct minx86dec_argv_x64 *reg = &ins->argv[which^1];
+				rm->size = reg->size = 2;
+				rm->segment = seg_can_override(MX86_SEG_DS);
+				struct x64_mrm mrm = decode_rm_x64(rm,ins,rm->size,PLUSR_TRANSFORM);
+				set_segment_register(reg,mrm.f.reg);
+			} break;
+
 		case 0x8D: /* LEA reg,mem */
 			ins->opcode = MXOP_LEA;
 			ins->argc = 2; {
@@ -176,6 +236,37 @@ decode_next:
 			if (mrm.f.reg == 0) {
 				ins->argc++;
 				set_immediate(imm,(first_byte & 1) ? imm32zbysize(ins) : fetch_u8());
+			}
+			} break;
+
+		/* group 0xFE-0xFF */
+		COVER_2(0xFE): {
+			struct minx86dec_argv_x64 *where = &ins->argv[0];
+			where->regtype = MX86_RT_NONE;
+			where->segment = seg_can_override(MX86_SEG_DS);
+			struct x64_mrm mrm = decode_rm_x64(where,ins,(first_byte & 1) ? data64wordsize : 1,PLUSR_TRANSFORM);
+			ins->argc = 1;
+			switch (mrm.f.reg) {
+				case 0: {
+					ins->opcode = MXOP_INC;
+					where->size = where->memregsz = (first_byte & 1) ? data64wordsize : 1;
+				} break;
+				case 1: {
+					ins->opcode = MXOP_DEC;
+					where->size = where->memregsz = (first_byte & 1) ? data64wordsize : 1;
+				} break;
+				case 2: case 3: {
+					ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
+					where->size = where->memregsz = data64wordsize + ((mrm.f.reg & 1) ? 2 : 0);
+				} break;
+				case 4: case 5: {
+					ins->opcode = MXOP_JMP + (mrm.f.reg & 1);
+					where->size = where->memregsz = data64wordsize + ((mrm.f.reg & 1) ? 2 : 0);
+				} break;
+				case 6: case 7: {
+					ins->opcode = MXOP_PUSH + (mrm.f.reg & 1);
+					where->size = where->memregsz = data64wordsize + ((mrm.f.reg & 1) ? 2 : 0);
+				} break;
 			}
 			} break;
 	};
