@@ -269,6 +269,23 @@ decode_next:
 				} break;
 			}
 			} break;
+
+		/* extended opcode escape */
+		case 0x0F: {
+			const uint8_t second_byte = *cip++;
+			switch (second_byte) {
+				COVER_4(0x20):
+					ins->opcode = MXOP_MOV;
+					ins->argc = 2; {
+						const int which = (second_byte >> 1) & 1;
+						struct minx86dec_argv_x64 *ctrl = &ins->argv[which^1];
+						struct minx86dec_argv_x64 *reg = &ins->argv[which];
+						struct x64_mrm mrm = decode_rm_x64(reg,ins,reg->size=8,PLUSR_TRANSFORM);
+						if (second_byte & 1)	set_debug_register(ctrl,mrm.f.reg);
+						else			set_control_register(ctrl,mrm.f.reg);
+					} break;
+			};
+			} break;
 	};
 }
 

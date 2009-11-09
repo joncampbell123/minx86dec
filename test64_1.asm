@@ -243,5 +243,37 @@ bits 64
 	inc	rsi
 ;
 
+	mov	cr0,rax
+	mov	cr0,rbx
+	mov	rax,cr0
+	mov	cr2,rax
+	mov	rax,cr2
+	mov	cr6,rcx
+	mov	cr7,rdx
+	mov	cr8,rsi
+	mov	cr9,rdi
+	mov	rax,cr6
+	mov	rbx,cr7
+	mov	rcx,cr8
+	mov	rdx,cr9
+	mov	dr0,rax
+	mov	rax,dr0
+	mov	dr3,rax
+	mov	rax,dr3
+	mov	dr6,rcx
+	mov	dr7,rdx
+	mov	dr8,rsi
+	mov	dr9,rdi
+	mov	rax,dr6
+	mov	rbx,dr7
+	mov	rcx,dr8
+	mov	rdx,dr9
+
+; FIXME: the TR registers aren't in x86-64?
+;	mov	tr0,rax
+;	mov	rax,tr0
+;	mov	tr3,rax
+;	mov	rax,tr3
+
 	nop
 
