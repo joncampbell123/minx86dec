@@ -109,3 +109,17 @@ j2:	jno	j2
 	pop	cs
 	pop	ds
 
+	mov	cr0,eax
+	mov	cr0,ebx
+	mov	eax,cr0
+	mov	cr2,eax
+	mov	eax,cr2
+	mov	dr0,eax
+	mov	eax,dr0
+	mov	dr3,eax
+	mov	eax,dr3
+	mov	tr0,eax
+	mov	eax,tr0
+	mov	tr3,eax
+	mov	eax,tr3
+

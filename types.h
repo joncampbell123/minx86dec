@@ -195,7 +195,7 @@ typedef signed char int8_t;
 
 
 #else
-#  error I don't know this environment and compiler
+#  error I dont know this environment and compiler
 #endif
 
 

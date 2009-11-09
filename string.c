@@ -137,6 +137,9 @@ void minx86dec_regprint(struct minx86dec_argv *a,char *output) {
 		case MX86_RT_DR:
 			sprintf(output,"DR%d",a->reg);
 			break;
+		case MX86_RT_TR:
+			sprintf(output,"TR%d",a->reg);
+			break;
 	}
 }
 
@@ -232,6 +235,9 @@ void minx86dec_regprint_x64(struct minx86dec_argv_x64 *a,char *output) {
 			break;
 		case MX86_RT_DR:
 			sprintf(output,"DR%d",a->reg);
+			break;
+		case MX86_RT_TR:
+			sprintf(output,"TR%d",a->reg);
 			break;
 	}
 }

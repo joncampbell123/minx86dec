@@ -1134,6 +1134,21 @@ decode_next:
 						if (second_byte & 1)	set_debug_register(ctrl,mrm.f.reg);
 						else			set_control_register(ctrl,mrm.f.reg);
 					} break;
+				COVER_4(0x24):
+					if (second_byte & 1) {
+					}
+					else {
+						ins->opcode = MXOP_MOV;
+						ins->argc = 2; {
+							const int which = (second_byte >> 1) & 1;
+							struct minx86dec_argv *ctrl = &ins->argv[which^1];
+							struct minx86dec_argv *reg = &ins->argv[which];
+							union x86_mrm mrm = fetch_modregrm();
+							ctrl->size = reg->size = 4; /* x86: always 4 bytes */
+							set_register(reg,mrm.f.rm);
+							set_test_register(ctrl,mrm.f.reg);
+						}
+					} break;
 # endif
 # if core_level >= 4 /* --------------------- 486 or higher ---------------------- */
 				COVER_2(0xB0):

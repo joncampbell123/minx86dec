@@ -105,6 +105,11 @@ static inline void set_debug_register(struct minx86dec_argv *a,uint32_t reg) {
 	a->reg = reg;
 }
 
+static inline void set_test_register(struct minx86dec_argv *a,uint32_t reg) {
+	a->regtype = MX86_RT_TR;
+	a->reg = reg;
+}
+
 static inline union x86_mrm fetch_modregrm() {
 	union x86_mrm r;
 	r.raw = fetch_u8();
