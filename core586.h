@@ -1,5 +1,5 @@
-#ifndef MX86_CORE8086_H
-#define MX86_CORE8086_H
+#ifndef MX86_CORE586_H
+#define MX86_CORE586_H
 
 #include "minx86dec/state.h"
 
