@@ -21,6 +21,15 @@
 #define addr32wordsize (isaddr32 ? 4 : 2)
 #define seg_can_override(x) (ins->segment >= 0 ? ins->segment : (x))
 
+/* additional controls:
+   
+   no_salc             disable decoding of SALC undocumented instruction
+   no_icebp            disable decoding to ICEBP undocumented ins.
+   no_umov             disable decoding of UMOV undocumented ins.
+   everything          decode everything, unless opcodes overlap lesser known opcodes in older revisions
+
+ */
+
 #define COVER_4(x) case (x): case (x+1): case (x+2): case (x+3)
 #define COVER_2(x) case (x): case (x+1)
 
@@ -256,7 +265,12 @@ decode_next:
 		case 0xF0:
 			ins->lock = 1;
 			goto decode_next;
-
+#if !defined(no_icebp) && (core_level >= 3)
+		case 0xF1:
+			ins->opcode = MXOP_ICEBP;
+			ins->argc = 0;
+			break;
+#endif
 		case 0x9E:
 			ins->opcode = MXOP_SAHF;
 			ins->argc = 0;
@@ -355,6 +369,12 @@ decode_next:
 				set_immediate(im,fetch_u8());
 				im->size = 1;
 			} break;
+#if !defined(no_salc)
+		case 0xD6:
+			ins->opcode = MXOP_SALC;
+			ins->argc = 0;
+			break;
+#endif
 
 		case 0x8F: {
 			struct minx86dec_argv *d = &ins->argv[0];
@@ -815,6 +835,20 @@ decode_next:
 		case 0x0F: {
 			const uint8_t second_byte = *cip++;
 			switch (second_byte) {
+# if (core_level >= 3 && core_level <= 4) && !defined(no_umov) /* UMOV is 386/486 only */
+				COVER_4(0x10): /* UMOV */
+					ins->opcode = MXOP_UMOV;
+					ins->argc = 2; {
+						union x86_mrm mrm = fetch_modregrm();
+						const int which = (second_byte >> 1) & 1;
+						struct minx86dec_argv *s = &ins->argv[which];
+						struct minx86dec_argv *d = &ins->argv[which^1];
+						d->size = s->size = second_byte & 1 ? data32wordsize : 1;
+						s->segment = seg_can_override(MX86_SEG_DS);
+						set_register(d,mrm.f.reg);
+						decode_rm(mrm,s,isaddr32);
+					} break;
+# endif
 # if core_level >= 2 /*------------- 286 or higher -----------------*/
 				case 0x00: { /* LLDT */
 					union x86_mrm mrm = fetch_modregrm();
@@ -934,12 +968,33 @@ decode_next:
 						set_register(d,mrm.f.reg);
 						decode_rm(mrm,s,isaddr32);
 					} break;
+#  if core_level == 2 || (defined(everything) && core_level > 2 && core_level <= 4)
+				/* EWWWW this is a bit messy....
+				   Once upon a time this was widely known as the LOADALL instruction for the 286.
+				   386 and 486 systems used the invalid opcode exception to fake it, and then
+				   it was forgotten around the time the Pentium became popular. BUT
+				   then around the Pentium III era this opcode was reused for the SYSCALL instruction.
+				   Therefore, we cannot include this as part of the "everything" decoder. */
+				case 0x05: /* LOADALL 286 */
+					ins->opcode = MXOP_LOADALL_286;
+					ins->argc = 0;
+					break;
+#  endif
 				case 0x06: /* CLTS */
 					ins->opcode = MXOP_CLTS;
 					ins->argc = 0;
 					break;
 # endif
 # if core_level >= 3 /* --------------------- 386 or higher ---------------------- */
+#  if core_level == 3 || (defined(everything) && core_level == 4)
+				/* this opcode suffers the same fate as the 286 version of LOADALL.
+				   it was faked by 486 systems, forgotten around the Pentium era, and then
+				   re-used by the Pentium III for the SYSCALL/SYSENTER instruction. */
+				case 0x07: /* LOADALL 386 */
+					ins->opcode = MXOP_LOADALL_386;
+					ins->argc = 0;
+					break;
+#  endif
 				case 0xAA:
 					ins->opcode = MXOP_RSM;
 					ins->argc = 0;

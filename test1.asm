@@ -123,3 +123,21 @@ j2:	jno	j2
 	mov	tr3,eax
 	mov	eax,tr3
 
+	salc
+	icebp
+	umov	eax,ebx
+	umov	[edi],ebx
+	umov	esi,[edi]
+	umov	al,cl
+	umov	ah,[esi]
+
+	nop
+	nop
+	nop
+	db	0x0F,0x05	; 286 loadall
+
+	nop
+	nop
+	nop
+	db	0x0F,0x07	; 386 loadall
+

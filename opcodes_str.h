@@ -633,6 +633,12 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PMULLD",
 	"PHMINPOSUW",
 	"GETSEC",
+	"SALC",
+/* 0x1F4-0x1F7 */
+	"ICEBP",
+	"UMOV",
+	"LOADALL286",
+	"LOADALL386",
 
 	NULL
 };

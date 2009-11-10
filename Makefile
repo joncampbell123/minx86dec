@@ -2,7 +2,7 @@ TOP=`pwd`
 
 CFLAGS=-I. -I.. -g3 -O0 -std=c99
 
-all: test-headers decode8086 decode286 decode386 decode486 decodeall decodeall_x64 test1.bin test2.bin test3.bin test64_1.bin
+all: test-headers decode8086 decode286 decode386 decode486 decode586 decodeall decodeall_x64 test1.bin test2.bin test3.bin test64_1.bin
 
 test-headers: test-headers.o
 	gcc -o $@ $<
@@ -20,6 +20,11 @@ decode386: decode386.o core386.o string.o
 decode486: decode486.o core486.o string.o
 	gcc $(CFLAGS) -o $@ $^
 
+decode586: decode586.o core586.o string.o
+	gcc $(CFLAGS) -o $@ $^
+	rm -f decodepentium
+	ln -s decode586 decodepentium
+
 decodeall: decodeall.o coreall.o string.o
 	gcc $(CFLAGS) -o $@ $^
 
@@ -30,7 +35,7 @@ decodeall_x64: decodeall_x64.o coreall_x64.o string.o
 	gcc $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f *.o test-headers decode8086 *.bin decode8086 decode286 decode386 decode486 decodeall decodeall_x64
+	rm -f *.o *~ test-headers decode8086 *.bin decode8086 decode286 decode386 decode486 decode586 decodeall decodeall_x64 decodepentium
 
 test1.bin: test1.asm
 	nasm -O5 -o $@ -f bin $<

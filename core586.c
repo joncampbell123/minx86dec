@@ -4,25 +4,18 @@
 static minx86_read_ptr_t cip;
 #include "minx86dec/x86_core_macros.h"
 
-void minx86dec_decodeall(struct minx86dec_state *state,struct minx86dec_instruction *ins) {
+void minx86dec_decode586(struct minx86dec_state *state,struct minx86dec_instruction *ins) {
 	unsigned int dataprefix32 = 0,addrprefix32 = 0;
 	register unsigned int patience = 6;
 	cip = state->read_ip;
+#define core_level 5
 #define isdata32 ins->data32
 #define isaddr32 ins->addr32
-#define core_level 99
-#define fpu_level 99
-#define amd_3dnow 99
-#define sse_level 99
-#define everything
-#define pentium 99
-#define emmx_cyrix
-#define pentiumpro
-#define mmx_amd
+#define fpu_level 5
+#define pentium 0
 #define cpuid
-#define ssse3
-#define mmx
 
+	/* default to 8086-style invalid opcode (apparently there was no invalid opcode exception?) */
 	ins->data32 = state->data32;
 	ins->addr32 = state->addr32;
 	ins->start = state->read_ip;
