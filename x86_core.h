@@ -972,9 +972,7 @@ decode_next:
 				/* EWWWW this is a bit messy....
 				   Once upon a time this was widely known as the LOADALL instruction for the 286.
 				   386 and 486 systems used the invalid opcode exception to fake it, and then
-				   it was forgotten around the time the Pentium became popular. BUT
-				   then around the Pentium III era this opcode was reused for the SYSCALL instruction.
-				   Therefore, we cannot include this as part of the "everything" decoder. */
+				   it was forgotten, until re-used to become SYSCALL on the Pentium Pro */
 				case 0x05: /* LOADALL 286 */
 					ins->opcode = MXOP_LOADALL_286;
 					ins->argc = 0;
@@ -989,7 +987,7 @@ decode_next:
 #  if core_level == 3 || (defined(everything) && core_level == 4)
 				/* this opcode suffers the same fate as the 286 version of LOADALL.
 				   it was faked by 486 systems, forgotten around the Pentium era, and then
-				   re-used by the Pentium III for the SYSCALL/SYSENTER instruction. */
+				   re-used by the Pentium Pro for the SYSCALL/SYSENTER instruction. */
 				case 0x07: /* LOADALL 386 */
 					ins->opcode = MXOP_LOADALL_386;
 					ins->argc = 0;
@@ -1252,7 +1250,9 @@ decode_next:
 					break;
 				case 0x31:	/* RDTSC */
 				case 0x32:	/* RDMSR */
-				case 0x33:	/* RDPMC (P4? P3? When did this appear?) */
+#  if defined(pentiumpro) || pentium >= 2 /* Pentium Pro or higher: RDPMC */
+				case 0x33:
+#  endif
 					ins->opcode = MXOP_RDTSC + second_byte - 0x31;
 					ins->argc = 0;
 					break;
