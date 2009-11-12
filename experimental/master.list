@@ -1,220 +1,195 @@
-/* conventions used here:
+/* instruction: byte pattern
 
-   INSTRUCTION [arguments] : byte sequence descriptor
+   the declarations are attempting to match as closely as possible Intel's documentation.
+   you will notice that some later additions to the instruction set start to depend on
+   specific occurrences of prefixes. Older CPUs didn't really care all that much (this
+   is probably why a lot of older DOS software fails on newer hardware). Various conditions
+   are specified here, to help match opcodes to processors and decoding quirks. You
+   are allowed to include other files as well, to help keep common declarations in one
+   file.
 
 
-   arguments: [arg, [arg]]
-   zero or more comma-separated declarations of what the registers are and
-   how they map to the bytes. can be a register description, 
+   0xAA        direct byte value to match against
+
+   REX.W       x64: promote word width to 64-bit
    
-   w[regname] is used to say that the non-byte-wide version of the register is
-   used, depending on 32-bit/64-bit override. "wax" for example would represent
-   "ax", or "eax" if the 32-bit data override is in use, or "rax" if the 64-bit
-   data override is in use.
+   /digit      mod/reg/rm byte, r/m is used for register or mem and reg field chooses the opcode
 
-   "rm" means the register is defined by the "rm" field of the mod/reg/rm byte.
-   by default, it is assumed to be word-override sized "wrm" (such as: rm=0 means
-   "ax" and it's treated here as if "wax"), it can be byte-sized if the instruction
-   indicates a byte-size version is possible. it can be declared to always be
-   one byte by writing "rm/b", word-sized by "rm/w", long-sized (32-bit) by "rm/l",
-   quad-sized (64-bit) by "rm/q", or a specific byte size by rm[size] where size
-   is a nonnegative nonzero integer.
+   /r          mod/reg/rm byte, r and r/m specify a register and register or memory reference
 
-   "reg" means the register is defined by the "reg" field, subject to the same rules
-   for "rm".
+   cb/cw/cd/cp/co/ct  code offset as 1/2/4/6/8/10-byte value following the opcode, usually signed
 
-   "r/m" means that the data at the memory address, or the register, is used as
-   the argument. if w=1 it is 16/32/64-bit word-sized, w=0 is byte-sized.
-   wr/m always uses word-sizes. r/m[size] says that the memory location will
-   be treated as if size bytes large. r/m[+size] says it's size bytes larger
-   than normal.
+   ib/iw/id/io immediate operand following the opcode, signed or unsigned
 
-   some instructions encode the register according to the lower 7 bits of the
-   opcode itself. you can represent these by "ocreg", which on x86-64 also
-   indicates that the register value decoded may also be combined with the
-   appropriate bit from the REX extension to reference all 16 registers.
+   +rb/+rw/+rd/+ro  register code, 0-7, added to the hexadecimal byte
 
-   most instructions take either a word, or byte reference. some encode this
-   into the opcode, some implicitly have this on. you can say it always takes
-   a byte by writing w=0 in the list, word by writing w=1, or that the opcode
-   encodes it by saying w=&1 (to say the least significant bit indicates
-   word-sized or not). here "word-sized" means 16-bit, 32-bit, or 64-bit.
-   if no other hint is given, w=1 by default.
+   +i          register code, 0-7, added to the hexadecimal byte, referring to the FPU register st(i)
 
-   the byte range descriptor represents immediates. you can refer to those
-   immediates using i1, i2... etc. in the argument encoding.
+   rel8        relative address from -128 to 127, from the end of the instruction
+
+   rel16/rel32/rel64  relative address in the same code segment, signed value, that is 16/32/64 bits wide, from end of instruction
+
+   ptr16:16/ptr16:32/ptr16:64  far pointer, memory address
+
+   r8          byte-wide general register (AL,CL,DL,BL,AH,CH,DH,BH etc)
+
+   r16         word-wide general register
+
+   r32         dword-wide general register
+
+   r64         qword-wide general register (RAX, etc.)
+
+   imm8        signed byte value, sign-extended if needed
+
+   imm16       signed 16-bit value
+
+   imm32       and so on
+
+   imm64       and so on
+
+   r/m8        byte side register or memory reference
+
+   r/m16, r/m32, r/m64  and so on
+
+   m           a word-size memory reference (16/32/64)
+
+   m8          byte size memory reference
+
+   m16/m32/m64/m128  and so on
+
+   m16:16/m16:32/m16:64  memory operand pointing at far pointer
+
+   m16&16/m16&32/m32&32/etc..  memory reference with pairs of values, each size given directly
+
+   moffs8/moffs16/moffs32/...  memory address, relative to the segment
+
+   sreg        segment register
+
+   m32fp/m64fp/m80fp  memory reference to floating point value
+
+   m16int/m32int/m64int  memory reference to integer, this form used for FPU instructions
+
+   st          first FPU register st(0)
+   st(i)       FPU register i
+
+   mm          MMX register, 64 bits wide (0...7)
+
+   mm/m32      low 32 bits of MMX, or 32-bit memory addr
+
+   mm/m64      MMX register or 64-bit memory addr
+
+   xmm         XMM register, 128 bits wide (0...7), REX extendable to 8...15
+
+   xmm/m32     low 32 bits of XXM register? or 32-bit memory addr
+
+   xmm/m64     low 64 bits of XXM register? or 64-bit memory addr
+ 
+   xmm/m128    XMM register or memory addr
+
+   <xmm0>      implied reference to XMM register X (here: register 0)
+
+   
+
+   Instructions by default are assumed to be encodeable in any mode.
+   Whether the instruction is added to the table depends on the conditions
+   described in the definition. If no conditions are added, the condition
+   is "true".
+
+   a condition starts with "if" such as:
+
+   FOO: 0xAC /r if cpu >= 386
+   
+   combined conditions can be written using standard expression format:
+
+   BAR: 0xAA /r if x64 && mod != 3 && cpu >= 386
+   ASS: 0xC0 /r if (!x64 && mod == 2) || (x64 && mod == 1 && cpu == 286)
+
+   Condition variables:
+
+   x64                If 64-bit long mode is active
+   a32                If 386 32-bit addressing prefix active (0x67 prefix in 16/64-bit, or 32-bit mode without prefix)
+   d32                If 386 32-bit data prefix active (0x66 prefix in 16/64-bit, or 32-bit mode without prefix)
+   p66                If 32-bit data prefix 0x66 was encountered (regardless of current mode)
+   p67                If 32-bit address prefix 0x67 was encountered (regardless of current mode)
+   pF2                If 0xF2 (REPE) prefix occured
+   pF3                If 0xF3 (REPNE) prefix occured
+   mod                mod bits of modregrm
+   reg                reg bits of modregrm. if REX occured, 4th bit is combined into this value
+   rm                 rm bits of modregrm. If REX occured, 4th bit is combined into this value
+   word               if word-size parameter, typically this is set by the opcode statement
+   everything         this is set to "1" if compiling a general decompiler intended to decompile every possible non-overlapping instruction
+   cpu                an integer value representing the x86 level, for differentiating between pre-pentium2 CPUs. anything later is "686"
+                             86 = 8086          186 = 80186          286 = 80286
+                            386 = 80386         486 = 80486          586 = pentium
+                            686 = pentium pro
+   pentium            if Pentium or higher, which one 1=Pentium, 2=Pentium II, 3=Pentium III, 4=Pentium 4. anything newer still has pentium=4
+   cmov               always 1, except if the target CPU does not have it
+   mmx                an integer value that is 0 for no MMX, or 1 if so (TODO: multiple levels of MMX?)
+   sse                an integer value that is 0 for no SSE, 1=SSE, 2=SSE2, 3=SSE3, 4=SSE4
+   sss3               If SSES3 present
+   sse4               SSE4 level, 0=only SSE4, 1=SSE4.1, 2=SSE4.2, etc...
+   avx                AVX extensions
+   aes                AES extensions
+   3dnow              3DNow! extensions
+   popcnt             Enable POPCNT
+   switch             0=leave instruction operands alone, 1=instruction arguments are swapped (only applicable to first two arguments)
+   wordsize           16, 32, or 64, depending on prefixes and mode
+   bytewordsize       8, 16, 32, or 64. kind of like: word ? wordsize : 8
+   opcode0            first byte of the opcode, excluding prefixes
+   opcode1            second byte of the opcode
+   opcode2            and so on...
+   opb0               least significant bit of opcode0 (opcode0 & 1)
+   opb1               2nd least significant bit of opcode0 ((opcode0 >> 1) & 1)
+   
+   Byte matching, Masking extension:
+      Some opcodes use the least significant bits for word/byte size specification, etc or for register selection.
+      Allowing masking saves my wrists by simply stating that, when said bits are masked off, the opcode should match this value.
+
+   0xAA&1             Match byte value 0xAA after stripping off the lsb
+   0xAC&1             Match 0xAC after stripping off two lsb's
+
+   
+
+   Prefix strictness:
+
+   Earlier x86 processors didn't mind so much the prefix order, while later ones are more stringent.
+   If desired, the system can be compiled to enforce the stricter form (typically when decompiler is
+   used to emulate a processor).
+
+   In addition, prefixes can be enabled and disabled depending on the target processor. To allow this,
+   prefixes themselves are declared using names known to the compiler.
+
+   ^data32: 0x66 if cpu >= 386
+
+   Prefix names:
+
+   ^data32
+   ^addr32
+   ^repne
+   ^lock
+   ^repe
+   ^es
+   ^cs
+   ^ds
+   ^ss
+   ^fs
+   ^gs
+   ^rex
+   ^vex
 
 
-   byte range descriptor:
+   Instruction arguments:
 
-   this describes the byte sequence of the instruction opcode. the byte values
-   themselves do not include the prefixes, though based on our wonderful mess
-   called the x86 instruction set, can say that this encoding is only valid
-   if certain prefixes are present.
+   ADD reg, r/m: 0x00&1 /r
 
-   0x90              direct byte value
-   0x91-0x97         direct byte range
-   0x0F 0xAA         direct multibyte value
-   0x0F 0xC0-0xC3    direct multibyte value and range of values
-   0xF6&1            direct byte range, with number of least significant bits ignored. 0xF6 & 1 => 0xF6 masking 1 LSB => 0xF6-0xF7
-   0xF6&1 mrm        direct byte range, followed by mod/reg/rm byte
-   0xF6&1 mrm /6     direct byte range, followed by mod/reg/rm byte where reg == 6 (aka the DIV instruction). "mrm" is implied if the /N notation is present.
-   0xF6&1 mrm mod!=3 direct byte range, with mod/reg/rm where mod is not 3
+   following the name, arguments are declared using the condition variables described above.
 
-   also allowed:
+   The instruction can change condition variables before argument are evaluated:
 
-   d32               when 32-bit data mode enabled (such as: 32-bit code segment or 16-bit code segment used 0x66 prefix)
-   !d32              opposite of d32
-   a32               when 32-bit addressing mode enabled
-   !a32              opposite of a32
-   =d32              when 32-bit data prefix occured (regardless of code segment)
-   =a32              when 32-bit address prefix occured (regardless of code segment)
-   =!d32             when 32-bit data prefix did NOT occur
-   =!a32             when 32-bit address prefix did NOT occur
-   =d64              when 64-bit REX prefix is present
-   x64               when 64-bit mode is active
-   !x64              when 64-bit mode is not active
-   lock              when the LOCK prefix is present
-   rep               when the REP prefix is present
-   repe              when the REPE prefix is present
-   286               if 286 or higher
-   386               if 386 or higher
-   486               if 486 or higher
+   ADD { word=opb0,switch=opb1 } r/m, reg: 0x00&3 /r
 
-   wi: word-sized immediate (8-bit if w=0, 16/32 if w=1. in 64-bit mode w=1 still means 32-bit)
-   wil: as "wi" but can be 64-bit wide if 64-bit mode
-   ib: immediate byte
-   iw: immediate word
-   id: immediate dword
-   iq: immediate qword
-   /rip: immediate value is relative to the instruction pointer (implies /s)
-   /s: immediate value should be sign-extended
-   /u: immediate value should be zero-extended (default)
+   This declares 0x00-0x03 as ADD /r with r/m, reg defining the memory or register reference,
+   but that bit 0 chooses between word size or byte size, and bit 1 if set switches the first
+   two to become ADD reg, r/m.
 
-   maskop = evaluated from the bits masked off the opcode (such as: 0x6C&2, given 0x6D, would give 0x6D&((1<<2)-1) == 0x6D&3 == 1)
-   op = the last opcode byte. if single-byte opcode, then this is THE opcode.
-
-   ranges can be given as A-B to match byte values A to B inclusive.
-   ranges can be written as A-BxC to match byte values A to B inclusive every C steps. Such as: 0x10-0x3Fx4 to match 0x10,0x14,0x18...0x34,0x38,0x3C.
-
-   &i1 can mean the immediate value is a memory address.
-
-   */
-
-/* there is a very consistent pattern for the first 0x40 bytes of the instruction set */
-set @common_arithmetic_8086 = {ADD,OR,ADC,SBB,AND,SUB,XOR,CMP};
-/* common conditional jump names */
-set @common_conditional_jumps = {JO,JNO,JB,JNB,JZ,JNZ,JBE,JA,JS,JNS,JP,JNP,JL,JGE,JLE,JG};
-set @set_conditional_names = {SETO,SETNO,SETB,SETNB,SETZ,SETNZ,SETBE,SETJA,SETJS,SETJNS,SETJP,SETJNP,SETJL,SETJGE,SETJLE,SETJG};
-set @common_shifts = {,,RCL,RCR,SHL,SHR,,SAR};
-
-/* okay, begin with the one-byte opcodes */
-@common_arithmetic_8086[op>>3] w=&1 r/m, reg:	{0x00-0x38x8}&1
-@common_arithmetic_8086[op>>3] w=&1 reg, r/m:	{0x02-0x3Ax8}&1
-@common_arithmetic_8086[op>>3] w=&1 wax, i1:	{0x04-0x3Cx8}&1 wi
-PUSH "es"					0x06
-POP "es"					0x07
-PUSH "cs"					0x0E
-POP "cs"					0x0F cpu==086
->f_extension					0x0F cpu>086
-PUSH "ss"					0x16
-POP "ss"					0x17
-PUSH "ds"					0x1E
-POP "ds"					0x1F
-DAA:						0x27
-DAS:						0x2F
-AAA:						0x37
-AAS:						0x3F
-DATA32+:					0x66 cpu>=386
-ADDR32+:					0x67 cpu>=386
-@common_conditional_jumps[maskop] i1:		0x70&4 ib/rip
-@common_arithmetic_8086[reg] w=&1 r/m, i1:	0x80&1,0x82 wi
-@common_arithmetic_8086[reg] w=1 r/m, i1:	0x83 ib/s
-TEST w=&1 r/m, reg:				0x84&1
-XCHG w=&1 r/m, reg:				0x86&1
-MOV w=&1 r/m, reg:				0x88&1
-MOV w=&1 reg, r/m:				0x8A&1
-MOV w=1 r/m, sreg:				0x8C
-LEA w=1 reg, r/m:				0x8D mod!=3
-MOV w=1 sreg, r/m:				0x8E
-NOP:						0x90
-XCHG wax, ocreg:				0x91-0x97
-CBW						0x98 !d32
-CWDE						0x98 d32
-CWD						0x99 !d32
-CDQ						0x99 d32
-CALLF i2, i1:					0x9A wi iw !x64
-FWAIT						0x9B
-PUSHF						0x9C !d32
-PUSHFD						0x9C d32
-POPF						0x9D !d32
-POPFD						0x9D d32
-SAHF:						0x9E
-LAHF:						0x9F
-MOV w=&1 wax, &i1:				0xA0&1 wil
-MOV w=&1 &i1, wax:				0xA2&1 wil
-MOVS w=&1 es:wdi, seg:wsi:			0xA4&1
-CMPS w=&1 es:wdi, seg:wsi:			0xA6&1
-TEST wax, i1:					0xA8&1 wi
-STOS w=&1 es:wdi:				0xAA&1
-LODS w=&1 seg:wsi:				0xAC&1
-SCAS w=&1 seg:wsi:				0xAE&1
-MOV w=&4 ocreg, i1:				0xB0&4 wil
-@common_shifts[reg] w=&1 r/m, i1:		0xC0&1 ib
-RET i1:						0xC2 iw
-RET:						0xC3
-LES w=1 reg, r/m[+2]:				0xC4
-LDS w=1 reg, r/m[+2]:				0xC5
-MOV w=&1 r/m, i1:				0xC6&1 wi /0
-ENTER i1, i2:					0xC8 iw ib
-LEAVE:						0xC9
-RETF i1:					0xCA iw
-RETF:						0xCB
-INT3:						0xCC
-INT i1:						0xCD ib
-INTO:						0xCE
-IRET:						0xCF
-@common_shifts[reg] w=&1 r/m, 1:		0xD0&1
-@common_shifts[reg] w=&1 r/m, cl:		0xD2&1
-AAM i1:						0xD4 ib
-AAD i1:						0xD5 ib
-XLAT:						0xD7
-LOOPNE i1:					0xE0 ib/rip
-LOOPE i1:					0xE1 ib/rip
-LOOP i1:					0xE2 ib/rip
-JCXZ:						0xE3 ib/rip
-IN w=&1 wax, i1:				0xE4&1 ib
-OUT w=&1 i1, wax:				0xE6&1 ib
-CALL i1:					0xE8 wi/rip
-JMP i1:						0xE9 wi/rip
-JMPF i2, i1:					0xEA wi iw !x64
-JMP i1:						0xEB ib/rip
-IN w=&1 wax, dx:				0xEC&1
-OUT w=&1 dx, wax:				0xEE&1
-LOCK+:						0xF0
-REPE+:						0xF2
-REPNE+:						0xF3
-HLT:						0xF4
-CMC:						0xF5
-{,,NOT,NEG, MUL,IMUL,DIV,IDIV} w=&1 r/m		0xF6&1
-TEST w=&1 r/m, i1:				0xF6&1 wi
-CLC:						0xF8
-STC:						0xF9
-CLI:						0xFA
-STI:						0xFB
-CLD:						0xFC
-STD:						0xFD
-INC w=&1 r/m:					0xFE&1 /0
-DEC w=&1 r/m:					0xFE&1 /1
-CALL w=1 r/m:					0xFF /2
-CALLF w=1 r/m[+2]:				0xFF /3
-JMP w=1 r/m:					0xFF /4
-JMPF w=1 r/m[+2]:   			        0xFF /5
-PUSH w=1 r/m:					0xFF /6
-POP w=1 r/m:					0xFF /7
-
-/* opcodes that start with 0x0F. there are so many of them they deserve their own section */
-[f_extension]
-@common_conditional_jumps[maskop] i1:		0x0F 0x80&4 wi/rip cpu>=386
-@set_conditional_names[maskop] r/m/b:		0x0F 0x90&4 cpu>=386
-
+*/
