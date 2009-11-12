@@ -659,6 +659,10 @@ decode_next:
 			}
 			break; }
 
+		/* TODO: Intel's VEX extensions basically replace these in x64 mode, and take up the illegal
+		         case where mod == 3 in 32-bit mode. They attempt to compress the extensions added up
+		         over the years in these things. Yechhh... */
+
 		/* LES */
 		case 0xC4:
 			ins->opcode = MXOP_LES;
