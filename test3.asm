@@ -1485,3 +1485,25 @@ bits 16
         vcvtdq2pd ymm1,[esi]			; F3 0F E6
         vcvtdq2ps ymm1,[esi]			; 0F 5B /r
 
+        vcvtdq2pd	xmm1,xmm2			; F3 0F E6
+        vcvtdq2ps	xmm1,xmm2			; 0F 5B /r
+        vcvtpd2dq	xmm1,xmm2			; F2 0F E6
+	nop
+	nop
+        vcvtpd2ps	xmm1,xmm2			; 66 0F 5A /r
+        vcvtpd2ps	xmm1,ymm2			; 66 0F 5A /r
+        vcvtps2dq	xmm1,xmm2			; 66 0F 5B /r
+        vcvtps2dq	ymm1,ymm2			; 66 0F 5B /r
+        vcvtps2pd	xmm1,xmm2			; 0F 5A /r
+        vcvtps2pd	ymm1,xmm2			; 0F 5A /r
+        vcvtsd2si	eax,xmm2			; F2 0F 2D /r
+        vcvtsd2ss	xmm1,xmm2			; F2 0F 5A /r
+        vcvtsi2sd	xmm1,eax			; F2 0F 2A /r
+        vcvtsi2ss	xmm1,ebx			; F3 0F 2A /r
+        vcvtss2sd	xmm1,xmm2			; F3 0F 5A /r
+        vcvtss2si	eax,xmm1			; F3 0F 2D /r
+        vcvttpd2dq	xmm1,xmm2			; 66 0F E6
+        vcvttps2dq	xmm1,xmm2			; F3 0F 5B /r
+        vcvttsd2si	eax,xmm1			; F2 0F 2C /r
+        vcvttss2si	eax,xmm1			; F3 0F 2C /r
+

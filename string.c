@@ -1,6 +1,7 @@
 #define DEFINE_OPCODES_STR
 #include "minx86dec/opcodes_str.h"
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 const char *regnames[9][32+1] = {
