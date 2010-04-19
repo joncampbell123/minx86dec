@@ -656,6 +656,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"SUB4S",
 /* 0x204-0x207 */
 	"TEST1",
+	"RETEM",
 
 	NULL
 };

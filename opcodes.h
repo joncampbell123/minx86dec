@@ -651,6 +651,7 @@ enum {
 	MXOP_SUB4S,
 /* 0x204-0x207 */
 	MXOP_TEST1,
+	MXOP_RETEM,
 
 	MXOP_LAST
 };
