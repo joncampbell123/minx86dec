@@ -2212,6 +2212,56 @@ decode_next:
 						set_sse_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					} break;
+
+				case 0x60:
+					ins->opcode = MXOP_PUNPCKLBW;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						s->size = d->size = dataprefix32 ? 16 : 8;
+						if (dataprefix32) set_sse_register(d,mrm.f.reg);
+						else set_mmx_register(d,mrm.f.reg);
+						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+					} break;
+
+				case 0x61:
+					ins->opcode = MXOP_PUNPCKLWD;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						s->size = d->size = dataprefix32 ? 16 : 8;
+						if (dataprefix32) set_sse_register(d,mrm.f.reg);
+						else set_mmx_register(d,mrm.f.reg);
+						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+					} break;
+
+				case 0x62:
+					ins->opcode = MXOP_PUNPCKLDQ;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						s->size = d->size = dataprefix32 ? 16 : 8;
+						if (dataprefix32) set_sse_register(d,mrm.f.reg);
+						else set_mmx_register(d,mrm.f.reg);
+						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+					} break;
+
+				case 0x63:
+				case 0x6B:
+					ins->opcode = MXOP_PACKSSWB + ((second_byte >> 3)&1);
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						s->size = d->size = dataprefix32 ? 16 : 8;
+						if (dataprefix32) set_sse_register(d,mrm.f.reg);
+						else set_mmx_register(d,mrm.f.reg);
+						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+					} break;
+
 				case 0x6F:
 				case 0x7F:
 					if (ins->rep == MX86_REPE) {

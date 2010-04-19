@@ -895,7 +895,6 @@ l4:
        pinsrb	xmm1,eax,3			; 66 0F 3A 20 /r ib
        pinsrd	xmm1,dword [si],4		; 66 0F 3A 22 /r ib
        pinsrd	xmm1,eax,5			; 66 0F 3A 22 /r ib
-%if 0
 
     punpcklbw	mm1,mm2				;    0F 60 /r
     punpcklbw	xmm1,xmm2			; 66 0F 60 /r
@@ -905,7 +904,10 @@ l4:
     punpckldq	xmm1,xmm2			; 66 0F 62 /r
      packsswb	mm1,mm2				;    0F 63 /r
      packsswb	xmm1,xmm2			; 66 0F 63 /r
+     packssdw	mm1,mm2				;    0F 6B /r
+     packssdw	xmm1,xmm2			; 66 0F 6B /r
 
+%if 0
      packuswb	mm1,mm2				;    0F 67 /r
      packuswb	xmm1,xmm2			; 66 0F 67 /r
     punpckhbw	mm1,mm2				;    0F 68 /r
@@ -913,8 +915,6 @@ l4:
     punpckhwd	mm1,mm2				;    0F 69 /r
     punpckhwd	xmm1,xmm2			; 66 0F 69 /r
     punpckhdq	xmm1,xmm2			; 66 0F 6A /r
-     packssdw	mm1,mm2				;    0F 6B /r
-     packssdw	xmm1,xmm2			; 66 0F 6B /r
    punpcklqdq	xmm1,xmm2			; 66 0F 6C /r
    punpckhqdq	xmm1,xmm2			; 66 0F 6D /r
 

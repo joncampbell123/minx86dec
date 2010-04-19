@@ -672,6 +672,12 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x210-0x213 */
 	"PINSRB",
 	"PINSRD",
+	"PUNPCKLBW",
+	"PUNPCKLWD",
+/* 0x214-0x217 */
+	"PUNPCKLDQ",
+	"PACKSSWB",
+	"PACKSSDW",
 
 	NULL
 };
