@@ -1042,7 +1042,10 @@ decode_next:
 					break; }
 				case 0x01: { /* LGDT */
 					/* yechh... */
-					if (*cip == 0xC8) {
+					if (0) { /* this if() statement makes the else statement valid below even when not compiling else..if below us */
+					}
+# if core_level >= 6 /* these bizarre LGDT extensions pertain to Pentium II 686 class processors */
+					else if (*cip == 0xC8) {
 						ins->opcode = MXOP_MONITOR;
 						ins->argc = 0;
 						cip++;
@@ -1086,6 +1089,7 @@ decode_next:
 						ins->argc = 0;
 						cip++;
 					}
+#endif
 					else if (*cip < 0xC0) {
 						union x86_mrm mrm = fetch_modregrm();
 						switch (mrm.f.reg) {
@@ -1142,6 +1146,12 @@ decode_next:
 						set_register(d,mrm.f.reg);
 						decode_rm(mrm,s,isaddr32);
 					} break;
+#  if core_level == 2 && !defined(everything)
+				case 0x04: /* secret unknown opcode said to cause 286s to hang, LOADALL alias? */
+					ins->opcode = MXOP_UNKNOWN_286_0F04;
+					ins->argc = 0;
+					break;
+#  endif
 #  if core_level == 2 || (defined(everything) && core_level > 2 && core_level <= 4)
 				/* EWWWW this is a bit messy....
 				   Once upon a time this was widely known as the LOADALL instruction for the 286.

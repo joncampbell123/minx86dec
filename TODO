@@ -1,31 +1,16 @@
 TODO:
+   AMD 3DNow!
+   AMD 3DNow+!
+TODO:
+   Core and decoder that supports Intel AVX prefixes (which re-use illegal
+   forms of LDS/LES opcodes to represent two or three byte shorthand
+   prefixes). BTW Does NASM support these?
+TODO:
    Finish adding the rest of the MMX/SSE instructions and you'll be done!
    Check latest Intel docs and AMD docs for any new instructions that might
    have been added.
 TODO:
-   Write test asm with 64-bit code to test against, and then start building
-   the x86-64 core header file and test decompiler.
-FIXME:
-   Some of your MMX/SSE decoding routines might have corner cases where
-   an incorrect sequence of LOCK+66h instructions might crash or otherwise
-   produce incorrect behavior. What should ultimately happen is flagging these
-   incorrect sequences as undefined. But assuming common cases works as well,
-   so far.
-TODO:
    There's a lot of redundant code in the X86 core, specifically related to
    register assignment and such. Can you reduce that down to macros to provide
    more concise readable code that's less redundant?
-TODO:
-   In fact, the x86 instruction set is such a mess... perhaps it would be a
-   wiser approach to simply have a sort of minimalist "programming language"
-   that one would describe instruction encoding by, which is automatically
-   converted to x86_core.h for a particular instance, configuration, and
-   variation. Then you could have one master file that describes 8086, 286,
-   386, 486, etc. and all 16-bit, 32-bit, and 64-bit encodings. Kind of like
-   yacc/bison + flex but for x86 instruction decoding. Then the master decoding
-   loop would be a simple byte lookup table.
-TODO:
-   have you noticed that may instruction encodings have similar if not exact
-   corresponding forms. Anything 0F 3A xx tends to be reg,reg,imm, for example.
-   In the future you could use that to cleanup the code.
 

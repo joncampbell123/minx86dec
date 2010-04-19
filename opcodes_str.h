@@ -657,6 +657,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x204-0x207 */
 	"TEST1",
 	"RETEM",
+	"UNKNOWN_286_0F04",
 
 	NULL
 };
