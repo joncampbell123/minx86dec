@@ -66,22 +66,13 @@
  * 4 = SSE4 */
 #endif
 
-#ifndef pentium
-#  define pentium 0
-/* 1 = pentium/ppro
- * 2 = pentium II
- * 3 = pentium III
- * 4 = pentium 4 */
-#endif
-
-#ifdef pentiumpro
-/* pentium == 1 -> pentium pro */
-#endif
-
 /* did we encounter FWAIT? (another odd prefix tacked on by Intel to instructions, yech!!) */
 int fwait = 0;
 
 ins->lock = 0;
+#if defined(vex_level)
+ins->vex.raw = 0;
+#endif
 ins->rex.raw = 0;
 ins->rep = MX86_REP_NONE;
 decode_next:
@@ -283,19 +274,6 @@ decode_next:
 						struct x64_mrm mrm = decode_rm_x64(reg,ins,reg->size=8,PLUSR_TRANSFORM);
 						if (second_byte & 1)	set_debug_register(ctrl,mrm.f.reg);
 						else			set_control_register(ctrl,mrm.f.reg);
-					} break;
-				COVER_4(0x24):
-					if (second_byte & 1) {
-					}
-					else {
-						ins->opcode = MXOP_MOV;
-						ins->argc = 2; {
-							const int which = (second_byte >> 1) & 1;
-							struct minx86dec_argv_x64 *ctrl = &ins->argv[which^1];
-							struct minx86dec_argv_x64 *reg = &ins->argv[which];
-							struct x64_mrm mrm = decode_rm_x64(reg,ins,reg->size=8,PLUSR_TRANSFORM);
-							set_test_register(ctrl,mrm.f.reg);
-						}
 					} break;
 			};
 			} break;

@@ -269,22 +269,5 @@ bits 64
 	mov	rcx,dr8
 	mov	rdx,dr9
 
-; x86-64 doesn't support TR0....TR7 so we force NASM to make it anyway
-bits 32
-	mov	tr0,eax		; TR0,RAX
-	mov	eax,tr0		; RAX,TR0
-	mov	tr3,eax		; and so on...
-	mov	eax,tr3
-
-	db	044h
-	mov	tr0,eax		; TR8,RAX
-	db	044h
-	mov	eax,tr0		; RAX,TR8
-	db	044h
-	mov	tr3,eax		; and so on...
-	db	044h
-	mov	eax,tr3
-bits 64
-
 	nop
 

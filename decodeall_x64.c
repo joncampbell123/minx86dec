@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 
-uint8_t buffer[8192];
+uint8_t buffer[16384];
 
 static void minx86dec_init_state_x64(struct minx86dec_state_x64 *st) {
 	memset(st,0,sizeof(*st));
