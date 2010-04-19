@@ -962,8 +962,18 @@ decode_next:
 										   } break;
 									   }
 #   undef PAIR
-								   break; }
-
+							case 0xF0:
+								ins->opcode = MXOP_LDDQU;
+								ins->argc = 2; {
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s = &ins->argv[1];
+									union x86_mrm mrm = fetch_modregrm();
+									d->size = s->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									s->segment = seg_can_override(MX86_SEG_DS);
+									decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+								} break;
+						break; }
 				case 0xE6: {
 					struct minx86dec_argv *d = &ins->argv[0];
 					struct minx86dec_argv *s = &ins->argv[1];

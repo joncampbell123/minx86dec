@@ -1522,3 +1522,8 @@ bits 16
         vhsubpd	xmm1,xmm2,xmm3			; 66 0F 7D /r
         vhsubps	xmm1,xmm2,xmm3			; F2 0F 7D /r
 
+	vlddqu	xmm1,[esi]			; F2 0F F0 /r
+	vlddqu	xmm2,[ebx*4+ecx+8]		; F2 0F F0 /r
+	vlddqu	ymm1,[esi]			; F2 0F F0 /r
+	vlddqu	ymm2,[ebx*4+ecx+8]		; F2 0F F0 /r
+
