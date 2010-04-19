@@ -696,6 +696,19 @@ decode_next:
 					case 1: {
 						const uint8_t second_byte = *cip++;
 						switch (second_byte) {
+							case 0x2F:
+								if (v.f.l) break; /* forms not supported with L=1 */
+								if (v.f.v != 0) break; /* vvvv != 1111 is undefined */
+								ins->opcode = MXOP_COMISS + (dataprefix32 ? 1 : 0);
+								ins->argc = 2; {
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s = &ins->argv[1];
+									union x86_mrm mrm = fetch_modregrm();
+									d->size = s->size = 16; /* 128 bit = 16 bytes */
+									d->reg = mrm.f.reg;
+									s->segment = seg_can_override(MX86_SEG_DS);
+									decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
+								} break;
 							COVER_2(0x54):
 								ins->opcode = dataprefix32 + MXOP_ANDPS + ((second_byte & 1) << 1);
 								ins->argc = 3; {
@@ -722,6 +735,44 @@ decode_next:
 									s2->segment = seg_can_override(MX86_SEG_DS);
 									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
 									set_sse_register(s1,v.f.v);
+								} break;
+							case 0x5B: {
+								struct minx86dec_argv *d = &ins->argv[0];
+								struct minx86dec_argv *s = &ins->argv[1];
+								union x86_mrm mrm = fetch_modregrm();
+								if (ins->rep == MX86_REPNE) {
+									ins->opcode = MXOP_CVTTPS2DQ;
+								}
+								else if (ins->rep == MX86_REPE) {
+									/* not defined */
+									break;
+								}
+								else {
+									ins->opcode = MXOP_CVTDQ2PS + (dataprefix32 & 1);
+								}
+								ins->argc = 2;
+								d->size = vector_size;
+								set_sse_register(d,mrm.f.reg);
+								s->size = vector_size;
+								s->segment = seg_can_override(MX86_SEG_DS);
+								decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
+								break; }
+							case 0xC2:
+								if (v.f.l && ins->rep != 0) break; /* forms involving CMPSS/CMPSD not supported with L=1 */
+								ins->opcode = (ins->rep >= MX86_REPE) ? (MXOP_CMPSD + ins->rep - MX86_REPE) : (MXOP_CMPPS + (dataprefix32 ? 1 : 0));
+								ins->argc = 4; {
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									struct minx86dec_argv *i = &ins->argv[3];
+									union x86_mrm mrm = fetch_modregrm();
+									i->size = 8;
+									d->size = s1->size = s2->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									s2->segment = seg_can_override(MX86_SEG_DS);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									set_sse_register(s1,v.f.v);
+									set_immediate(i,fetch_u8());
 								} break;
 							case 0xD0: {
 #   define PAIR(d,r)  ((d) + ((r) << 2))
@@ -753,12 +804,91 @@ decode_next:
 									   }
 #   undef PAIR
 								   break; }
+
+				case 0xE6: {
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					union x86_mrm mrm = fetch_modregrm();
+					d->size = s->size = vector_size;
+					if (ins->rep >= MX86_REPE) {
+						ins->opcode = MXOP_CVTPD2DQ + ins->rep - MX86_REPE;
+						if (ins->rep == MX86_REPE) d->size >>= 1;
+						else s->size >>= 1;
+					}
+					else if (dataprefix32)
+						ins->opcode = MXOP_CVTTPD2DQ;
+					else
+						break;
+
+					ins->argc = 2;
+					set_sse_register(d,mrm.f.reg);
+					s->segment = seg_can_override(MX86_SEG_DS);
+					decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+					break; }
+
 						}
 						break;
 					}
 					case 2: { /* 0x0F 0x38 */
+						/* some instruction decoding is very picky on purpose
+						 * because Intel says that certain fields must be a
+						 * certain way or #UD will occur. This suggests future
+						 * additions to AVX/VEX extensions will differentiate
+						 * by these values */
 						const uint8_t third_byte = *cip++;
 						switch (third_byte) {
+							case 0x18: { 
+								if (dataprefix32) {
+									if (v.f.v == 0) {/* VBROADCASTSS */
+										union x86_mrm mrm = fetch_modregrm();
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										ins->opcode = MXOP_BROADCASTSS;
+										d->size = vector_size;
+										s->size = 4;
+										ins->argc = 2;
+										set_sse_register(d,mrm.f.reg);
+										s->segment = seg_can_override(MX86_SEG_DS);
+										decode_rm(mrm,s,isaddr32);
+									}
+								}
+							} break;
+							case 0x19: { 
+								if (dataprefix32) {
+									if (v.f.l) {
+										if (v.f.v == 0) {/* VBROADCASTSD */
+											union x86_mrm mrm = fetch_modregrm();
+											struct minx86dec_argv *d = &ins->argv[0];
+											struct minx86dec_argv *s = &ins->argv[1];
+											ins->opcode = MXOP_BROADCASTSD;
+											d->size = 32;
+											s->size = 8;
+											ins->argc = 2;
+											set_sse_register(d,mrm.f.reg);
+											s->segment = seg_can_override(MX86_SEG_DS);
+											decode_rm(mrm,s,isaddr32);
+										}
+									}
+								}
+							} break;
+							case 0x1A: { 
+								if (dataprefix32) {
+									if (v.f.l) {
+										if (v.f.v == 0) {/* VBROADCASTF128 */
+											union x86_mrm mrm = fetch_modregrm();
+											struct minx86dec_argv *d = &ins->argv[0];
+											struct minx86dec_argv *s = &ins->argv[1];
+											ins->opcode = MXOP_BROADCASTSD;
+											d->size = 32;
+											s->size = 16;
+											ins->argc = 2;
+											set_sse_register(d,mrm.f.reg);
+											s->segment = seg_can_override(MX86_SEG_DS);
+											decode_rm(mrm,s,isaddr32);
+										}
+									}
+								}
+							} break;
 							case 0xDB: { /* AES IMC */
 								if (dataprefix32) {
 									union x86_mrm mrm = fetch_modregrm();

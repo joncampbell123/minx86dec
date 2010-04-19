@@ -679,6 +679,10 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PACKSSWB",
 	"PACKSSDW",
 	"AESKEYGENASSIST",
+/* 0x218-0x21B */
+	"BROADCASTSS",
+	"BROADCASTSD",
+	"BROADCASTF128",
 
 	NULL
 };

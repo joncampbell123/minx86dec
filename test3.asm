@@ -1447,3 +1447,41 @@ bits 16
         vblendvpd ymm1,ymm2,ymm3,ymm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
         vblendvps ymm1,ymm2,ymm3,ymm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
 
+	vbroadcastss xmm1,[esi]
+	vbroadcastss ymm1,[esi]
+	vbroadcastsd ymm1,[esi]
+	vbroadcastf128 ymm1,[esi]
+
+        vcmppd	xmm1,xmm2,xmm3,2			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
+        vcmppd	xmm1,xmm2,[bx+si],3			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
+        vcmpps	xmm1,xmm2,xmm3,4			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
+        vcmpps	xmm1,xmm2,[bx+si],5			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
+
+        vcmppd	ymm1,ymm2,ymm3,2			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
+        vcmppd	ymm1,ymm2,[bx+si],3			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
+        vcmpps	ymm1,ymm2,ymm3,4			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
+        vcmpps	ymm1,ymm2,[bx+si],5			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
+
+        vcmpsd	xmm1,xmm2,xmm3,2			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
+        vcmpsd	xmm1,xmm2,[bx+si],3			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
+        vcmpss	xmm1,xmm2,xmm3,4			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
+        vcmpss	xmm1,xmm2,[bx+si],5			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
+
+        vcomisd	xmm1,xmm2			; 66 0F 2F /r        COMISD
+        vcomiss	xmm1,xmm2			; 0F 2F /r           COMISS
+
+        vcvtdq2pd xmm1,xmm2			; F3 0F E6
+        vcvtdq2ps xmm1,xmm2			; 0F 5B /r
+        vcvtpd2dq xmm1,xmm2			; F2 0F E6
+
+        vcvtdq2pd ymm1,xmm2			; F3 0F E6
+        vcvtdq2ps ymm1,ymm2			; 0F 5B /r
+        vcvtpd2dq xmm1,ymm2			; F2 0F E6
+
+        vcvtdq2pd xmm1,[esi]			; F3 0F E6
+        vcvtdq2ps xmm1,[esi]			; 0F 5B /r
+        vcvtpd2dq xmm1,oword [esi]			; F2 0F E6
+
+        vcvtdq2pd ymm1,[esi]			; F3 0F E6
+        vcvtdq2ps ymm1,[esi]			; 0F 5B /r
+
