@@ -1517,3 +1517,8 @@ bits 16
         vdpps	xmm1,xmm2,xmm3,2			; 66 0F 3A 40 /r ib
         vdpps	xmm1,xmm2,xmm3,5			; 66 0F 3A 40 /r ib
 
+        vhaddpd	xmm1,xmm2,xmm3			; 66 0F 7C /r
+        vhaddps	xmm1,xmm2,xmm3			; F2 0F 7C /r
+        vhsubpd	xmm1,xmm2,xmm3			; 66 0F 7D /r
+        vhsubps	xmm1,xmm2,xmm3			; F2 0F 7D /r
+
