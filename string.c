@@ -113,9 +113,12 @@ void minx86dec_regprint(struct minx86dec_argv *a,char *output) {
 			else
 				x = NULL;
 
-			if (x == NULL)
+			if (x == NULL) {
 				fprintf(stderr,"BUG: MX86_RT_REG with size=%d reg=%d which does not exist\n",
 					a->size,a->reg);
+
+				abort();
+			}
 
 			strcpy(output,x != NULL ? x : "(null)");
 			break;

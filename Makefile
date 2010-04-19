@@ -48,7 +48,7 @@ decodeall_x64: decodeall_x64.o coreall_x64.o string.o
 	gcc $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f *.o *~ test-headers decode8086 decodenecv20 *.bin decode8086 decode286 decode386 decode486 decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode-pentium2 decode586pro decode-pentiumpro
+	rm -f *.o *~ test-headers decode8086 decodenecv20 *.bin decode8086 decode286 decode386 decode486 decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode-pentium2 decode586pro decode-pentiumpro random.bin.results
 
 test1.bin: test1.asm
 	nasm -O5 -o $@ -f bin $<

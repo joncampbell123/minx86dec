@@ -93,6 +93,7 @@
 int fwait = 0;
 
 ins->lock = 0;
+ins->argv[0].segment = ins->argv[1].segment = ins->argv[2].segment = ins->argv[3].segment = -1;
 #if defined(vex_level)
 ins->vex.raw = 0;
 #endif
@@ -391,6 +392,7 @@ decode_next:
 				case 0:
 					/* FIXME: is size specified or implied? */
 					ins->opcode = MXOP_POP;
+					d->size = data32wordsize;
 					ins->argc = 1;
 					decode_rm(mrm,d,isaddr32);
 					break;
