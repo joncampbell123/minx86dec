@@ -3,6 +3,13 @@ Use for any program or tool you write to decompile opcodes.
 Written in plain C for speed and lightness.
 
 core8086.c             8086/8088 decoding engine
+corenecv20.c           80186 NEC V20/V30 decoding engine
 core286.c              286 decoding engine
 core386.c              386 decoding engine
+core486.c              486 decoding engine
+core586.c              Pentium decoding engine
+core586pro.c           Pentium Pro decoding engine
+core686.c              686 or higher-level (Pentium II or higher) decoding engine
+coreall.c              General-purpose x86 decoding engine (all instructions, except those replaced by newer instructions)
+coreall_x64.c          General-purpose x86-64 decoding engine (for decoding instructions in 64-bit long mode)
 

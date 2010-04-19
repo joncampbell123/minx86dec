@@ -639,6 +639,10 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"UMOV",
 	"LOADALL286",
 	"LOADALL386",
+/* 0x1F8-0x1FB */
+	"ADD4S",
+	"BRKEM",
+	"CLEAR1",
 
 	NULL
 };

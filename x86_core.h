@@ -26,6 +26,7 @@
    no_salc             disable decoding of SALC undocumented instruction
    no_icebp            disable decoding to ICEBP undocumented ins.
    no_umov             disable decoding of UMOV undocumented ins.
+   do_necv20           enable decoding of NEC V20/V30 undocumented ins.
    everything          decode everything, unless opcodes overlap lesser known opcodes in older revisions
 
  */
@@ -82,6 +83,10 @@
 
 #ifdef pentiumpro
 /* pentium == 1 -> pentium pro */
+#endif
+
+#if defined(do_necv20) && core_level != 1
+#  undef do_necv20
 #endif
 
 /* did we encounter FWAIT? (another odd prefix tacked on by Intel to instructions, yech!!) */
@@ -839,7 +844,9 @@ decode_next:
 		case 0x0F: {
 			const uint8_t second_byte = *cip++;
 			switch (second_byte) {
-# if (core_level >= 3 && core_level <= 4) && !defined(no_umov) /* UMOV is 386/486 only */
+# if (core_level >= 3 && core_level <= 4) && !defined(no_umov)
+				/* Intel 386/486 only, not on Pentium. Cyrix is said to treat this as a double NOOP (which ones? Cyrix 586? Or only pre-586?) */
+				/* notice this opcode is reused later for SSE instructions MOVSS/MOVSD/MOVLPD/MOVPLS */
 				COVER_4(0x10): /* UMOV */
 					ins->opcode = MXOP_UMOV;
 					ins->argc = 2; {
@@ -851,6 +858,41 @@ decode_next:
 						s->segment = seg_can_override(MX86_SEG_DS);
 						set_register(d,mrm.f.reg);
 						decode_rm(mrm,s,isaddr32);
+					} break;
+# endif
+# if defined(do_necv20) /* NEC V20/V30 */
+				case 0x20: /* ADD4S. conflicts with 386 instruction mov reg,CRx */
+					ins->opcode = MXOP_ADD4S;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						d->size = s->size = 2;
+						d->memregsz = s->memregsz = 2;
+						s->segment = seg_can_override(MX86_SEG_DS);	/* <- Right? Just like LODS/STOS? */
+						d->segment = MX86_SEG_ES;
+						set_mem_ref_reg(s,MX86_REG_SI);
+						set_mem_ref_reg(d,MX86_REG_DI);
+					} break;
+				case 0xFF: /* BRKEM */
+					ins->opcode = MXOP_BRKEM;
+					ins->argc = 1; {
+						struct minx86dec_argv *r = &ins->argv[0];
+						set_immediate(r,fetch_u8());
+					} break;
+				COVER_2(0x12): /* CLEAR1 r/m,CL conflicts with 386/486 UMOV and SSE MOVHPS */
+				COVER_2(0x1A): /* CLEAR1 r/m,imm */
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *imm = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						switch (mrm.f.reg) {
+							case 0:	ins->opcode = MXOP_CLEAR1; break;
+						};
+						d->size = (second_byte & 1) ? 2 : 1;
+						decode_rm(mrm,d,0);
+						imm->size = 1;
+						if (second_byte & 8) set_immediate(imm,fetch_u8());
+						else set_register(imm,MX86_REG_CL);
 					} break;
 # endif
 # if core_level >= 2 /*------------- 286 or higher -----------------*/

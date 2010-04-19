@@ -2,13 +2,16 @@ TOP=`pwd`
 
 CFLAGS=-I. -I.. -g3 -O0 -std=c99
 
-all: test-headers decode8086 decode286 decode386 decode486 decode586 decode586pro decode686 decodeall decodeall_x64 test1.bin test2.bin test3.bin test64_1.bin
+all: test-headers decode8086 decodenecv20 decode286 decode386 decode486 decode586 decode586pro decode686 decodeall decodeall_x64 test1.bin test2.bin test3.bin testnecv20.bin test64_1.bin
 
 test-headers: test-headers.o
 	gcc -o $@ $<
 	./$@
 
 decode8086: decode8086.o core8086.o string.o
+	gcc $(CFLAGS) -o $@ $^
+
+decodenecv20: decodenecv20.o corenecv20.o string.o
 	gcc $(CFLAGS) -o $@ $^
 
 decode286: decode286.o core286.o string.o
@@ -45,7 +48,7 @@ decodeall_x64: decodeall_x64.o coreall_x64.o string.o
 	gcc $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f *.o *~ test-headers decode8086 *.bin decode8086 decode286 decode386 decode486 decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode-pentium2 decode586pro decode-pentiumpro
+	rm -f *.o *~ test-headers decode8086 decodenecv20 *.bin decode8086 decode286 decode386 decode486 decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode-pentium2 decode586pro decode-pentiumpro
 
 test1.bin: test1.asm
 	nasm -O5 -o $@ -f bin $<
@@ -54,6 +57,9 @@ test2.bin: test2.asm
 	nasm -O5 -o $@ -f bin $<
 
 test3.bin: test3.asm
+	nasm -O5 -o $@ -f bin $<
+
+testnecv20.bin: testnecv20.asm
 	nasm -O5 -o $@ -f bin $<
 
 test64_1.bin: test64_1.asm
