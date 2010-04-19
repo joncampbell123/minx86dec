@@ -1,7 +1,7 @@
 #include "minx86dec/types.h"
 #include "minx86dec/state.h"
 #include "minx86dec/opcodes.h"
-#include "minx86dec/core586.h"
+#include "minx86dec/core586pro.h"
 #include "minx86dec/opcodes_str.h"
 #include <string.h>
 #include <stdio.h>

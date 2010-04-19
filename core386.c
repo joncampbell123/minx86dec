@@ -13,7 +13,6 @@ void minx86dec_decode386(struct minx86dec_state *state,struct minx86dec_instruct
 #define isaddr32 ins->addr32
 #define fpu_level 3
 
-	/* default to 8086-style invalid opcode (apparently there was no invalid opcode exception?) */
 	ins->data32 = state->data32;
 	ins->addr32 = state->addr32;
 	ins->start = state->read_ip;

@@ -66,7 +66,7 @@ bits 64
 	add	bl,[rcx*8+rdx+54h]
 	add	bl,[rdx*2+rsi+12345678h]
 	add	bl,[abs 1]
-	add	bl,[rel 1]
+	add	bl,[rel $+1+6]	; the instruction is 6 bytes long, we want RIP+1
 	add	bl,[ecx*8+edx+54h]
 	add	bl,[edx*2+esi+12345678h]
 
