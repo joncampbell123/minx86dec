@@ -678,6 +678,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PUNPCKLDQ",
 	"PACKSSWB",
 	"PACKSSDW",
+	"AESKEYGENASSIST",
 
 	NULL
 };

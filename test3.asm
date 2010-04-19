@@ -1424,3 +1424,26 @@ bits 16
 	vaesimc	xmm1,xmm2
 	vaesimc	xmm3,xmm4
 
+	aeskeygenassist xmm1,xmm2,3
+	vaeskeygenassist xmm3,xmm4,5
+
+        vandpd	xmm1,xmm2,xmm3
+        vandps	xmm1,xmm2,xmm3
+        vandnpd	xmm1,xmm2,xmm3
+        vandnps	xmm1,xmm2,xmm3
+
+        vandpd	ymm1,ymm2,ymm3
+        vandps	ymm1,ymm2,ymm3
+        vandnpd	ymm1,ymm2,ymm3
+        vandnps	ymm1,ymm2,ymm3
+
+        vblendpd xmm1,xmm2,xmm3,4			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
+        vblendps xmm1,xmm2,xmm3,4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+        vblendvpd xmm1,xmm2,xmm3,xmm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
+        vblendvps xmm1,xmm2,xmm3,xmm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
+
+        vblendpd ymm1,ymm2,ymm3,4			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
+        vblendps ymm1,ymm2,ymm3,4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+        vblendvpd ymm1,ymm2,ymm3,ymm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
+        vblendvps ymm1,ymm2,ymm3,ymm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
+
