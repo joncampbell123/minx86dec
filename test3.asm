@@ -885,11 +885,11 @@ l4:
        pmaxud	xmm2,xmm3			; 66 0F 38 3F /r
        pmulld	xmm1,xmm2			; 66 0F 38 40 /r
    phminposuw	xmm1,xmm2			; 66 0F 38 41 /r
-%if 0
       pblendw	xmm1,xmm2,4			; 66 0F 3A 0E /r ib
       pblendw	xmm2,xmm3,6			; 66 0F 3A 0E /r ib
       palignr	mm1,mm2,2			;    0F 3A 0F /r ib
       palignr	xmm1,xmm2,3			; 66 0F 3A 0F /r ib
+%if 0
        pextrb	eax,xmm1,4			; 66 0F 3A 14 /r ib
        pextrd	ebx,xmm4,2			; 66 0F 3A 16 /r ib
        pinsrb	xmm1,byte [si],2		; 66 0F 3A 20 /r ib

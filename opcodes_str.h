@@ -664,6 +664,9 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"ASEDEC",
 	"AESDECLAST",
 	"AESIMC",
+/* 0x20C-0x20F */
+	"PBLENDW",
+	"PALIGNR",
 
 	NULL
 };

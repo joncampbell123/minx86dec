@@ -2453,6 +2453,35 @@ decode_next:
 							i->size = 1;
 							set_immediate(i,fetch_u8());
 						} break;
+						case 0x0E: {
+							union x86_mrm mrm = fetch_modregrm();
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							struct minx86dec_argv *i = &ins->argv[2];
+							ins->opcode = MXOP_PBLENDW;
+							ins->argc = 3;
+							d->size = s->size = 16;
+							set_sse_register(d,mrm.f.reg);
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+							i->size = 1;
+							set_immediate(i,fetch_u8());
+						} break;
+						case 0x0F: {
+							union x86_mrm mrm = fetch_modregrm();
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							struct minx86dec_argv *i = &ins->argv[2];
+							ins->opcode = MXOP_PALIGNR;
+							ins->argc = 3;
+							d->size = s->size = dataprefix32 ? 16 : 8;
+							if (dataprefix32) set_sse_register(d,mrm.f.reg);
+							else set_mmx_register(d,mrm.f.reg);
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+							i->size = 1;
+							set_immediate(i,fetch_u8());
+						} break;
 						case 0x17: {
 							union x86_mrm mrm = fetch_modregrm();
 							struct minx86dec_argv *s = &ins->argv[0];
