@@ -1190,7 +1190,7 @@ decode_next:
 						cip++;
 					}
 #endif
-					else if (*cip < 0xC0) {
+					else {
 						union x86_mrm mrm = fetch_modregrm();
 						switch (mrm.f.reg) {
 							case 0: case 1:
