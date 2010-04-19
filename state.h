@@ -71,7 +71,10 @@ enum {	MX86_SEG_ES=0,	MX86_SEG_CS,	MX86_SEG_SS,	MX86_SEG_DS,
 #define MX86_SEG_IMM -2
 
 /* REP modes */
-enum {	MX86_REP_NONE=0,MX86_REPE,	MX86_REPNE };	/* NOTE: REP = REPE */
+enum {
+	MX86_REP_NONE=0,MX86_REPE,	MX86_REPNE,	/* Intel standard prefixes */
+	MX86_REPNC,	MX86_REPC			/* NEC V20/V30 prefixes */
+};	/* NOTE: REP = REPE */
 
 /* register type */
 enum {	MX86_RT_NONE=0,	/* not a register reference */

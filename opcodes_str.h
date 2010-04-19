@@ -643,6 +643,19 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"ADD4S",
 	"BRKEM",
 	"CLEAR1",
+	"CMP4S",
+/* 0x1FC-0x1FF */
+	"EXT",
+	"FP02",
+	"INS",		/* NEC INS */
+	"NOT1",
+/* 0x200-0x203 */
+	"ROL4",
+	"ROR4",
+	"SET1",
+	"SUB4S",
+/* 0x204-0x207 */
+	"TEST1",
 
 	NULL
 };

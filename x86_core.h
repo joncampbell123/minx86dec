@@ -829,6 +829,24 @@ decode_next:
 			ins->argc = 0;
 			break;
 
+# if defined(do_necv20) /* NEC V20/V30 */
+		COVER_2(0x66): /* FP02 conflicts with 386+ address/data prefix */
+			ins->opcode = MXOP_FP02;
+			ins->argc = 2; {
+				union x86_mrm mrm = fetch_modregrm();
+				struct minx86dec_argv *s = &ins->argv[0];
+				struct minx86dec_argv *d = &ins->argv[1];
+				d->size = s->size = 2;
+				set_immediate(d,mrm.f.reg | ((first_byte & 1) << 3));
+				s->segment = seg_can_override(MX86_SEG_DS);
+				set_register(s,mrm.f.rm);
+				decode_rm(mrm,s,0);
+			} break;
+		COVER_2(0x64): /* REPC/REPNC */
+			ins->rep = (first_byte & 1) + MX86_REPNC;
+			goto decode_next;
+#endif
+
 		/* MOV a,imm */
 		COVER_ROW(0xB0):
 			ins->opcode = MXOP_MOV;
@@ -873,11 +891,50 @@ decode_next:
 						set_mem_ref_reg(s,MX86_REG_SI);
 						set_mem_ref_reg(d,MX86_REG_DI);
 					} break;
+				case 0x22: /* SUB4S */
+					ins->opcode = MXOP_SUB4S;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						d->size = s->size = 2;
+						d->memregsz = s->memregsz = 2;
+						s->segment = seg_can_override(MX86_SEG_DS);	/* <- Right? Just like LODS/STOS? */
+						d->segment = MX86_SEG_ES;
+						set_mem_ref_reg(s,MX86_REG_SI);
+						set_mem_ref_reg(d,MX86_REG_DI);
+					} break;
+				case 0x26: /* CMP4S */
+					ins->opcode = MXOP_CMP4S;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						d->size = s->size = 2;
+						d->memregsz = s->memregsz = 2;
+						s->segment = seg_can_override(MX86_SEG_DS);	/* <- Right? Just like LODS/STOS? */
+						d->segment = MX86_SEG_ES;
+						set_mem_ref_reg(s,MX86_REG_SI);
+						set_mem_ref_reg(d,MX86_REG_DI);
+					} break;
 				case 0xFF: /* BRKEM */
 					ins->opcode = MXOP_BRKEM;
 					ins->argc = 1; {
 						struct minx86dec_argv *r = &ins->argv[0];
 						set_immediate(r,fetch_u8());
+					} break;
+				COVER_2(0x10): /* TEST1 r/m,CL */
+				COVER_2(0x18): /* TEST1 r/m,imm */
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *imm = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						switch (mrm.f.reg) {
+							case 0:	ins->opcode = MXOP_TEST1; break;
+						};
+						d->size = (second_byte & 1) ? 2 : 1;
+						decode_rm(mrm,d,0);
+						imm->size = 1;
+						if (second_byte & 8) set_immediate(imm,fetch_u8());
+						else set_register(imm,MX86_REG_CL);
 					} break;
 				COVER_2(0x12): /* CLEAR1 r/m,CL conflicts with 386/486 UMOV and SSE MOVHPS */
 				COVER_2(0x1A): /* CLEAR1 r/m,imm */
@@ -893,6 +950,77 @@ decode_next:
 						imm->size = 1;
 						if (second_byte & 8) set_immediate(imm,fetch_u8());
 						else set_register(imm,MX86_REG_CL);
+					} break;
+				COVER_2(0x14): /* SET1 r/m,CL */
+				COVER_2(0x1C): /* SET1 r/m,imm */
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *imm = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						switch (mrm.f.reg) {
+							case 0:	ins->opcode = MXOP_SET1; break;
+						};
+						d->size = (second_byte & 1) ? 2 : 1;
+						decode_rm(mrm,d,0);
+						imm->size = 1;
+						if (second_byte & 8) set_immediate(imm,fetch_u8());
+						else set_register(imm,MX86_REG_CL);
+					} break;
+				COVER_2(0x16): /* NOT1 r/m,CL */
+				COVER_2(0x1E): /* NOT1 r/m,imm */
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *imm = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						switch (mrm.f.reg) {
+							case 0:	ins->opcode = MXOP_NOT1; break;
+						};
+						d->size = (second_byte & 1) ? 2 : 1;
+						decode_rm(mrm,d,0);
+						imm->size = 1;
+						if (second_byte & 8) set_immediate(imm,fetch_u8());
+						else set_register(imm,MX86_REG_CL);
+					} break;
+				case 0x31: case 0x39:	/* INS */
+				case 0x33: case 0x3B: { /* EXT */
+					union x86_mrm mrm = fetch_modregrm();
+					if (mrm.f.mod == 3) {
+						struct minx86dec_argv *s = &ins->argv[2]; /* for display only! */
+						struct minx86dec_argv *bit_start_pos = &ins->argv[0];
+						struct minx86dec_argv *bit_length = &ins->argv[1];
+
+						s->size = s->memregsz = 2;
+						s->segment = seg_can_override(MX86_SEG_DS);	/* <- Right? Just like LODS/STOS? */
+						set_mem_ref_reg(s,MX86_REG_SI);
+
+						ins->argc = 3;
+						ins->opcode = (second_byte & 2) ? MXOP_EXT : MXOP_INS;
+						bit_start_pos->size = bit_length->size = 1;
+						bit_start_pos->memregsz = bit_length->memregsz = 1;
+						if (second_byte & 8) set_immediate(bit_length,fetch_u8());
+						else set_register(bit_length,mrm.f.reg);
+						set_register(bit_start_pos,mrm.f.rm);
+					}
+					} break;
+				case 0x28: /* ROL4 */
+					ins->argc = 1; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						union x86_mrm mrm = fetch_modregrm();
+						switch (mrm.f.reg) {
+							case 0:	ins->opcode = MXOP_ROL4; break;
+						};
+						d->size = 1;
+						decode_rm(mrm,d,0);
+					} break;
+				case 0x2A: /* ROR4 */
+					ins->argc = 1; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						union x86_mrm mrm = fetch_modregrm();
+						switch (mrm.f.reg) {
+							case 0:	ins->opcode = MXOP_ROR4; break;
+						};
+						d->size = 1;
+						decode_rm(mrm,d,0);
 					} break;
 # endif
 # if core_level >= 2 /*------------- 286 or higher -----------------*/
