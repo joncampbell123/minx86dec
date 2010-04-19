@@ -3,9 +3,6 @@ org 0
 
 _start:
 
-	; THIS CAUSES A CRASH?
-	db	0x8F,0xC5,0x44,0x9A,0x0E
-
 	nop
 	nop
 	nop

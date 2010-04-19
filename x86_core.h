@@ -641,6 +641,8 @@ decode_next:
 				} break;
 				case 2: case 3: {
 					struct minx86dec_argv *where = &ins->argv[0];
+					const unsigned int sz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
+					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
 					ins->argc = 1;
 					ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
 					where->size = where->memregsz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
@@ -650,18 +652,22 @@ decode_next:
 				} break;
 				case 4: case 5: {
 					struct minx86dec_argv *where = &ins->argv[0];
+					const unsigned int sz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
+					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
 					ins->argc = 1;
 					ins->opcode = MXOP_JMP + (mrm.f.reg & 1);
-					where->size = where->memregsz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
+					where->size = where->memregsz = sz;
 					where->segment = seg_can_override(MX86_SEG_DS);
 					where->regtype = MX86_RT_NONE;
 					decode_rm(mrm,where,isaddr32);
 				} break;
 				case 6: case 7: {
 					struct minx86dec_argv *where = &ins->argv[0];
+					const unsigned int sz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
+					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
 					ins->argc = 1;
 					ins->opcode = MXOP_PUSH + (mrm.f.reg & 1);
-					where->size = where->memregsz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
+					where->size = where->memregsz = sz;
 					where->segment = seg_can_override(MX86_SEG_DS);
 					where->regtype = MX86_RT_NONE;
 					decode_rm(mrm,where,isaddr32);
@@ -670,8 +676,8 @@ decode_next:
 			break; }
 
 		COVER_2(0xC4): /* LDS/LES */
-#  if defined(vex_level)
 			if ((*cip & 0xC0) == 0xC0) { /* NOPE! AVX/VEX extensions (illegal encoding of LDS/LES anyway) */
+#  if defined(vex_level)
 				union minx86dec_vex v;
 
 				if (first_byte & 1) { /* 2-byte */
@@ -976,10 +982,11 @@ decode_next:
 						break;
 					}
 				}
-			}
-			else
+#  else
+				break; /* illegal encoding */
 #  endif
-			{
+			}
+			else {
 				union x86_mrm mrm = fetch_modregrm();
 				struct minx86dec_argv *d = &ins->argv[0];
 				struct minx86dec_argv *s = &ins->argv[1];
@@ -1393,6 +1400,7 @@ decode_next:
 						switch (mrm.f.reg) {
 							case 0: case 1:
 							case 2: case 3:
+								if (mrm.f.mod == 3) break; /* illegal encoding */
 								ins->opcode = ((mrm.f.reg & 2) ? MXOP_LGDT : MXOP_SGDT) + (mrm.f.reg & 1);
 								ins->argc = 1; {
 									struct minx86dec_argv *m = &ins->argv[0];
@@ -1563,6 +1571,7 @@ decode_next:
 					ins->opcode = MXOP_LSS;
 					ins->argc = 2; {
 						union x86_mrm mrm = fetch_modregrm();
+						if (mrm.f.mod == 3) break; /* illegal */
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						d->size = data32wordsize;
@@ -1585,6 +1594,7 @@ decode_next:
 					ins->opcode = MXOP_LFS;
 					ins->argc = 2; {
 						union x86_mrm mrm = fetch_modregrm();
+						if (mrm.f.mod == 3) break; /* illegal */
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						d->size = data32wordsize;
@@ -1596,6 +1606,7 @@ decode_next:
 					ins->opcode = MXOP_LGS;
 					ins->argc = 2; {
 						union x86_mrm mrm = fetch_modregrm();
+						if (mrm.f.mod == 3) break; /* illegal */
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
 						d->size = data32wordsize;
@@ -2676,7 +2687,8 @@ decode_next:
 							d->segment = seg_can_override(MX86_SEG_DS);
 							decode_rm(mrm,d,isaddr32);
 							break;
-						case 1: ins->argc = 1;
+						case 1: if (mrm.f.mod == 3) break; /* illegal */
+							ins->argc = 1;
 							d->size = 512;
 							d->segment = seg_can_override(MX86_SEG_DS);
 							decode_rm(mrm,d,isaddr32);
