@@ -891,9 +891,11 @@ l4:
       palignr	xmm1,xmm2,3			; 66 0F 3A 0F /r ib
        pextrb	eax,xmm1,4			; 66 0F 3A 14 /r ib
        pextrd	ebx,xmm4,2			; 66 0F 3A 16 /r ib
-%if 0
        pinsrb	xmm1,byte [si],2		; 66 0F 3A 20 /r ib
-       pinsrb	xmm1,eax,3			; 66 0F 3A 22 /r ib
+       pinsrb	xmm1,eax,3			; 66 0F 3A 20 /r ib
+       pinsrd	xmm1,dword [si],4		; 66 0F 3A 22 /r ib
+       pinsrd	xmm1,eax,5			; 66 0F 3A 22 /r ib
+%if 0
 
     punpcklbw	mm1,mm2				;    0F 60 /r
     punpcklbw	xmm1,xmm2			; 66 0F 60 /r

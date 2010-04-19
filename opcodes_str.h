@@ -669,6 +669,9 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PALIGNR",
 	"PEXTRB",
 	"PEXTRD",
+/* 0x210-0x213 */
+	"PINSRB",
+	"PINSRD",
 
 	NULL
 };

@@ -2527,6 +2527,36 @@ decode_next:
 							i->size = 1;
 							set_immediate(i,fetch_u8());
 						} break;
+						case 0x20: {
+							union x86_mrm mrm = fetch_modregrm();
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							struct minx86dec_argv *i = &ins->argv[2];
+							ins->opcode = MXOP_PINSRB;
+							ins->argc = 3;
+							d->size = 16;
+							s->size = 4;
+							set_sse_register(d,mrm.f.reg);
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+							i->size = 1;
+							set_immediate(i,fetch_u8());
+						} break;
+						case 0x22: {
+							union x86_mrm mrm = fetch_modregrm();
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s = &ins->argv[1];
+							struct minx86dec_argv *i = &ins->argv[2];
+							ins->opcode = MXOP_PINSRD;
+							ins->argc = 3;
+							d->size = 16;
+							s->size = 4;
+							set_sse_register(d,mrm.f.reg);
+							s->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,s,isaddr32);
+							i->size = 1;
+							set_immediate(i,fetch_u8());
+						} break;
 						case 0x42: {
 							union x86_mrm mrm = fetch_modregrm();
 							struct minx86dec_argv *d = &ins->argv[0];
