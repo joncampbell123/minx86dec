@@ -658,6 +658,12 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"TEST1",
 	"RETEM",
 	"UNKNOWN_286_0F04",
+	"AESENC",
+/* 0x208-0x20B */
+	"AESENCLAST",
+	"ASEDEC",
+	"AESDECLAST",
+	"AESIMC",
 
 	NULL
 };

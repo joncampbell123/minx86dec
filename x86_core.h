@@ -673,12 +673,12 @@ decode_next:
 				union minx86dec_vex v;
 
 				if (first_byte & 1) { /* 2-byte */
-					v.raw = fetch_u8() ^ 0xF8;
+					v.raw = (fetch_u8() ^ 0xF8) << 8;
 					v.f.r = v.f.w; v.f.w = 0; /* transpose bit 7 to bit 15 to convert 2 to 3 byte VEX */
 					v.f.m = 1; /* apparently this means "implied 0x0F prefix" Intel docs don't say */
 				}
 				else { /* 3-byte */
-					v.raw = fetch_u16() ^ 0xE0F8;
+					v.raw = fetch_u16() ^ 0xF8E0;
 				}
 
 				ins->vex = v;
@@ -710,36 +710,70 @@ decode_next:
 									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
 									set_sse_register(s1,v.f.v);
 								} break;
-								case 0xD0: {
+							case 0xD0: {
 #   define PAIR(d,r)  ((d) + ((r) << 2))
-									   struct minx86dec_argv *d = &ins->argv[0];
-									   struct minx86dec_argv *s1 = &ins->argv[1];
-									   struct minx86dec_argv *s2 = &ins->argv[2];
-									   unsigned char t = dataprefix32 + (ins->rep << 2);
-									   unsigned char m = 0;
-									   switch (t) {
-										   case PAIR(1,MX86_REP_NONE):
-											   ins->opcode = MXOP_ADDSUBPD;
-											   m = 1;
-											   break;
-										   case PAIR(0,MX86_REPE):
-											   ins->opcode = MXOP_ADDSUBPS;
-											   m = 1;
-											   break;
-									   };
-									   switch (m) {
-										   case 1: { /* ADDSUBPD/S */
-												   union x86_mrm mrm = fetch_modregrm();
-												   ins->argc = 3;
-												   d->size = s1->size = s2->size = vector_size;
-												   set_sse_register(d,mrm.f.reg);
-												   s2->segment = seg_can_override(MX86_SEG_DS);
-												   decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-												   set_sse_register(s1,v.f.v);
-											   } break;
-										   }
+								   struct minx86dec_argv *d = &ins->argv[0];
+								   struct minx86dec_argv *s1 = &ins->argv[1];
+								   struct minx86dec_argv *s2 = &ins->argv[2];
+								   unsigned char t = dataprefix32 + (ins->rep << 2);
+								   unsigned char m = 0;
+								   switch (t) {
+									   case PAIR(1,MX86_REP_NONE):
+										   ins->opcode = MXOP_ADDSUBPD;
+										   m = 1;
+										   break;
+									   case PAIR(0,MX86_REPE):
+										   ins->opcode = MXOP_ADDSUBPS;
+										   m = 1;
+										   break;
+								   };
+								   switch (m) {
+									   case 1: { /* ADDSUBPD/S */
+											   union x86_mrm mrm = fetch_modregrm();
+											   ins->argc = 3;
+											   d->size = s1->size = s2->size = vector_size;
+											   set_sse_register(d,mrm.f.reg);
+											   s2->segment = seg_can_override(MX86_SEG_DS);
+											   decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+											   set_sse_register(s1,v.f.v);
+										   } break;
+									   }
 #   undef PAIR
-									   break; }
+								   break; }
+						}
+						break;
+					}
+					case 2: { /* 0x0F 0x38 */
+						const uint8_t third_byte = *cip++;
+						switch (third_byte) {
+							case 0xDB: { /* AES IMC */
+								if (dataprefix32) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s2 = &ins->argv[1];
+									ins->opcode = MXOP_AESIMC;
+									d->size = s2->size = 16;
+									ins->argc = 2;
+									set_sse_register(d,mrm.f.reg);
+									s2->segment = seg_can_override(MX86_SEG_DS);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+								}
+							} break;
+							COVER_4(0xDC): { /* AES ENC/DEC */
+								if (dataprefix32) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									ins->opcode = MXOP_AESENC + (third_byte & 3);
+									d->size = s1->size = s2->size = vector_size;
+									ins->argc = 3;
+									set_sse_register(d,mrm.f.reg);
+									s2->segment = seg_can_override(MX86_SEG_DS);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									set_sse_register(s1,v.f.v);
+								}
+							} break;
 						}
 						break;
 					}
@@ -2661,6 +2695,32 @@ decode_next:
 								set_register(s,mrm.f.reg);
 								d->segment = seg_can_override(MX86_SEG_DS);
 								decode_rm(mrm,d,isaddr32);
+							}
+						} break;
+						case 0xDB: { /* AES IMC */
+							if (dataprefix32) {
+								union x86_mrm mrm = fetch_modregrm();
+								struct minx86dec_argv *s = &ins->argv[0];
+								struct minx86dec_argv *d = &ins->argv[1];
+								ins->opcode = MXOP_AESIMC;
+								d->size = s->size = 16;
+								ins->argc = 2;
+								set_sse_register(s,mrm.f.reg);
+								d->segment = seg_can_override(MX86_SEG_DS);
+								decode_rm_ex(mrm,d,isaddr32,MX86_RT_SSE);
+							}
+						} break;
+						COVER_4(0xDC): { /* AES ENC/DEC */
+							if (dataprefix32) {
+								union x86_mrm mrm = fetch_modregrm();
+								struct minx86dec_argv *s = &ins->argv[0];
+								struct minx86dec_argv *d = &ins->argv[1];
+								ins->opcode = MXOP_AESENC + (third_byte & 3);
+								d->size = s->size = 16;
+								ins->argc = 2;
+								set_sse_register(s,mrm.f.reg);
+								d->segment = seg_can_override(MX86_SEG_DS);
+								decode_rm_ex(mrm,d,isaddr32,MX86_RT_SSE);
 							}
 						} break;
 						COVER_2(0xF0):

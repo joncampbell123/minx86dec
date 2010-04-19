@@ -1356,9 +1356,25 @@ bits 16
 ; SMX extensions
 	getsec					; 0F 37
 
-	nop
-	nop
-	nop
+; AES
+	aesenc	xmm1,xmm2
+	aesenc	xmm1,[esi]
+	aesenc	xmm3,xmm4
+
+	aesenclast xmm1,xmm2
+	aesenclast xmm1,[esi]
+	aesenclast xmm3,xmm4
+
+	aesdec	xmm1,xmm2
+	aesdec	xmm1,[esi]
+	aesdec	xmm3,xmm4
+
+	aesdeclast xmm1,xmm2
+	aesdeclast xmm1,[esi]
+	aesdeclast xmm3,xmm4
+
+	aesimc	xmm1,xmm2
+	aesimc	xmm3,xmm4
 
 ; AVX/VEX
 	vaddpd	xmm1,xmm2,xmm3			; VEX.NDS.128.66.0F 58
@@ -1386,4 +1402,23 @@ bits 16
 	vaddsubps xmm1,xmm2,[esi]
 	vaddsubps ymm1,ymm2,ymm3
 	vaddsubps ymm1,ymm2,[esi]
+
+	vaesenc	xmm1,xmm2,xmm3
+	vaesenc	xmm1,xmm2,[esi]
+	vaesenc	xmm3,xmm4,xmm5
+
+	vaesenclast xmm1,xmm2,xmm3
+	vaesenclast xmm1,xmm2,[esi]
+	vaesenclast xmm3,xmm4,xmm5
+
+	vaesdec	xmm1,xmm2,xmm3
+	vaesdec	xmm1,xmm2,[esi]
+	vaesdec	xmm3,xmm4,xmm5
+
+	vaesdeclast xmm1,xmm2,xmm3
+	vaesdeclast xmm1,xmm2,[esi]
+	vaesdeclast xmm3,xmm4,xmm5
+
+	vaesimc	xmm1,xmm2
+	vaesimc	xmm3,xmm4
 
