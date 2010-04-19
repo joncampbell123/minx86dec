@@ -93,6 +93,9 @@
 int fwait = 0;
 
 ins->lock = 0;
+#if defined(vex_level)
+ins->vex.raw = 0;
+#endif
 ins->rep = MX86_REP_NONE;
 decode_next:
 {
@@ -664,14 +667,87 @@ decode_next:
 			}
 			break; }
 
-		/* TODO: Intel's VEX extensions basically replace these in x64 mode, and take up the illegal
-		         case where mod == 3 in 32-bit mode. They attempt to compress the extensions added up
-		         over the years in these things. Yechhh... */
+		COVER_2(0xC4): /* LDS/LES */
+#  if defined(vex_level)
+			if ((*cip & 0xC0) == 0xC0) { /* NOPE! AVX/VEX extensions (illegal encoding of LDS/LES anyway) */
+				union minx86dec_vex v;
 
-		/* LES */
-		case 0xC4:
-			ins->opcode = MXOP_LES;
-			ins->argc = 2; {
+				if (first_byte & 1) { /* 2-byte */
+					v.raw = fetch_u8() ^ 0xF8;
+					v.f.r = v.f.w; v.f.w = 0; /* transpose bit 7 to bit 15 to convert 2 to 3 byte VEX */
+					v.f.m = 1; /* apparently this means "implied 0x0F prefix" Intel docs don't say */
+				}
+				else { /* 3-byte */
+					v.raw = fetch_u16() ^ 0xE0F8;
+				}
+
+				ins->vex = v;
+				switch (v.f.pp) {
+					case 0x1: ins->data32 ^= 1; dataprefix32++; break;	/* as if 0x66 prefix */
+					case 0x2: ins->rep = MX86_REPNE; break;			/* as if 0xF3 prefix */
+					case 0x3: ins->rep = MX86_REPE; break;			/* as if 0xF2 prefix */
+				};
+
+				unsigned int vector_size = 16 << (v.f.l?1:0);
+				switch (v.f.m) {
+					/* as if 0x0F is first byte.
+					 * since the instruction changes quite a bit, it's better to duplicate it
+					 * than slow down decoding of the original with "if VEX is present blah blah" crap */
+					case 1: {
+						const uint8_t second_byte = *cip++;
+						switch (second_byte) {
+							case 0x58:
+								if (v.f.l && ins->rep != 0) break; /* forms involving ADDSS/ADDSD not supported with L=1 */
+								ins->opcode = (ins->rep >= MX86_REPE ? (2 + ins->rep - MX86_REPE) : dataprefix32) + MXOP_ADDPS;
+								ins->argc = 3; {
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									union x86_mrm mrm = fetch_modregrm();
+									d->size = s1->size = s2->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									s2->segment = seg_can_override(MX86_SEG_DS);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									set_sse_register(s1,v.f.v);
+								} break;
+								case 0xD0: {
+#   define PAIR(d,r)  ((d) + ((r) << 2))
+									   struct minx86dec_argv *d = &ins->argv[0];
+									   struct minx86dec_argv *s1 = &ins->argv[1];
+									   struct minx86dec_argv *s2 = &ins->argv[2];
+									   unsigned char t = dataprefix32 + (ins->rep << 2);
+									   unsigned char m = 0;
+									   switch (t) {
+										   case PAIR(1,MX86_REP_NONE):
+											   ins->opcode = MXOP_ADDSUBPD;
+											   m = 1;
+											   break;
+										   case PAIR(0,MX86_REPE):
+											   ins->opcode = MXOP_ADDSUBPS;
+											   m = 1;
+											   break;
+									   };
+									   switch (m) {
+										   case 1: { /* ADDSUBPD/S */
+												   union x86_mrm mrm = fetch_modregrm();
+												   ins->argc = 3;
+												   d->size = s1->size = s2->size = vector_size;
+												   set_sse_register(d,mrm.f.reg);
+												   s2->segment = seg_can_override(MX86_SEG_DS);
+												   decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+												   set_sse_register(s1,v.f.v);
+											   } break;
+										   }
+#   undef PAIR
+									   break; }
+						}
+						break;
+					}
+				}
+			}
+			else
+#  endif
+			{
 				union x86_mrm mrm = fetch_modregrm();
 				struct minx86dec_argv *d = &ins->argv[0];
 				struct minx86dec_argv *s = &ins->argv[1];
@@ -679,20 +755,10 @@ decode_next:
 				s->size = data32wordsize + 2;
 				set_register(d,mrm.f.reg);
 				decode_rm(mrm,s,isaddr32);
-			} break;
-
-		/* LDS */
-		case 0xC5:
-			ins->opcode = MXOP_LDS;
-			ins->argc = 2; {
-				union x86_mrm mrm = fetch_modregrm();
-				struct minx86dec_argv *d = &ins->argv[0];
-				struct minx86dec_argv *s = &ins->argv[1];
-				d->size = data32wordsize;
-				s->size = data32wordsize + 2;
-				set_register(d,mrm.f.reg);
-				decode_rm(mrm,s,isaddr32);
-			} break;
+				ins->opcode = (first_byte & 1) ? MXOP_LDS : MXOP_LES;
+				ins->argc = 2;
+			}
+			break;
 
 		COVER_2(0xC6): {
 			union x86_mrm mrm = fetch_modregrm();

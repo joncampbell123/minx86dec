@@ -22,6 +22,7 @@ void minx86dec_decodeall(struct minx86dec_state *state,struct minx86dec_instruct
 #define cpuid
 #define ssse3
 #define mmx
+#define vex_level 1
 
 	ins->data32 = state->data32;
 	ins->addr32 = state->addr32;

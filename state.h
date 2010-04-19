@@ -104,6 +104,22 @@ struct minx86dec_argv {
 	int				scalar;
 };
 
+/* VEX state variables (NOTE that some parts of the VEX prefix make up the REX) */
+union minx86dec_vex {
+	struct {
+		uint16_t			pp:2;		/* SIMD prefix */
+		uint16_t			l:1;		/* length 1=256 0=128 */
+		uint16_t			v:4;		/* register */
+		uint16_t			w:1;		/* copy of the "W" field which may or may not mean anything */
+
+		uint16_t			m:5;		/* leading opcode byte code */
+		uint16_t			b:1;		/* REX.B */
+		uint16_t			x:1;		/* REX.X */
+		uint16_t			r:1;		/* REX.R */
+	} f;
+	uint16_t			raw;
+};
+
 /* decoded instruction (32-bit or 16-bit) */
 struct minx86dec_instruction {
 	unsigned int			opcode;		/* MXOP_... */
@@ -116,6 +132,8 @@ struct minx86dec_instruction {
 
 	int				argc;		/* number of instruction operands */
 	struct minx86dec_argv		argv[4];	/* instruction operands */
+
+	union minx86dec_vex		vex;		/* VEX state (AVX extensions) */
 
 	uint8_t				addr32:1;	/* 32-bit addr */
 	uint8_t				data32:1;	/* 32-bit data */

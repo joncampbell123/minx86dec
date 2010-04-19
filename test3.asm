@@ -1356,3 +1356,34 @@ bits 16
 ; SMX extensions
 	getsec					; 0F 37
 
+	nop
+	nop
+	nop
+
+; AVX/VEX
+	vaddpd	xmm1,xmm2,xmm3			; VEX.NDS.128.66.0F 58
+	vaddpd	xmm1,xmm2,[esi]			; VEX.NDS.128.66.0F 58
+	vaddpd	ymm1,ymm2,ymm3			; VEX.NDS.256.66.0F 58
+	vaddpd	ymm1,ymm2,[esi]			; VEX.NDS.256.66.0F 58
+
+	vaddps	xmm1,xmm2,xmm3			; VEX.NDS.128.66.0F 58
+	vaddps	xmm1,xmm2,[esi]			; VEX.NDS.128.66.0F 58
+	vaddps	ymm1,ymm2,ymm3			; VEX.NDS.256.66.0F 58
+	vaddps	ymm1,ymm2,[esi]			; VEX.NDS.256.66.0F 58
+
+	vaddsd	xmm1,xmm2,xmm3			; VEX.NDS.128.66.0F 58
+	vaddsd	xmm1,xmm2,[esi]			; VEX.NDS.128.66.0F 58
+
+	vaddss	xmm1,xmm2,xmm3			; VEX.NDS.128.66.0F 58
+	vaddss	xmm1,xmm2,[esi]			; VEX.NDS.128.66.0F 58
+
+	vaddsubpd xmm1,xmm2,xmm3
+	vaddsubpd xmm1,xmm2,[esi]
+	vaddsubpd ymm1,ymm2,ymm3
+	vaddsubpd ymm1,ymm2,[esi]
+
+	vaddsubps xmm1,xmm2,xmm3
+	vaddsubps xmm1,xmm2,[esi]
+	vaddsubps ymm1,ymm2,ymm3
+	vaddsubps ymm1,ymm2,[esi]
+
