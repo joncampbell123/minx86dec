@@ -1505,3 +1505,15 @@ bits 16
         vcvttsd2si	eax,xmm1			; F2 0F 2C /r
         vcvttss2si	eax,xmm1			; F3 0F 2C /r
 
+        vdivpd	xmm1,xmm2,xmm3			; 66 0F 5E /r
+        vdivps	xmm1,xmm2,xmm3			;    0F 5E /r
+        vdivsd	xmm1,xmm2,xmm3			; F2 0F 5E /r
+        vdivss	xmm1,xmm2,xmm3			; F3 0F 5E /r
+        vdivpd	ymm1,ymm2,ymm3			; 66 0F 5E /r
+        vdivps	ymm1,ymm2,ymm3			;    0F 5E /r
+
+        vdppd	xmm1,xmm2,xmm3,1			; 66 0F 3A 41 /r ib
+        vdppd	xmm1,xmm2,xmm3,4			; 66 0F 3A 41 /r ib
+        vdpps	xmm1,xmm2,xmm3,2			; 66 0F 3A 40 /r ib
+        vdpps	xmm1,xmm2,xmm3,5			; 66 0F 3A 40 /r ib
+

@@ -868,6 +868,26 @@ decode_next:
 								s->segment = seg_can_override(MX86_SEG_DS);
 								decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
 								break; }
+							case 0x5E: {
+								struct minx86dec_argv *d = &ins->argv[0];
+								struct minx86dec_argv *s1 = &ins->argv[1];
+								struct minx86dec_argv *s2 = &ins->argv[2];
+								union x86_mrm mrm = fetch_modregrm();
+								if (ins->rep >= MX86_REPE)
+									ins->opcode = MXOP_DIVSD + ins->rep - MX86_REPE;
+								else if (dataprefix32)
+									ins->opcode = MXOP_DIVPD;
+								else
+									ins->opcode = MXOP_DIVPS;
+
+								ins->argc = 2;
+								d->size = vector_size;
+								set_sse_register(d,mrm.f.reg);
+								s2->size = s1->size = vector_size;
+								s2->segment = seg_can_override(MX86_SEG_DS);
+								decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+								set_sse_register(s1,v.f.v);
+								} break;
 							case 0xC2:
 								if (v.f.l && ins->rep != 0) break; /* forms involving CMPSS/CMPSD not supported with L=1 */
 								ins->opcode = (ins->rep >= MX86_REPE) ? (MXOP_CMPSD + ins->rep - MX86_REPE) : (MXOP_CMPPS + (dataprefix32 ? 1 : 0));
@@ -1050,6 +1070,24 @@ decode_next:
 								i->size = 1;
 								set_immediate(i,fetch_u8());
 							} break;
+
+						COVER_2(0x40): {
+							union x86_mrm mrm = fetch_modregrm();
+							struct minx86dec_argv *d = &ins->argv[0];
+							struct minx86dec_argv *s1 = &ins->argv[1];
+							struct minx86dec_argv *s2 = &ins->argv[2];
+							struct minx86dec_argv *i = &ins->argv[3];
+							ins->opcode = MXOP_DPPS + (third_byte & 1);
+							ins->argc = 4;
+							d->size = s1->size = s2->size = 16;
+							set_sse_register(d,mrm.f.reg);
+							s2->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+							i->size = 1;
+							set_immediate(i,fetch_u8());
+							set_sse_register(s1,v.f.v);
+						} break;
+
 							COVER_2(0x4A): {
 								union x86_mrm mrm = fetch_modregrm();
 								struct minx86dec_argv *d = &ins->argv[0];
