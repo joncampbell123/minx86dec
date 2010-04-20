@@ -683,6 +683,40 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"BROADCASTSS",
 	"BROADCASTSD",
 	"BROADCASTF128",
+	"FEMMS",
+/* 0x21C-0x21F */
+	"PAVGUSB",
+	"PF2ID",
+	"PFACC",
+	"PFADD",
+/* 0x220-0x223 */
+	"PFCMPEQ",
+	"PFCMPGE",
+	"PFCMPGT",
+	"PFMAX",
+/* 0x224-0x227 */
+	"PFMIN",
+	"PFMUL",
+	"PFRCP",
+	"PFRCPIT1",
+/* 0x228-0x22B */
+	"PFRCPIT2",
+	"PFRSQIT1",
+	"PFRSQRT",
+	"PFSUB",
+/* 0x22C-0x22F */
+	"PFSUBR",
+	"PI2FD",
+	"PMULHRW",
+	"PREFETCH",
+/* 0x230-0x233 */
+	"PREFETCHW",
+	"PF2IW",
+	"PI2FW",
+	"PSWAPD",
+/* 0x234-0x237 */
+	"PFNACC",
+	"PFPNACC",
 
 	NULL
 };

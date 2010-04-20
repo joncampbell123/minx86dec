@@ -1572,3 +1572,66 @@ bits 16
 	vmovd	ebx,xmm3			; 66 0F 7E /r
 	vmovd	[ebx],xmm4			; 66 0F 7E /r
 
+	vmovddup xmm1,xmm2			; F2 0F 12 /r
+	vmovddup xmm1,[ebx]			; F2 0F 12 /r
+
+	vmovddup ymm1,ymm2			; F2 0F 12 /r
+	vmovddup ymm1,[ebx]			; F2 0F 12 /r
+
+	vmovdqa	xmm1,xmm2			; 66 0F 6F /r
+	vmovdqa	xmm1,[ebx]			; 66 0F 6F /r
+	vmovdqa	[ebx],xmm2			; 66 0F 7F /r
+
+	vmovdqa	ymm1,ymm2			; 66 0F 6F /r
+	vmovdqa	ymm1,[ebx]			; 66 0F 6F /r
+	vmovdqa	[ebx],ymm2			; 66 0F 7F /r
+
+	vmovdqu	xmm1,xmm2			; F3 0F 6F /r
+	vmovdqu	xmm1,[ebx]			; F3 0F 6F /r
+	vmovdqu	[ebx],xmm2			; F3 0F 7F /r
+
+	vmovdqu	ymm1,ymm2			; F3 0F 6F /r
+	vmovdqu	ymm1,[ebx]			; F3 0F 6F /r
+	vmovdqu	[ebx],ymm2			; F3 0F 7F /r
+
+	vmovhlps xmm1,xmm2,xmm3			; 0F 12 /r
+        vmovsldup xmm1,xmm2			; F3 0F 12 /r
+        vmovsldup xmm1,[edi]			; F3 0F 12 /r
+        vmovsldup ymm1,ymm2			; F3 0F 12 /r
+        vmovsldup ymm1,[edi]			; F3 0F 12 /r
+
+; 3DNow!
+	femms
+	pavgusb    mm0,mm1
+	pavgusb    mm1,[ebx]
+	pf2id      mm0,mm1
+	pf2id      mm1,[ebx]
+	pfacc      mm0,mm1
+	pfacc      mm1,[ebx]
+	pfadd      mm0,mm1
+	pfadd      mm1,[ebx]
+	pfcmpeq    mm0,mm1
+	pfcmpeq    mm1,[ebx]
+	pfcmpge    mm0,mm1
+        pfcmpgt    mm0,mm1
+        pfmax      mm0,mm1
+        pfmin      mm0,mm1
+        pfmul      mm0,mm1
+        pfrcp      mm0,mm1
+        pfrcpit1   mm0,mm1
+        pfrcpit2   mm0,mm1
+        pfrsqit1   mm0,mm1
+        pfrsqrt    mm0,mm1
+        pfsub      mm0,mm1
+        pfsubr     mm0,mm1
+        pi2fd      mm0,mm1
+        pmulhrwa   mm0,mm1			; NASM docs say the 'A' is to differentiate from Cyrix's version
+	prefetch   [esi]
+	prefetchw  [esi]
+; 3DNow extensions
+	pf2iw      mm0,mm1
+        pi2fw      mm0,mm1
+        pswapd     mm0,mm1
+        pfnacc     mm0,mm1
+        pfpnacc    mm0,mm1
+
