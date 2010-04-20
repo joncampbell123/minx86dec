@@ -734,6 +734,20 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PSUBSIW",
 	"PFRCPV",
 	"PFRSQRTV",
+/* 0x244-0x247 */
+	"MONTMUL",
+	"XSTORE",
+	"XCRYPTECB",
+	"XCRYPTCBC",
+/* 0x248-0x24B */
+	"XCRYPTCTR",
+	"XCRYPTCFB",
+	"XCRYPTOFB",
+	"XSHA1",
+/* 0x24C-0x24F */
+	"XSHA256",
+	"IBTS",
+	"XBTS",
 
 	NULL
 };

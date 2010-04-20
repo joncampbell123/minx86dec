@@ -1637,4 +1637,23 @@ bits 16
 ; Geode instructions
 	pfrcpv     mm0,mm1
         pfrsqrtv   mm0,mm1
-
+; VIA padlock
+	montmul
+	rep montmul
+	xstore
+	rep xstore
+	xcryptecb
+	rep xcryptecb
+	xcryptcbc
+	rep xcryptcbc
+	xcryptctr
+	rep xcryptctr
+	xcryptcfb
+	rep xcryptcfb
+	xcryptofb
+	rep xcryptofb
+	xsha1
+	rep xsha1
+	xsha256
+	rep xsha256
+	

@@ -7,7 +7,7 @@ else
 CFLAGS += -g0 -Os -fomit-frame-pointer
 endif
 
-all: test-headers decode8086 decodenecv20 decode286 decode386 decode486 decode586 decode586pro decode686 decode6x86_cyrix decodeall decodeall_x64 test1.bin test2.bin test3.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin
+all: test-headers decode8086 decodenecv20 decode286 decode386 decode486 decode586 decode586pro decode686 decode6x86_cyrix decodeall decodeall_x64 test1.bin test2.bin test3.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin
 
 test-headers: test-headers.o
 	gcc -o $@ $<
@@ -65,6 +65,9 @@ test2.bin: test2.asm
 	nasm -O5 -o $@ -f bin $<
 
 test3.bin: test3.asm
+	nasm -O5 -o $@ -f bin $<
+
+test386.bin: test386.asm
 	nasm -O5 -o $@ -f bin $<
 
 testnecv20.bin: testnecv20.asm

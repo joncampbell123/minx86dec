@@ -68,6 +68,13 @@
 
 #ifndef cyrix_level
 #  define cyrix_level -1
+/* 6 = cyrix 6x86
+ * 5 = cyrix 5x86
+ * 7 = MII
+ * 131 = Via C3 Samuel
+ * 132 = Via C3 Samuel 2
+ * 133 = Via C3 Erza
+ * 134 = Via C3 Nehemiah */
 #endif
 
 #ifndef sse_level
@@ -1817,6 +1824,30 @@ decode_next:
 					ins->argc = 0;
 					break;
 #  endif
+#  if core_level == 3 && !defined(everything)
+				case 0xA6:
+					ins->opcode = MXOP_XBTS;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = data32wordsize;
+						s->segment = seg_can_override(MX86_SEG_DS);
+						set_register(d,mrm.f.reg);
+						decode_rm(mrm,s,isaddr32);
+					} break;
+				case 0xA7:
+					ins->opcode = MXOP_IBTS;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[1];
+						struct minx86dec_argv *s = &ins->argv[0];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = data32wordsize;
+						s->segment = seg_can_override(MX86_SEG_DS);
+						set_register(d,mrm.f.reg);
+						decode_rm(mrm,s,isaddr32);
+					} break;
+#  endif
 				case 0xAA:
 					ins->opcode = MXOP_RSM;
 					ins->argc = 0;
@@ -2028,6 +2059,19 @@ decode_next:
 							set_register(reg,mrm.f.rm);
 							set_test_register(ctrl,mrm.f.reg);
 						}
+					} break;
+# endif
+# if core_level == 4
+				COVER_2(0xA6): /* the original CMPXCHG, which conflicts with 386 IBTS, and VIA padlock extensions */
+					ins->opcode = MXOP_CMPXCHG;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = (second_byte & 1) ? data32wordsize : 1;
+						d->segment = seg_can_override(MX86_SEG_DS);
+						set_register(s,mrm.f.reg);
+						decode_rm(mrm,d,isaddr32);
 					} break;
 # endif
 # if core_level >= 4 /* --------------------- 486 or higher ---------------------- */
@@ -2356,7 +2400,7 @@ decode_next:
 						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
 					} break;
 #  endif
-#  if amd_3dnow >= 1
+#  if amd_3dnow >= 1 || defined(everything)
 				case 0x0D: {
 					struct minx86dec_argv *rm = &ins->argv[0];
 					union x86_mrm mrm = fetch_modregrm();
@@ -2405,18 +2449,69 @@ decode_next:
 						case 0xAA: ins->opcode = MXOP_PFSUBR; break;
 						case 0x0D: ins->opcode = MXOP_PI2FD; break;
 						case 0xB7: ins->opcode = MXOP_PMULHRWA; break;
-#   if amd_3dnow >= 2
+#   if amd_3dnow >= 2 || defined(everything)
 						case 0x1C: ins->opcode = MXOP_PF2IW; break;
 						case 0x0C: ins->opcode = MXOP_PI2FW; break;
 						case 0xBB: ins->opcode = MXOP_PSWAPD; break;
 						case 0x8A: ins->opcode = MXOP_PFNACC; break;
 						case 0x8E: ins->opcode = MXOP_PFPNACC; break;
-#    if amd_3dnow >= 3
+#    if amd_3dnow >= 3 || defined(everything)
 						case 0x86: ins->opcode = MXOP_PFRCPV; break;
 						case 0x87: ins->opcode = MXOP_PFRSQRTV; break;
 #    endif
 #   endif
 					} break; }
+#  endif
+#  if cyrix_level >= 134 || defined(everything) /* VIA Nehemiah Padlock extensions */
+				case 0xA6:
+					if (ins->rep == MX86_REPNE && *cip == 0xC0) {
+						ins->opcode = MXOP_MONTMUL;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (ins->rep == MX86_REPNE && *cip == 0xC8) {
+						ins->opcode = MXOP_XSHA1;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (ins->rep == MX86_REPNE && *cip == 0xD0) {
+						ins->opcode = MXOP_XSHA256;
+						ins->argc = 0;
+						cip++;
+					}
+					break;
+				case 0xA7:
+					if (ins->rep != MX86_REPE && *cip == 0xC0) {
+						ins->opcode = MXOP_XSTORE;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (ins->rep == MX86_REPNE && *cip == 0xC8) {
+						ins->opcode = MXOP_XCRYPTECB;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (ins->rep == MX86_REPNE && *cip == 0xD0) {
+						ins->opcode = MXOP_XCRYPTCBC;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (ins->rep == MX86_REPNE && *cip == 0xD8) {
+						ins->opcode = MXOP_XCRYPTCTR;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (ins->rep == MX86_REPNE && *cip == 0xE0) {
+						ins->opcode = MXOP_XCRYPTCFB;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (ins->rep == MX86_REPNE && *cip == 0xE8) {
+						ins->opcode = MXOP_XCRYPTOFB;
+						ins->argc = 0;
+						cip++;
+					}
+					break;
 #  endif
 #  if sse_level >= 1 /* SSE instructions */
 				case 0xEF:
