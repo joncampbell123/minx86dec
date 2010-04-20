@@ -1,12 +1,5 @@
 TODO:
-   What else does the Cyrix MII bring to the opcode table?
-   The Cyrix 6x86?
-   The Cyrix III?
-   Do we need a Cyrix 5x86 decoder?
-TODO:
-   Core and decoder that supports Intel AVX prefixes (which re-use illegal
-   forms of LDS/LES opcodes to represent two or three byte shorthand
-   prefixes). BTW Does NASM support these?
+   Whatever the hidden UMC instruction is, add a decoder for it (ref. Ralph Brown Interrupt List)
 TODO:
    Finish adding the rest of the MMX/SSE instructions and you'll be done!
    Check latest Intel docs and AMD docs for any new instructions that might
@@ -15,4 +8,18 @@ TODO:
    There's a lot of redundant code in the X86 core, specifically related to
    register assignment and such. Can you reduce that down to macros to provide
    more concise readable code that's less redundant?
+TODO:
+   Write test assembly listings that match up against known lists of what appeared on the
+   8086, 80186, 286, 386, etc... and make sure the decompiler enables/disables decoding on
+   those boundaries
+TODO:
+   FPU code currently ignores fpu_level and core_level. Use assembly listings to ensure
+   what decodes/doesn't decode matches listings of what appeared on the 8087, 287, 387,
+   etc.
+TODO:
+   Consider modifications to x86_core where the FPU decoding instead produces an 11-bit
+   "opcode" which can be fed to a x87_core.h or whatever, thus segregating FPU and CPU
+   instructions and FPU decoding can be done with a large efficient switch() statement.
+TODO:
+   When full x86-32 decoding is implemented, port decoding over to x86-64 core.
 
