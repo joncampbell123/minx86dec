@@ -7,7 +7,7 @@ else
 CFLAGS += -g0 -Os -fomit-frame-pointer
 endif
 
-all: test-headers decode8086 decodenecv20 decode286 decode386 decode486 decode586 decode586pro decode686 decodeall decodeall_x64 test1.bin test2.bin test3.bin testnecv20.bin test64_1.bin
+all: test-headers decode8086 decodenecv20 decode286 decode386 decode486 decode586 decode586pro decode686 decode6x86_cyrix decodeall decodeall_x64 test1.bin test2.bin test3.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin
 
 test-headers: test-headers.o
 	gcc -o $@ $<
@@ -43,6 +43,9 @@ decode686: decode686.o core686.o string.o
 	rm -f decode-pentium2
 	ln -s decode686 decode-pentium2
 
+decode6x86_cyrix: decode6x86_cyrix.o core6x86_cyrix.o string.o
+	gcc $(CFLAGS) -o $@ $^
+
 decodeall: decodeall.o coreall.o string.o
 	gcc $(CFLAGS) -o $@ $^
 
@@ -53,7 +56,7 @@ decodeall_x64: decodeall_x64.o coreall_x64.o string.o
 	gcc $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f *.o *~ test-headers decode8086 decodenecv20 *.bin decode8086 decode286 decode386 decode486 decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode-pentium2 decode586pro decode-pentiumpro random.bin.results
+	rm -f *.o *~ test-headers decode8086 decodenecv20 *.bin decode8086 decode286 decode386 decode486 decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode6x86_cyrix decode-pentium2 decode586pro decode-pentiumpro random.bin.results
 
 test1.bin: test1.asm
 	nasm -O5 -o $@ -f bin $<
@@ -68,5 +71,8 @@ testnecv20.bin: testnecv20.asm
 	nasm -O5 -o $@ -f bin $<
 
 test64_1.bin: test64_1.asm
+	nasm -O5 -o $@ -f bin $<
+
+test6x86_cyrix.bin: test6x86_cyrix.asm
 	nasm -O5 -o $@ -f bin $<
 

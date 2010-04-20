@@ -702,7 +702,7 @@ enum {
 /* 0x22C-0x22F */
 	MXOP_PFSUBR,
 	MXOP_PI2FD,
-	MXOP_PMULHRW,	/* AMD version! */
+	MXOP_PMULHRWA,	/* AMD version! */
 	MXOP_PREFETCH,	/* AMD 3Dnow! */
 /* 0x230-0x233 */
 	MXOP_PREFETCHW,

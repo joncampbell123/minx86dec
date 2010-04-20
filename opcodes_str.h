@@ -707,7 +707,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x22C-0x22F */
 	"PFSUBR",
 	"PI2FD",
-	"PMULHRW",
+	"PMULHRWA",
 	"PREFETCH",
 /* 0x230-0x233 */
 	"PREFETCHW",

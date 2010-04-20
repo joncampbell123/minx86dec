@@ -65,6 +65,10 @@
  * 2 = 3dnow2! */
 #endif
 
+#ifndef cyrix_level
+#  define cyrix_level -1
+#endif
+
 #ifndef sse_level
 #  define sse_level -1
 /* 1 = SSE
@@ -2234,7 +2238,7 @@ decode_next:
 						case 0x9A: ins->opcode = MXOP_PFSUB; break;
 						case 0xAA: ins->opcode = MXOP_PFSUBR; break;
 						case 0x0D: ins->opcode = MXOP_PI2FD; break;
-						case 0xB7: ins->opcode = MXOP_PMULHRW; break;
+						case 0xB7: ins->opcode = MXOP_PMULHRWA; break;
 #   if amd_3dnow >= 2
 						case 0x1C: ins->opcode = MXOP_PF2IW; break;
 						case 0x0C: ins->opcode = MXOP_PI2FW; break;
