@@ -1,6 +1,8 @@
 TODO:
-   AMD 3DNow!
-   AMD 3DNow+!
+   What else does the Cyrix MII bring to the opcode table?
+   The Cyrix 6x86?
+   The Cyrix III?
+   Do we need a Cyrix 5x86 decoder?
 TODO:
    Core and decoder that supports Intel AVX prefixes (which re-use illegal
    forms of LDS/LES opcodes to represent two or three byte shorthand
