@@ -719,6 +719,18 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PFPNACC",
 	"PADDSIW",
 	"PAVEB",
+/* 0x238-0x23B */
+	"PDISTIB",
+	"PMACHRIW",
+	"PMAGW",
+	"PMULHRWC",
+/* 0x23C-0x23F */
+	"PMULHRIW",
+	"PMVZB",
+	"PMVNZB",
+	"PMVLZB",
+/* 0x240-0x243 */
+	"PMVGEZB",
 
 	NULL
 };

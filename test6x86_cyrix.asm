@@ -199,3 +199,22 @@ j2:	jno	j2
 	paveb	mm0,mm2		; implied=mm1
 	paveb	mm1,mm3		; implied=mm0
 	paveb	mm2,[esi]	; implied=mm3
+
+	pdistib	mm5,[esi]	; implied=mm4
+
+	pmachriw mm1,[esi]	; implied=mm0
+
+	pmagw	mm2,mm4		; implied=mm3
+	pmagw	mm3,mm5		; implied=mm2
+	pmagw	mm1,[esi]	; implied=mm0
+
+	pmulhrwc mm0,mm2	; implied=mm1
+	pmulhriw mm0,mm2	; implied=mm1
+	pmulhrwc mm0,[esi]	; implied=mm1
+	pmulhriw mm0,[esi]	; implied=mm1
+
+	pmvzb	mm0,[esi]	; implied=mm1
+	pmvnzb	mm0,[esi]	; implied=mm1
+	pmvlzb	mm0,[esi]	; implied=mm1
+	pmvgezb	mm0,[esi]	; implied=mm1
+
