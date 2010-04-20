@@ -62,7 +62,8 @@
 #ifndef amd_3dnow
 #  define amd_3dnow -1
 /* 1 = 3dnow!
- * 2 = 3dnow2! */
+ * 2 = 3dnow2!
+ * 3 = Geode 3dnow extensions */
 #endif
 
 #ifndef cyrix_level
@@ -2190,7 +2191,8 @@ decode_next:
 					ins->argc = 0;
 					break;
 #  endif
-#  if cyrix_level >= 6 && mmx >= 1 /* cyrix MMX extensions */
+#  if cyrix_level == 6 && mmx == 1 /* cyrix MMX extensions, apparently only on the 6x86 */
+				   /* even then you had to enable them through a control register */
 				case 0x51: /* PADDSIW conflicts with SSE SQRTPS */
 					ins->opcode = MXOP_PADDSIW;
 					ins->argc = 3; {
@@ -2409,6 +2411,10 @@ decode_next:
 						case 0xBB: ins->opcode = MXOP_PSWAPD; break;
 						case 0x8A: ins->opcode = MXOP_PFNACC; break;
 						case 0x8E: ins->opcode = MXOP_PFPNACC; break;
+#    if amd_3dnow >= 3
+						case 0x86: ins->opcode = MXOP_PFRCPV; break;
+						case 0x87: ins->opcode = MXOP_PFRSQRTV; break;
+#    endif
 #   endif
 					} break; }
 #  endif

@@ -1634,4 +1634,7 @@ bits 16
         pswapd     mm0,mm1
         pfnacc     mm0,mm1
         pfpnacc    mm0,mm1
+; Geode instructions
+	pfrcpv     mm0,mm1
+        pfrsqrtv   mm0,mm1
 
