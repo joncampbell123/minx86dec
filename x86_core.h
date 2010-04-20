@@ -424,7 +424,7 @@ decode_next:
 					}
 				}
 			}
-			else if (cip[0] == 0xDB && (cip[1] == 0xE2 || cip[1] == 0xE3)) {
+			else if (cip[0] == 0xDB && (cip[1] == 0xE0 || cip[1] == 0xE1 || cip[1] == 0xE2 || cip[1] == 0xE3)) {
 				fwait++;
 				goto decode_next;
 			}
@@ -4472,6 +4472,14 @@ decode_next:
 						ins->opcode = MXOP_FCOMI;
 						ins->argc = 2;
 					} break;
+					case 0xE0: {
+						ins->opcode = fwait ? MXOP_FNENI : MXOP_FENI;
+						ins->argc = 0;
+					} break;
+					case 0xE1: {
+						ins->opcode = fwait ? MXOP_FNDISI : MXOP_FDISI;
+						ins->argc = 0;
+					} break;
 					case 0xE2: {	/* 0xDB 0xE2 or 0x9B 0xDB 0xE2 */
 						ins->opcode = fwait ? MXOP_FCLEX : MXOP_FNCLEX;
 						ins->argc = 0;
@@ -4480,6 +4488,12 @@ decode_next:
 						ins->opcode = fwait ? MXOP_FINIT : MXOP_FNINIT;
 						ins->argc = 0;
 					} break;
+#if fpu_level >= 2 || defined(everything)
+					case 0xE4: {
+						ins->opcode = MXOP_FSETPM;
+						ins->argc = 0;
+					} break;
+#endif
 				} break;
 			}
 			else {

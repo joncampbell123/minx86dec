@@ -18,9 +18,10 @@ void minx86dec_decode8086(struct minx86dec_state *state,struct minx86dec_instruc
 	ins->segment = -1;
 	ins->argc = 0;
 
-	/* bring in the core.
-	 * don't bitch about ugliness, this avoid maintaining multiple copies of the same code.
-	 * and DOSBox does this too to keep it's various "cores" clean, so there. */
+	/* this follows the DOSBox style of core implementation by having one
+	 * master header file with decoding logic #included with #defines to
+	 * enable/disable functions */
+
 	{
 #include "x86_core.h"
 	}

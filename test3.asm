@@ -362,8 +362,14 @@ call1:	call	dword call1			; E8 id              CALL rel32
        fdiv	st2,st0				; DC F8+i
       fdivp	st2,st0				; DE F8+i
       fdivp					; DE F9 (fdivp st(1),st(0) )
+      fdisi
+      fndisi
+      feni
+      fneni
       fidiv	dword [si]			; DA /6
       fidiv	word [si]			; DE /6
+
+     fsetpm					; <- LOL so you had to set the 286 FPU into protected mode separately?
 
       fdivr	dword [si]			; D8 /7
       fdivr	qword [si]			; DC /7
@@ -1656,4 +1662,4 @@ bits 16
 	rep xsha1
 	xsha256
 	rep xsha256
-	
+

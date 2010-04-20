@@ -748,6 +748,12 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"XSHA256",
 	"IBTS",
 	"XBTS",
+	"FDISI",
+/* 0x250-0x253 */
+	"FNDISI",
+	"FENI",
+	"FNENI",
+	"FSETPM",
 
 	NULL
 };

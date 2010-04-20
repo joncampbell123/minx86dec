@@ -18,17 +18,23 @@ void minx86dec_decodenecv20(struct minx86dec_state *state,struct minx86dec_instr
 	ins->segment = -1;
 	ins->argc = 0;
 
-	/* bring in the core.
-	 * don't bitch about ugliness, this avoid maintaining multiple copies of the same code.
-	 * and DOSBox does this too to keep it's various "cores" clean, so there. */
+	/* this follows the DOSBox style of core implementation by having one
+	 * master header file with decoding logic #included with #defines to
+	 * enable/disable functions */
+
 	{
 #include "x86_core.h"
 	}
 
-	/* invalid opcode. step 1 forward */
-	if (ins->opcode == MXOP_UD)
-		ins->end = state->read_ip = (ins->start + 1);
-	else
+	/* invalid opcode. step 1 forward (2 if FPU instruction) */
+	if (ins->opcode == MXOP_UD) {
+		if ((*(state->read_ip) & 0xF8) == 0xD8)
+			ins->end = state->read_ip = (ins->start + 2);
+		else
+			ins->end = state->read_ip = (ins->start + 1);
+	}
+	else {
 		ins->end = state->read_ip = cip;
+	}
 }
 
