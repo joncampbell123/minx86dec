@@ -1527,3 +1527,48 @@ bits 16
 	vlddqu	ymm1,[esi]			; F2 0F F0 /r
 	vlddqu	ymm2,[ebx*4+ecx+8]		; F2 0F F0 /r
 
+        vmaxpd	xmm1,xmm2,xmm3			; 66 0F 5F /r
+        vmaxpd	xmm1,xmm2,[ebx]			; 66 0F 5F /r
+        vmaxps	xmm1,xmm2,xmm3			; 0F 5F /r
+        vmaxps	xmm1,xmm2,[ebx]			; 0F 5F /r
+        vmaxsd	xmm1,xmm2,xmm3			; F2 0F 5F /r
+        vmaxsd	xmm1,xmm2,[ebx]			; F2 0F 5F /r
+        vmaxss	xmm1,xmm2,xmm3			; F3 0F 5F /r
+        vmaxss	xmm1,xmm2,[ebx]			; F3 0F 5F /r
+
+        vmaxpd	ymm1,ymm2,ymm3			; 66 0F 5F /r
+        vmaxpd	ymm1,ymm2,[ebx]			; 66 0F 5F /r
+        vmaxps	ymm1,ymm2,ymm3			; 0F 5F /r
+        vmaxps	ymm1,ymm2,[ebx]			; 0F 5F /r
+
+        vminpd	xmm1,xmm2,xmm3			; 66 0F 5D /r
+        vminps	xmm1,xmm2,xmm3			; 0F 5D /r
+        vminsd	xmm1,xmm2,xmm3			; F2 0F 5D /r
+        vminss	xmm1,xmm2,xmm3			; F3 0F 5D /r
+
+        vminpd	ymm1,ymm2,ymm3			; 66 0F 5D /r
+        vminps	ymm1,ymm2,ymm3			; 0F 5D /r
+
+	vmovapd	xmm1,xmm2			; 66 0F 28 /r
+	vmovapd	xmm1,[ebx]			; 66 0F 28 /r
+	vmovapd	[ebx],xmm2			; 66 0F 29 /r
+	vmovaps	xmm1,xmm3			; 0F 28 /r
+	vmovaps	xmm1,[ebx]			; 0F 28 /r
+	vmovaps	[ebx],xmm2			; 0F 29 /r
+
+	vmovapd	ymm1,ymm2			; 66 0F 28 /r
+	vmovapd	ymm1,[ebx]			; 66 0F 28 /r
+	vmovapd	[ebx],ymm2			; 66 0F 29 /r
+	vmovaps	ymm1,ymm3			; 0F 28 /r
+	vmovaps	ymm1,[ebx]			; 0F 28 /r
+	vmovaps	[ebx],ymm2			; 0F 29 /r
+
+	vmovq	xmm1,xmm2			; F3 0F 7E /r
+	vmovq	xmm2,[esi]			; F3 0F 7E /r
+	vmovq	[esi],xmm3			; 66 0F D6 /r
+
+	vmovd	xmm1,eax			; 66 0F 6E /r
+	vmovd	xmm2,[esi]			; 66 0F 6E /r
+	vmovd	ebx,xmm3			; 66 0F 7E /r
+	vmovd	[ebx],xmm4			; 66 0F 7E /r
+
