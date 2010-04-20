@@ -295,6 +295,10 @@ static inline void string_instruction(int opcode,struct minx86dec_instruction *i
 	}
 }
 
+static inline unsigned int cyrix6x86_mmx_implied(unsigned int reg) {
+	return reg ^ 1;	/* mm0 -> mm1, mm1 -> mm0, etc */
+}
+
 /* warning: intended for use in x86_core.h */
 #define string_instruction_typical(opcode) string_instruction(opcode,ins,(first_byte & 1) ? data32wordsize : 1,addr32wordsize,seg_can_override(MX86_SEG_DS))
 

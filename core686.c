@@ -14,7 +14,7 @@ void minx86dec_decode686(struct minx86dec_state *state,struct minx86dec_instruct
 #define fpu_level 6
 #define pentium 2
 #define cpuid
-#define mmx
+#define mmx 1
 
 	/* default to 8086-style invalid opcode (apparently there was no invalid opcode exception?) */
 	ins->data32 = state->data32;

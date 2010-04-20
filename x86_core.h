@@ -2190,6 +2190,34 @@ decode_next:
 					ins->argc = 0;
 					break;
 #  endif
+#  if cyrix_level >= 6 && mmx >= 1 /* cyrix MMX extensions */
+				case 0x51: /* PADDSIW conflicts with SSE SQRTPS */
+					ins->opcode = MXOP_PADDSIW;
+					ins->argc = 3; {
+						struct minx86dec_argv *dst = &ins->argv[0];
+						struct minx86dec_argv *s1 = &ins->argv[1];
+						struct minx86dec_argv *s2 = &ins->argv[2];
+						union x86_mrm mrm = fetch_modregrm();
+						s2->segment = seg_can_override(MX86_SEG_DS);
+						dst->size = s1->size = s2->size = 8;
+						set_mmx_register(s1,mrm.f.reg);
+						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
+						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
+					} break;
+				case 0x50: /* PAVEB conflicts with MOVMSKPS */
+					ins->opcode = MXOP_PAVEB;
+					ins->argc = 3; {
+						struct minx86dec_argv *dst = &ins->argv[0];
+						struct minx86dec_argv *s1 = &ins->argv[1];
+						struct minx86dec_argv *s2 = &ins->argv[2];
+						union x86_mrm mrm = fetch_modregrm();
+						s2->segment = seg_can_override(MX86_SEG_DS);
+						dst->size = s1->size = s2->size = 8;
+						set_mmx_register(s1,mrm.f.reg);
+						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
+						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
+					} break;
+#  endif
 #  if amd_3dnow >= 1
 				case 0x0D: {
 					struct minx86dec_argv *rm = &ins->argv[0];

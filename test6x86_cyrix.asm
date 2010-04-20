@@ -1,12 +1,7 @@
-; 386 test code
+; 6x86 cyrix test code
 org 0
 
 _start:
-	; test: this seems to crash our decompiler!
-	db 0x8e, 0x70, 0xe9
-
-	db 0x2e
-	lodsb
 
 	bsf	ax,bx
 	bsf	cx,[si]
@@ -196,3 +191,11 @@ j2:	jno	j2
 	push	es
 	pop	ds
 
+; Cyrix MMX extensions
+	paddsiw	mm1,mm2		; implied destination mm0
+	paddsiw	mm2,mm4		; implied destination mm3
+	paddsiw mm0,[esi]	; implied destination mm1
+
+	paveb	mm0,mm2		; implied=mm1
+	paveb	mm1,mm3		; implied=mm0
+	paveb	mm2,[esi]	; implied=mm3

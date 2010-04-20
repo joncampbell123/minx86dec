@@ -717,6 +717,8 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x234-0x237 */
 	"PFNACC",
 	"PFPNACC",
+	"PADDSIW",
+	"PAVEB",
 
 	NULL
 };
