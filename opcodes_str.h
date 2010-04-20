@@ -731,6 +731,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PMVLZB",
 /* 0x240-0x243 */
 	"PMVGEZB",
+	"PSUBSIW",
 
 	NULL
 };

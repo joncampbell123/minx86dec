@@ -218,3 +218,7 @@ j2:	jno	j2
 	pmvlzb	mm0,[esi]	; implied=mm1
 	pmvgezb	mm0,[esi]	; implied=mm1
 
+	psubsiw	mm0,mm2		; implied=mm1
+	psubsiw	mm1,mm3		; implied=mm0
+	psubsiw	mm1,[esi]	; implied=mm0
+

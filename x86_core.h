@@ -2217,7 +2217,7 @@ decode_next:
 						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
 					} break;
-				case 0x52: /* PMAGW conflicts with ??? */
+				case 0x52: /* PMAGW conflicts with RSQRTPS */
 					ins->opcode = MXOP_PMAGW;
 					ins->argc = 3; {
 						struct minx86dec_argv *dst = &ins->argv[0];
@@ -2230,7 +2230,7 @@ decode_next:
 						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
 					} break;
-				case 0x54: /* PDISTIB conflicts with ??? */
+				case 0x54: /* PDISTIB conflicts with ANDPS */
 					ins->argc = 3; {
 						struct minx86dec_argv *dst = &ins->argv[0];
 						struct minx86dec_argv *s1 = &ins->argv[1];
@@ -2244,7 +2244,20 @@ decode_next:
 						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
 					} break;
-				case 0x58: /* PMVZB conflicts with ??? */
+				case 0x55: /* PDISTIB conflicts with ANDNPS */
+					ins->argc = 3; {
+						struct minx86dec_argv *dst = &ins->argv[0];
+						struct minx86dec_argv *s1 = &ins->argv[1];
+						struct minx86dec_argv *s2 = &ins->argv[2];
+						union x86_mrm mrm = fetch_modregrm();
+						ins->opcode = MXOP_PSUBSIW;
+						s2->segment = seg_can_override(MX86_SEG_DS);
+						dst->size = s1->size = s2->size = 8;
+						set_mmx_register(s1,mrm.f.reg);
+						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
+						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
+					} break;
+				case 0x58: /* PMVZB conflicts with ADDPS */
 					ins->argc = 3; {
 						struct minx86dec_argv *dst = &ins->argv[0];
 						struct minx86dec_argv *s1 = &ins->argv[1];
@@ -2258,7 +2271,7 @@ decode_next:
 						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
 					} break;
-				case 0x59: /* PMULHRW conflicts with ??? */
+				case 0x59: /* PMULHRW conflicts with MULPS */
 					ins->opcode = MXOP_PMULHRWC;
 					ins->argc = 3; {
 						struct minx86dec_argv *dst = &ins->argv[0];
@@ -2271,7 +2284,7 @@ decode_next:
 						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
 					} break;
-				case 0x5A: /* PMVNZB conflicts with ??? */
+				case 0x5A: /* PMVNZB conflicts with CVTPS2PD */
 					ins->argc = 3; {
 						struct minx86dec_argv *dst = &ins->argv[0];
 						struct minx86dec_argv *s1 = &ins->argv[1];
@@ -2285,7 +2298,7 @@ decode_next:
 						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
 					} break;
-				case 0x5B: /* PMVLZB conflicts with ??? */
+				case 0x5B: /* PMVLZB conflicts with CVTDQ2PS */
 					ins->argc = 3; {
 						struct minx86dec_argv *dst = &ins->argv[0];
 						struct minx86dec_argv *s1 = &ins->argv[1];
@@ -2299,7 +2312,7 @@ decode_next:
 						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
 					} break;
-				case 0x5C: /* PMVNZB conflicts with ??? */
+				case 0x5C: /* PMVNZB conflicts with SUBPS */
 					ins->argc = 3; {
 						struct minx86dec_argv *dst = &ins->argv[0];
 						struct minx86dec_argv *s1 = &ins->argv[1];
@@ -2313,7 +2326,7 @@ decode_next:
 						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
 					} break;
-				case 0x5D: /* PMULHRIW conflicts with ??? */
+				case 0x5D: /* PMULHRIW conflicts with MINPS */
 					ins->opcode = MXOP_PMULHRIW;
 					ins->argc = 3; {
 						struct minx86dec_argv *dst = &ins->argv[0];
@@ -2326,7 +2339,7 @@ decode_next:
 						set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 						decode_rm_ex(mrm,s2,isaddr32,MX86_RT_MMX);
 					} break;
-				case 0x5E: /* PMACHRIW conflicts with ??? */
+				case 0x5E: /* PMACHRIW conflicts with DIVPS */
 					ins->argc = 3; {
 						struct minx86dec_argv *dst = &ins->argv[0];
 						struct minx86dec_argv *s1 = &ins->argv[1];
