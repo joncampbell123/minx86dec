@@ -334,6 +334,8 @@ decode_next:
 				struct minx86dec_argv *imm = &ins->argv[1];
 				union x86_mrm mrm = fetch_modregrm();
 				switch (mrm.f.reg) {
+					case 0:	ins->opcode = MXOP_ROL; break;
+					case 1:	ins->opcode = MXOP_ROR; break;
 					case 2:	ins->opcode = MXOP_RCL; break;
 					case 3:	ins->opcode = MXOP_RCR; break;
 					case 4:	ins->opcode = MXOP_SHL; break;
@@ -370,6 +372,8 @@ decode_next:
 				struct minx86dec_argv *imm = &ins->argv[1];
 				union x86_mrm mrm = fetch_modregrm();
 				switch (mrm.f.reg) {
+					case 0:	ins->opcode = MXOP_ROL; break;
+					case 1:	ins->opcode = MXOP_ROR; break;
 					case 2:	ins->opcode = MXOP_RCL; break;
 					case 3:	ins->opcode = MXOP_RCR; break;
 					case 4:	ins->opcode = MXOP_SHL; break;
@@ -2113,6 +2117,10 @@ decode_next:
 						set_register(s,mrm.f.reg);
 						decode_rm(mrm,d,isaddr32);
 					} break;
+				case 0xA2: /* early 486's did not have this, later ones did, so it is placed here */
+					ins->opcode = MXOP_CPUID;
+					ins->argc = 0;
+					break;
 # endif
 # if core_level >= 5 /* --------------------- pentium or higher ------------------ */
 				case 0x30:
@@ -2789,10 +2797,6 @@ decode_next:
 					s->segment = seg_can_override(MX86_SEG_DS);
 					decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
 					break; }
-				case 0xA2:
-					ins->opcode = MXOP_CPUID;
-					ins->argc = 0;
-					break;
 				case 0xD0: {
 #   define PAIR(d,r)  ((d) + ((r) << 2))
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3892,6 +3896,22 @@ decode_next:
 						ins->opcode = MXOP_FMUL;
 						ins->argc = 2;
 					} break;
+					COVER_8(0xD0): {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						set_fpu_register(d,MX86_ST(0));
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						ins->opcode = MXOP_FCOM;
+						ins->argc = 2;
+					} break;
+					COVER_8(0xD8): {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						set_fpu_register(d,MX86_ST(0));
+						set_fpu_register(s,MX86_ST(second_byte&7));
+						ins->opcode = MXOP_FCOMP;
+						ins->argc = 2;
+					} break;
 					COVER_8(0xE0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
@@ -4126,12 +4146,14 @@ decode_next:
 						ins->opcode = MXOP_FXTRACT;
 						ins->argc = 1;
 					} break;
+#if fpu_core >= 3
 					case 0xF5: {
 						struct minx86dec_argv *d = &ins->argv[0];
 						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FPREM1;
 						ins->argc = 1;
 					} break;
+#endif
 					case 0xF6: {
 						ins->opcode = MXOP_FDECSTP;
 						ins->argc = 0;
@@ -4158,12 +4180,14 @@ decode_next:
 						ins->opcode = MXOP_FSQRT;
 						ins->argc = 1;
 					} break;
+#if fpu_core >= 3
 					case 0xFB: {
 						struct minx86dec_argv *d = &ins->argv[0];
 						set_fpu_register(d,MX86_ST(0));
 						ins->opcode = MXOP_FSINCOS;
 						ins->argc = 1;
 					} break;
+#endif
 					case 0xFC: {
 						struct minx86dec_argv *d = &ins->argv[0];
 						set_fpu_register(d,MX86_ST(0));
@@ -4178,6 +4202,7 @@ decode_next:
 						ins->opcode = MXOP_FSCALE;
 						ins->argc = 2;
 					} break;
+#if fpu_core >= 3
 					case 0xFE: {
 						struct minx86dec_argv *d = &ins->argv[0];
 						set_fpu_register(d,MX86_ST(0));
@@ -4190,6 +4215,7 @@ decode_next:
 						ins->opcode = MXOP_FCOS;
 						ins->argc = 1;
 					} break;
+#endif
 				}
 			}
 			else {
@@ -4308,12 +4334,14 @@ decode_next:
 						ins->opcode = MXOP_FCMOVU;
 						ins->argc = 2;
 					} break;
+#if fpu_core >= 3
 					case 0xE9: {
 						struct minx86dec_argv *s = &ins->argv[0];
 						set_fpu_register(s,MX86_ST(second_byte&7));
 						ins->opcode = MXOP_FUCOMPP;
 						ins->argc = 1;
 					} break;
+#endif
 				}
 			}
 			else {
@@ -4731,6 +4759,7 @@ decode_next:
 						ins->opcode = MXOP_FSTP;
 						ins->argc = 1;
 					} break;
+#if fpu_core >= 3
 					COVER_8(0xE0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						set_fpu_register(d,MX86_ST(second_byte&7));
@@ -4743,6 +4772,7 @@ decode_next:
 						ins->opcode = MXOP_FUCOMP;
 						ins->argc = 1;
 					} break;
+#endif
 				}
 			}
 			else {
@@ -4846,6 +4876,14 @@ decode_next:
 						set_fpu_register(d,MX86_ST(second_byte&7));
 						set_fpu_register(s,MX86_ST(0));
 						ins->opcode = MXOP_FMULP;
+						ins->argc = 2;
+					} break;
+					case 0xD9: {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						set_fpu_register(d,MX86_ST(0));
+						set_fpu_register(s,MX86_ST(1));
+						ins->opcode = MXOP_FCOMPP;
 						ins->argc = 2;
 					} break;
 					COVER_8(0xE0): {

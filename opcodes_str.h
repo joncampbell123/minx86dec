@@ -754,6 +754,13 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"FENI",
 	"FNENI",
 	"FSETPM",
+/* 0x254-0x257 */
+	"ROL",
+	"ROR",
+	"FCOM",
+	"FCOMP",
+/* 0x258-0x25B */
+	"FCOMPP",
 
 	NULL
 };
