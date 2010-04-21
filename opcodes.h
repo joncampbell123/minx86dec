@@ -756,6 +756,7 @@ enum {
 	MXOP_FCOMP,
 /* 0x258-0x25B */
 	MXOP_FCOMPP,
+	MXOP_UMC_IDENT,		/* top secret UMC identification SALC FS: */
 
 	MXOP_LAST
 };

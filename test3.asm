@@ -1662,4 +1662,13 @@ bits 16
 	rep xsha1
 	xsha256
 	rep xsha256
+; segment prefixes
+	mov	ax,[cs:si]
+	mov	ax,[ds:si]
+	mov	ax,[es:si]
+	mov	ax,[fs:si]
+	mov	ax,[gs:si]
+	mov	ax,[ss:si]
+; UMC
+	db 0x64,0xD6			; SALC FS:
 

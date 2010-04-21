@@ -396,8 +396,16 @@ decode_next:
 			} break;
 #if !defined(no_salc)
 		case 0xD6:
-			ins->opcode = MXOP_SALC;
-			ins->argc = 0;
+# if defined(umc) || defined(everything)
+			if (ins->segment == MX86_SEG_FS) {	/* UMC identification */
+				ins->opcode = MXOP_UMC_IDENT;
+				ins->argc = 0;
+			} else
+# endif
+			{
+				ins->opcode = MXOP_SALC;
+				ins->argc = 0;
+			}
 			break;
 #endif
 
@@ -1497,6 +1505,13 @@ decode_next:
 			goto decode_next;
 #endif
 
+#if core_level >= 3
+		case 0x64: case 0x65: /* segment overrides FS and GS */
+			ins->segment = (first_byte & 1) + MX86_SEG_FS;
+			if (--patience) goto decode_next;
+			break;
+#endif
+
 		/* MOV a,imm */
 		COVER_ROW(0xB0):
 			ins->opcode = MXOP_MOV;
@@ -1807,7 +1822,7 @@ decode_next:
 				/* EWWWW this is a bit messy....
 				   Once upon a time this was widely known as the LOADALL instruction for the 286.
 				   386 and 486 systems used the invalid opcode exception to fake it, and then
-				   it was forgotten, until re-used to become SYSCALL on the Pentium Pro */
+				   it was forgotten, until re-used to become SYSCALL */
 				case 0x05: /* LOADALL 286 */
 					ins->opcode = MXOP_LOADALL_286;
 					ins->argc = 0;
@@ -1822,7 +1837,7 @@ decode_next:
 #  if core_level == 3 || (defined(everything) && core_level == 4)
 				/* this opcode suffers the same fate as the 286 version of LOADALL.
 				   it was faked by 486 systems, forgotten around the Pentium era, and then
-				   re-used by the Pentium Pro for the SYSCALL/SYSENTER instruction. */
+				   re-used for the SYSCALL/SYSENTER instruction. */
 				case 0x07: /* LOADALL 386 */
 					ins->opcode = MXOP_LOADALL_386;
 					ins->argc = 0;
@@ -2226,19 +2241,11 @@ decode_next:
 							}
 						}
 					} break;
-				case 0x05:
+				case 0x05: /* FIXME: when did this appear? Said to appear on AMD K6-2 first, but I can't verify that */
 					ins->opcode = MXOP_SYSCALL;
 					ins->argc = 0;
 					break;
-				case 0x34:
-					ins->opcode = MXOP_SYSENTER;
-					ins->argc = 0;
-					break;
-				case 0x35:
-					ins->opcode = MXOP_SYSEXIT;
-					ins->argc = 0;
-					break;
-				case 0x07:
+				case 0x07: /* FIXME: when did this appear? Said to appear on AMD K6-2 first, but I can't verify that */
 					ins->opcode = MXOP_SYSRET;
 					ins->argc = 0;
 					break;
@@ -2457,18 +2464,28 @@ decode_next:
 						case 0xAA: ins->opcode = MXOP_PFSUBR; break;
 						case 0x0D: ins->opcode = MXOP_PI2FD; break;
 						case 0xB7: ins->opcode = MXOP_PMULHRWA; break;
-#   if amd_3dnow >= 2 || defined(everything)
+#   if amd_3dnow >= 2 || defined(everything) /* 3dnow+ aka enhanced, etc. whatever you call it */
 						case 0x1C: ins->opcode = MXOP_PF2IW; break;
 						case 0x0C: ins->opcode = MXOP_PI2FW; break;
 						case 0xBB: ins->opcode = MXOP_PSWAPD; break;
 						case 0x8A: ins->opcode = MXOP_PFNACC; break;
 						case 0x8E: ins->opcode = MXOP_PFPNACC; break;
-#    if amd_3dnow >= 3 || defined(everything)
+#    if amd_3dnow >= 3 || defined(everything) /* Geode */
 						case 0x86: ins->opcode = MXOP_PFRCPV; break;
 						case 0x87: ins->opcode = MXOP_PFRSQRTV; break;
 #    endif
 #   endif
 					} break; }
+#  endif
+#  if core_level >= 6 /* Pentium II or higher */
+				case 0x34:
+					ins->opcode = MXOP_SYSENTER;
+					ins->argc = 0;
+					break;
+				case 0x35:
+					ins->opcode = MXOP_SYSEXIT;
+					ins->argc = 0;
+					break;
 #  endif
 #  if cyrix_level >= 134 || defined(everything) /* VIA Nehemiah Padlock extensions */
 				case 0xA6:

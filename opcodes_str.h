@@ -761,6 +761,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"FCOMP",
 /* 0x258-0x25B */
 	"FCOMPP",
+	"UMC_IDENT",
 
 	NULL
 };

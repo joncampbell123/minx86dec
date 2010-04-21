@@ -366,7 +366,6 @@ _start:
 	invlpg	[si]
 	wbinvd
 	xadd	[si],ax
-	cpuid				; <- NOTE: Officially on the Pentium, but late 486's had this
 ;============================ visible pause in decoding ==========================
 	nop
 	nop
@@ -378,7 +377,7 @@ _start:
 	nop
 	nop
 ;=================================== 80586 ====================================
-	cpuid
+	cpuid			; late 486's also had this, therefore it's OK if the 486 core supports this
 	cmpxchg8b	[si]
 	rdmsr
 	rdtsc
