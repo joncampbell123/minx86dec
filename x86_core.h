@@ -700,14 +700,14 @@ decode_next:
 			break; }
 
 		COVER_2(0xC4): /* LDS/LES */
-			if ((*cip & 0xC0) == 0xC0) { /* NOPE! AVX/VEX extensions (illegal encoding of LDS/LES anyway) */
+			if ((*cip & 0xC0) == 0xC0) { /* NOPE! AVX/VEX extensions (illegal encoding of LDS/LES) */
 #  if defined(vex_level)
 				union minx86dec_vex v;
 
 				if (first_byte & 1) { /* 2-byte */
 					v.raw = (fetch_u8() ^ 0xF8) << 8;
 					v.f.r = v.f.w; v.f.w = 0; /* transpose bit 7 to bit 15 to convert 2 to 3 byte VEX */
-					v.f.m = 1; /* apparently this means "implied 0x0F prefix" Intel docs don't say */
+					v.f.m = 1; /* "implied 0x0F prefix" */
 				}
 				else { /* 3-byte */
 					v.raw = fetch_u16() ^ 0xF8E0;
