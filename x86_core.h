@@ -1782,6 +1782,7 @@ decode_next:
 									decode_rm(mrm,m,isaddr32);
 								} break;
 							case 7:
+								if (mrm.f.mod == 3) break; /* illegal encoding */
 								ins->opcode = MXOP_INVLPG;
 								ins->argc = 1; {
 									struct minx86dec_argv *m = &ins->argv[0];
