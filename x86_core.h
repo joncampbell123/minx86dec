@@ -2135,32 +2135,6 @@ decode_next:
 					ins->opcode = MXOP_RDTSC + second_byte - 0x31;
 					ins->argc = 0;
 					break;
-#  if defined(pentiumpro) || pentium >= 2 /* Pentium Pro or higher */
-				COVER_ROW(0x40): /* CMOVcc */
-					ins->opcode = MXOP_CMOVO + second_byte - 0x40;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[1];
-						struct minx86dec_argv *s = &ins->argv[0];
-						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = data32wordsize;
-						d->segment = seg_can_override(MX86_SEG_DS);
-						set_register(s,mrm.f.reg);
-						decode_rm(mrm,d,isaddr32);
-					} break;
-				case 0x1F: {
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					union x86_mrm mrm = fetch_modregrm();
-					switch (mrm.f.reg) {
-						case 0:
-							ins->opcode = MXOP_NOP;
-							ins->argc = 1;
-							d->size = data32wordsize;
-							d->segment = seg_can_override(MX86_SEG_DS);
-							decode_rm(mrm,d,isaddr32);
-							break;
-					}
-					} break;
 				case 0xC7: {
 					struct minx86dec_argv *a = &ins->argv[0];
 					union x86_mrm mrm = fetch_modregrm();
@@ -2188,6 +2162,32 @@ decode_next:
 							a->segment = seg_can_override(MX86_SEG_DS);
 							break;
 					};
+					} break;
+#  if defined(pentiumpro) || pentium >= 2 /* Pentium Pro or higher */
+				COVER_ROW(0x40): /* CMOVcc */
+					ins->opcode = MXOP_CMOVO + second_byte - 0x40;
+					ins->argc = 2; {
+						struct minx86dec_argv *d = &ins->argv[1];
+						struct minx86dec_argv *s = &ins->argv[0];
+						union x86_mrm mrm = fetch_modregrm();
+						d->size = s->size = data32wordsize;
+						d->segment = seg_can_override(MX86_SEG_DS);
+						set_register(s,mrm.f.reg);
+						decode_rm(mrm,d,isaddr32);
+					} break;
+				case 0x1F: {
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					union x86_mrm mrm = fetch_modregrm();
+					switch (mrm.f.reg) {
+						case 0:
+							ins->opcode = MXOP_NOP;
+							ins->argc = 1;
+							d->size = data32wordsize;
+							d->segment = seg_can_override(MX86_SEG_DS);
+							decode_rm(mrm,d,isaddr32);
+							break;
+					}
 					} break;
 				case 0x6E:
 				case 0x7E:
@@ -4302,6 +4302,7 @@ decode_next:
 			if ((second_byte & 0xC0) == 0xC0) {
 				cip++;	/* it was second byte of the opcode, step forward */
 				switch (second_byte) {
+#if fpu_level >= 6 || (fpu_level == 5 && defined(pentiumpro))
 					COVER_8(0xC0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
@@ -4334,6 +4335,7 @@ decode_next:
 						ins->opcode = MXOP_FCMOVU;
 						ins->argc = 2;
 					} break;
+#endif
 #if fpu_core >= 3
 					case 0xE9: {
 						struct minx86dec_argv *s = &ins->argv[0];
@@ -4452,6 +4454,7 @@ decode_next:
 			if ((second_byte & 0xC0) == 0xC0) {
 				cip++;	/* it was second byte of the opcode, step forward */
 				switch (second_byte) {
+#if fpu_level >= 6 || (fpu_level == 5 && defined(pentiumpro))
 					COVER_8(0xC0): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
@@ -4500,6 +4503,7 @@ decode_next:
 						ins->opcode = MXOP_FCOMI;
 						ins->argc = 2;
 					} break;
+#endif
 					case 0xE0: {
 						ins->opcode = fwait ? MXOP_FNENI : MXOP_FENI;
 						ins->argc = 0;
@@ -5033,6 +5037,7 @@ decode_next:
 						ins->opcode = fwait ? MXOP_FSTSW : MXOP_FNSTSW;
 						ins->argc = 1;
 					} break;
+#if fpu_level >= 6 || (fpu_level == 5 && defined(pentiumpro))
 					COVER_8(0xE8): {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
@@ -5049,6 +5054,7 @@ decode_next:
 						ins->opcode = MXOP_FCOMIP;
 						ins->argc = 2;
 					} break;
+#endif
 				} break;
 			}
 			else {

@@ -377,4 +377,39 @@ _start:
 	nop
 	nop
 	nop
+;=================================== 80586 ====================================
+	cpuid
+	cmpxchg8b	[si]
+	rdmsr
+	rdtsc
+	wrmsr
+	rsm
+;============================ visible pause in decoding ==========================
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+;================================= 80586pro ===================================
+	rdpmc
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	fcmovb
+	fcmovbe
+	fcmove
+	fcmovnb
+	fcomi
+	fcomip
+	fucomi
+	fucomip
 

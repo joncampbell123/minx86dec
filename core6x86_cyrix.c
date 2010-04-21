@@ -8,14 +8,14 @@ void minx86dec_decode6x86_cyrix(struct minx86dec_state *state,struct minx86dec_i
 	unsigned int dataprefix32 = 0,addrprefix32 = 0;
 	register unsigned int patience = 6;
 	cip = state->read_ip;
-/* supposedly the Cyrix 686 is like a Pentium Pro, with MMX but not the newer instructions */
-#define core_level 6
+/* supposedly the Cyrix 686 is like a Pentium, with MMX but not the newer instructions */
+#define core_level 5
 #define isdata32 ins->data32
 #define isaddr32 ins->addr32
-#define fpu_level 6
+#define fpu_level 5
 #define pentium 1
 #define cyrix_level 6
-#define pentiumpro 1
+//#define pentiumpro 1
 #define cpuid
 #define mmx 1
 
