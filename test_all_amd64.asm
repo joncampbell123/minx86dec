@@ -1067,4 +1067,42 @@ _start:
 	vpmadcsswd	xmm1,xmm2,[si],xmm4
 	vpmadcswd	xmm1,xmm2,xmm3,xmm4
 	vpmadcswd	xmm1,xmm2,[si],xmm4
+	vpperm		xmm1,xmm2,xmm3,xmm4
+	vpperm		xmm1,xmm2,[si],xmm4
+	vprotb		xmm1,xmm2,xmm3
+	vprotb		xmm1,xmm2,[si]
+	vprotb		xmm1,xmm2,3
+	vprotw		xmm1,xmm2,xmm3
+	vprotw		xmm1,xmm2,[si]
+	vprotw		xmm1,xmm2,3
+	vprotd		xmm1,xmm2,xmm3
+	vprotd		xmm1,xmm2,[si]
+	vprotd		xmm1,xmm2,3
+	vprotq		xmm1,xmm2,xmm3
+	vprotq		xmm1,xmm2,[si]
+	vprotq		xmm1,xmm2,3
+	vpshab		xmm1,xmm2,xmm3
+	vpshab		xmm1,[si],xmm3
+	vpshab		xmm1,xmm2,[si]
+	vpshaw		xmm1,xmm2,xmm3
+	vpshaw		xmm1,[si],xmm3
+	vpshaw		xmm1,xmm2,[si]
+	vpshad		xmm1,xmm2,xmm3
+	vpshad		xmm1,[si],xmm3
+	vpshad		xmm1,xmm2,[si]
+	vpshaq		xmm1,xmm2,xmm3
+	vpshaq		xmm1,[si],xmm3
+	vpshaq		xmm1,xmm2,[si]
+	vpshlb		xmm1,xmm2,xmm3
+	vpshlb		xmm1,[si],xmm3
+	vpshlb		xmm1,xmm2,[si]
+	vpshlw		xmm1,xmm2,xmm3
+	vpshlw		xmm1,[si],xmm3
+	vpshlw		xmm1,xmm2,[si]
+	vpshld		xmm1,xmm2,xmm3
+	vpshld		xmm1,[si],xmm3
+	vpshld		xmm1,xmm2,[si]
+	vpshlq		xmm1,xmm2,xmm3
+	vpshlq		xmm1,[si],xmm3
+	vpshlq		xmm1,xmm2,[si]
 
