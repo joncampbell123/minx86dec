@@ -977,4 +977,16 @@ _start:
 	vfnmsubpd	xmm1,xmm2,[si],xmm4
 	vfnmsubpd	ymm1,ymm2,ymm3,ymm4
 	vfnmsubpd	ymm1,ymm2,[si],ymm4
+	vfrczpd		xmm1,xmm2
+	vfrczpd		xmm1,[si]
+	vfrczpd		ymm1,ymm2
+	vfrczpd		ymm1,[si]
+	vfrczps		xmm1,xmm2
+	vfrczps		xmm1,[si]
+	vfrczps		ymm1,ymm2
+	vfrczps		ymm1,[si]
+	vfrczsd		xmm1,xmm2
+	vfrczsd		xmm1,[si]
+	vfrczss		xmm1,xmm2
+	vfrczss		xmm1,[si]
 

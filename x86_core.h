@@ -402,18 +402,72 @@ decode_next:
 			break;
 #endif
 
-		case 0x8F: {
-			struct minx86dec_argv *d = &ins->argv[0];
-			union x86_mrm mrm = fetch_modregrm();
-			switch (mrm.f.reg) {
-				case 0:
-					/* FIXME: is size specified or implied? */
-					ins->opcode = MXOP_POP;
-					d->size = data32wordsize;
-					ins->argc = 1;
-					decode_rm(mrm,d,isaddr32);
-					break;
+		case 0x8F:
+			if (*cip >= 0x08) {
+#  if defined(vex_level)
+				union minx86dec_vex v;
+				v.raw = fetch_u16() ^ 0xF8E0;
+
+				ins->vex = v;
+				switch (v.f.pp) {
+					case 0x1: ins->data32 ^= 1; dataprefix32++; break;	/* as if 0x66 prefix */
+					case 0x2: ins->rep = MX86_REPNE; break;			/* as if 0xF3 prefix */
+					case 0x3: ins->rep = MX86_REPE; break;			/* as if 0xF2 prefix */
+				};
+
+				unsigned int vector_size = 16 << (v.f.l?1:0);
+				const unsigned char opcode = *cip++;
+				ins->oes = opcode & 3;
+
+//				printf("v=0x%04X oes=%u\n",v.raw,ins->oes);
+
+				switch (v.f.m) {
+					case 0x9: {
+						switch (opcode) {
+							COVER_2(0x80):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VFRCZPS + (opcode & 1);
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+							COVER_2(0x82):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VFRCZSS + (opcode & 1);
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+						}
+					} break;
+				}
+#  endif
 			}
+			else {
+				struct minx86dec_argv *d = &ins->argv[0];
+				union x86_mrm mrm = fetch_modregrm();
+				switch (mrm.f.reg) {
+					case 0:
+						/* FIXME: is size specified or implied? */
+						ins->opcode = MXOP_POP;
+						d->size = data32wordsize;
+						ins->argc = 1;
+						decode_rm(mrm,d,isaddr32);
+						break;
+				}
 			} break;
 
 		case 0x9B:

@@ -859,6 +859,11 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"VFNMSUBPD",
 	"VFNMSUBSS",
 	"VFNMSUBSD",
+/* 0x308-0x30B */
+	"VFRCZPS",
+	"VFRCZPD",
+	"VFRCZSS",
+	"VFRCZSD",
 
 	NULL
 };
