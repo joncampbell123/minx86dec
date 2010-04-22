@@ -1077,15 +1077,19 @@ _start:
 	vpperm		xmm1,xmm2,[si],xmm4
 	vpperm		xmm1,xmm2,xmm3,[si]
 	vprotb		xmm1,xmm2,xmm3
+	vprotb		xmm1,[si],xmm3
 	vprotb		xmm1,xmm2,[si]
 	vprotb		xmm1,xmm2,3
 	vprotw		xmm1,xmm2,xmm3
+	vprotw		xmm1,[si],xmm3
 	vprotw		xmm1,xmm2,[si]
 	vprotw		xmm1,xmm2,3
 	vprotd		xmm1,xmm2,xmm3
+	vprotd		xmm1,[si],xmm3
 	vprotd		xmm1,xmm2,[si]
 	vprotd		xmm1,xmm2,3
 	vprotq		xmm1,xmm2,xmm3
+	vprotq		xmm1,[si],xmm3
 	vprotq		xmm1,xmm2,[si]
 	vprotq		xmm1,xmm2,3
 	vpshab		xmm1,xmm2,xmm3
