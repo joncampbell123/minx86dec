@@ -757,6 +757,16 @@ enum {
 /* 0x258-0x25B */
 	MXOP_FCOMPP,
 	MXOP_UMC_IDENT,		/* top secret UMC identification SALC FS: */
+	MXOP_CLGI,
+	MXOP_INVLPGA,
+/* 0x25C-0x25F */
+	MXOP_SKINIT,
+	MXOP_STGI,
+	MXOP_VMLOAD,
+	MXOP_VMMCALL,
+/* 0x260-0x263 */
+	MXOP_VMRUN,
+	MXOP_VMSAVE,
 
 	MXOP_LAST
 };

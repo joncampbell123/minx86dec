@@ -1734,6 +1734,55 @@ decode_next:
 						cip++;
 					}
 #  endif
+					else if (*cip == 0xD8) {
+						ins->opcode = MXOP_VMRUN;
+						ins->argc = 1;
+						ins->argv[0].size = 4;
+						set_register(&ins->argv[0],MX86_REG_EAX);
+						cip++;
+					}
+					else if (*cip == 0xD9) {
+						ins->opcode = MXOP_VMMCALL;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (*cip == 0xDA) {
+						ins->opcode = MXOP_VMLOAD;
+						ins->argc = 1;
+						ins->argv[0].size = 4;
+						set_register(&ins->argv[0],MX86_REG_EAX);
+						cip++;
+					}
+					else if (*cip == 0xDB) {
+						ins->opcode = MXOP_VMSAVE;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (*cip == 0xDC) {
+						ins->opcode = MXOP_STGI;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (*cip == 0xDD) {
+						ins->opcode = MXOP_CLGI;
+						ins->argc = 0;
+						cip++;
+					}
+					else if (*cip == 0xDE) {
+						ins->opcode = MXOP_SKINIT;
+						ins->argc = 1;
+						ins->argv[0].size = 4;
+						set_register(&ins->argv[0],MX86_REG_EAX);
+						cip++;
+					}
+					else if (*cip == 0xDF) {
+						ins->opcode = MXOP_INVLPGA;
+						ins->argc = 2;
+						ins->argv[0].size = ins->argv[1].size = 4;
+						set_register(&ins->argv[0],MX86_REG_EAX);
+						set_register(&ins->argv[1],MX86_REG_ECX);
+						cip++;
+					}
 					else if (*cip == 0xF9) { /* FIXME: when did this get added to the instruction set? */
 						ins->opcode = MXOP_RDTSCP;
 						ins->argc = 0;

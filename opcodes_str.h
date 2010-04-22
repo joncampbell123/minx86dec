@@ -762,6 +762,16 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x258-0x25B */
 	"FCOMPP",
 	"UMC_IDENT",
+	"CLGI",
+	"INVLPGA",
+/* 0x25C-0x25F */
+	"SKINIT",
+	"STGI",
+	"VMLOAD",
+	"VMMCALL",
+/* 0x260-0x263 */
+	"VMRUN",
+	"VMSAVE",
 
 	NULL
 };
