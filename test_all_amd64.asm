@@ -1075,6 +1075,7 @@ _start:
 	vpmadcswd	xmm1,xmm2,[si],xmm4
 	vpperm		xmm1,xmm2,xmm3,xmm4
 	vpperm		xmm1,xmm2,[si],xmm4
+	vpperm		xmm1,xmm2,xmm3,[si]
 	vprotb		xmm1,xmm2,xmm3
 	vprotb		xmm1,xmm2,[si]
 	vprotb		xmm1,xmm2,3

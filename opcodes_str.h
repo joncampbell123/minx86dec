@@ -908,6 +908,22 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"VPMACSWW",
 	"VPMADCSSWD",
 	"VPMADCSWD",
+	"VPPERM",
+/* 0x330-0x333 */
+	"VPROTB",
+	"VPROTW",
+	"VPROTD",
+	"VPROTQ",
+/* 0x334-0x337 */
+	"VPSHAB",
+	"VPSHAW",
+	"VPSHAD",
+	"VPSHAQ",
+/* 0x338-0x33B */
+	"VPSHLB",
+	"VPSHLW",
+	"VPSHLD",
+	"VPSHLQ",
 
 	NULL
 };

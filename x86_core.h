@@ -406,7 +406,7 @@ decode_next:
 			if (*cip >= 0x08) {
 #  if defined(vex_level)
 				union minx86dec_vex v;
-				v.raw = fetch_u16() ^ 0xF8E0;
+				v.raw = fetch_u16() ^ 0x78E0;
 
 				ins->vex = v;
 				switch (v.f.pp) {
@@ -528,6 +528,22 @@ decode_next:
 									struct minx86dec_argv *s2 = &ins->argv[2];
 									struct minx86dec_argv *s3 = &ins->argv[3];
 									ins->opcode = MXOP_VPCMOV;
+									ins->argc = 4;
+									d->size = s1->size = s2->size = s3->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s1,v.f.v);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									unsigned char c = fetch_u8();
+									set_sse_register(s3,c>>4);
+								} break;
+							case 0xA3:
+								if (v.f.pp == 0) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2^v.f.w];
+									struct minx86dec_argv *s3 = &ins->argv[3^v.f.w];
+									ins->opcode = MXOP_VPPERM;
 									ins->argc = 4;
 									d->size = s1->size = s2->size = s3->size = vector_size;
 									set_sse_register(d,mrm.f.reg);
@@ -1030,12 +1046,12 @@ decode_next:
 				union minx86dec_vex v;
 
 				if (first_byte & 1) { /* 2-byte */
-					v.raw = (fetch_u8() ^ 0xF8) << 8;
+					v.raw = (fetch_u8() ^ 0x78) << 8;
 					v.f.r = v.f.w; v.f.w = 0; /* transpose bit 7 to bit 15 to convert 2 to 3 byte VEX */
 					v.f.m = 1; /* "implied 0x0F prefix" */
 				}
 				else { /* 3-byte */
-					v.raw = fetch_u16() ^ 0xF8E0;
+					v.raw = fetch_u16() ^ 0x78E0;
 				}
 
 				ins->vex = v;
