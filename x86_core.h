@@ -3296,7 +3296,22 @@ decode_next:
 				} break;
 
 				COVER_2(0x78):
-					if (dataprefix32) {
+					if (ins->rep == MX86_REPE) {
+						struct minx86dec_argv *d = &ins->argv[0];
+						struct minx86dec_argv *s = &ins->argv[1];
+						union x86_mrm mrm = fetch_modregrm();
+						ins->argc = (second_byte & 1) ? 2 : 4;
+						ins->opcode = MXOP_INSERTQ;
+						d->size = s->size = 16;
+						ins->argv[2].size = ins->argv[3].size = 1;
+						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+						set_sse_register(d,mrm.f.reg);
+						if ((second_byte & 1) == 0) {
+							set_immediate(&ins->argv[2],fetch_u8());
+							set_immediate(&ins->argv[3],fetch_u8());
+						}
+					}
+					else if (dataprefix32) {
 						struct minx86dec_argv *d = &ins->argv[0];
 						union x86_mrm mrm = fetch_modregrm();
 

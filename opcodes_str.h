@@ -822,6 +822,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x288-0x28B */
 	"PUNPCKHWD",
 	"EXTRQ",
+	"INSERTQ",
 
 	NULL
 };

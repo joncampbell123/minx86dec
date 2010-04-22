@@ -668,4 +668,15 @@ _start:
 	hsubps		xmm1,[si]
 	insertq		xmm1,xmm2,3,4
 	insertq		xmm1,xmm2
+	lddqu		xmm1,[si]
+	ldmxcsr		[si]
+	maskmovdqu	xmm1,xmm2
+	maxpd		xmm1,xmm2
+	maxpd		xmm1,[si]
+	maxps		xmm1,xmm2
+	maxps		xmm1,[si]
+	maxsd		xmm1,xmm2
+	maxsd		xmm1,[si]
+	maxss		xmm1,xmm2
+	maxss		xmm1,[si]
 
