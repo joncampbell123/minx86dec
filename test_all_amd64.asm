@@ -1116,4 +1116,19 @@ _start:
 	vpshlq		xmm1,xmm2,xmm3
 	vpshlq		xmm1,[si],xmm3
 	vpshlq		xmm1,xmm2,[si]
+;===================MORE=================
+	blendpd		xmm1,xmm2,1
+	blendps		xmm1,xmm2,1
+	blendvpd	xmm1,xmm2,xmm0
+	blendvps	xmm1,xmm2,xmm0
+	crc32		eax,al
+	crc32		eax,ax
+	crc32		eax,eax
+	crc32		eax,byte [si]
+	crc32		eax,word [si]
+	crc32		eax,dword [si]
+	dppd		xmm1,xmm2,3
+	dpps		xmm1,xmm2,3
+	extractps	eax,xmm2,3
+	insertps	xmm1,xmm2,3
 
