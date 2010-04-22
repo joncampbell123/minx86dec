@@ -933,4 +933,40 @@ _start:
 	xorps		xmm1,xmm2
 	xorps		xmm1,[si]
 ;===================VEX=================
+	vfmaddpd	xmm1,xmm2,xmm3,xmm4
+	vfmaddpd	xmm1,xmm2,[si],xmm4
+	vfmaddpd	ymm1,ymm2,ymm3,ymm4
+	vfmaddpd	ymm1,ymm2,[si],ymm4
+	vfmaddps	xmm1,xmm2,xmm3,xmm4
+	vfmaddps	xmm1,xmm2,[si],xmm4
+	vfmaddps	ymm1,ymm2,ymm3,ymm4
+	vfmaddps	ymm1,ymm2,[si],ymm4
+	vfmaddsd	xmm1,xmm2,xmm3,xmm4
+	vfmaddsd	xmm1,xmm2,[si],xmm4
+	vfmaddss	xmm1,xmm2,xmm3,xmm4
+	vfmaddss	xmm1,xmm2,[si],xmm4
+	vfmaddsubpd	xmm1,xmm2,xmm3,xmm4
+	vfmaddsubpd	xmm1,xmm2,[si],xmm4
+	vfmaddsubpd	ymm1,ymm2,ymm3,ymm4
+	vfmaddsubpd	ymm1,ymm2,[si],ymm4
+	vfmaddsubps	xmm1,xmm2,xmm3,xmm4
+	vfmaddsubps	xmm1,xmm2,[si],xmm4
+	vfmaddsubps	ymm1,ymm2,ymm3,ymm4
+	vfmaddsubps	ymm1,ymm2,[si],ymm4
+	vfmsubaddpd	xmm1,xmm2,xmm3,xmm4
+	vfmsubaddpd	xmm1,xmm2,[si],xmm4
+	vfmsubaddpd	ymm1,ymm2,ymm3,ymm4
+	vfmsubaddpd	ymm1,ymm2,[si],ymm4
+	vfmsubaddps	xmm1,xmm2,xmm3,xmm4
+	vfmsubaddps	xmm1,xmm2,[si],xmm4
+	vfmsubaddps	ymm1,ymm2,ymm3,ymm4
+	vfmsubaddps	ymm1,ymm2,[si],ymm4
+	vfmsubpd	xmm1,xmm2,xmm3,xmm4
+	vfmsubpd	xmm1,xmm2,[si],xmm4
+	vfmsubpd	ymm1,ymm2,ymm3,ymm4
+	vfmsubpd	ymm1,ymm2,[si],ymm4
+	vfmsubps	xmm1,xmm2,xmm3,xmm4
+	vfmsubps	xmm1,xmm2,[si],xmm4
+	vfmsubps	ymm1,ymm2,ymm3,ymm4
+	vfmsubps	ymm1,ymm2,[si],ymm4
 
