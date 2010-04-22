@@ -553,4 +553,20 @@ _start:
 	psubusb		mm0,[si]
 	psubusw		mm0,mm1
 	psubusw		mm0,[si]
+	pswapd		mm0,mm1
+	pswapd		mm0,[si]
+	punpckhbw	mm0,mm1
+	punpckhbw	mm0,[si]
+	punpckhdq	mm0,mm1
+	punpckhdq	mm0,[si]
+	punpckhwd	mm0,mm1
+	punpckhwd	mm0,[si]
+	punpcklbw	mm0,mm1
+	punpcklbw	mm0,[si]
+	punpckldq	mm0,mm1
+	punpckldq	mm0,[si]
+	punpcklwd	mm0,mm1
+	punpcklwd	mm0,[si]
+	pxor		mm0,mm1
+	pxor		mm0,[si]
 

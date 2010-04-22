@@ -812,6 +812,15 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x280-0x283 */
 	"PSUBD",
 	"PSUBQ",
+	"PSUBSB",
+	"PSUBSW",
+/* 0x284-0x287 */
+	"PSUBUSB",
+	"PSUBUSW",
+	"PUNPCKHBW",
+	"PUNPCKHDQ",
+/* 0x288-0x28B */
+	"PUNPCKHWD",
 
 	NULL
 };
