@@ -16,4 +16,8 @@ TODO:
 TODO:
    Remove superfluous seg_can_override() use now that x86_core.h sets all argv[] segments
    to DS by default
+TODO:
+   Eugh! AMD has their own "VEX" variation that re-uses illegal encodings of opcode 0x8F
+   (rather than Intel-style illegal encodings of LDS/LES). Same register names though, i
+   mplement AMD "XOP" decoding.
 
