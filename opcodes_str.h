@@ -906,6 +906,8 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"VPMACSWD",
 /* 0x32C-0x32F */
 	"VPMACSWW",
+	"VPMADCSSWD",
+	"VPMADCSWD",
 
 	NULL
 };
