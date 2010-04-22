@@ -527,4 +527,14 @@ _start:
 	psllw		mm0,mm1
 	psllw		mm0,[si]
 	psllw		mm0,1
+	psrad		mm0,mm1
+	psrad		mm0,1
+	psraw		mm0,mm1
+	psraw		mm0,1
+	psrld		mm0,mm1
+	psrld		mm0,1
+	psrlq		mm0,mm1
+	psrlq		mm0,1
+	psrlw		mm0,mm1
+	psrlw		mm0,1
 
