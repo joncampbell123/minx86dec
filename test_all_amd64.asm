@@ -537,4 +537,20 @@ _start:
 	psrlq		mm0,1
 	psrlw		mm0,mm1
 	psrlw		mm0,1
+	psubb		mm0,mm1
+	psubb		mm0,[si]
+	psubw		mm0,mm1
+	psubw		mm0,[si]
+	psubd		mm0,mm1
+	psubd		mm0,[si]
+	psubq		mm0,mm1
+	psubq		mm0,[si]
+	psubsb		mm0,mm1
+	psubsb		mm0,[si]
+	psubsw		mm0,mm1
+	psubsw		mm0,[si]
+	psubusb		mm0,mm1
+	psubusb		mm0,[si]
+	psubusw		mm0,mm1
+	psubusw		mm0,[si]
 

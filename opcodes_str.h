@@ -801,6 +801,17 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PSLLQ",
 /* 0x278-0x27B */
 	"PSLLW",
+	"PSRAD",
+	"PSRAW",
+	"PSRLD",
+/* 0x27C-0x27F */
+	"PSRLQ",
+	"PSRLW",
+	"PSUBB",
+	"PSUBW",
+/* 0x280-0x283 */
+	"PSUBD",
+	"PSUBQ",
 
 	NULL
 };
