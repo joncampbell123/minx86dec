@@ -828,6 +828,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"MOVNTSS",
 	"PSHUFLW",
 	"PSHUFHW",
+	"PSLLDQ",
 
 	NULL
 };

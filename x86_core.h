@@ -3024,6 +3024,16 @@ decode_next:
 							s->size = 1;
 							set_immediate(s,fetch_u8());
 							break;
+
+						case 7:	if (dataprefix32) {
+								ins->opcode = MXOP_PSLLDQ;
+								ins->argc = 2;
+								d->size = 16;
+								decode_rm_ex(mrm,d,isaddr32,MX86_RT_SSE);
+								s->size = 1;
+								set_immediate(s,fetch_u8());
+							}
+							break;
 					}
 				} break;
 
