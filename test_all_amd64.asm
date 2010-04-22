@@ -809,4 +809,25 @@ _start:
 	pminub		xmm1,xmm2
 	pminub		xmm1,[si]
 	pmovmskb	eax,xmm1
+	pmulhuw		xmm1,xmm2
+	pmulhuw		xmm1,[si]
+	pmulhw		xmm1,xmm2
+	pmulhw		xmm1,[si]
+	pmullw		xmm1,xmm2
+	pmullw		xmm1,[si]
+	pmuludq		xmm1,xmm2
+	pmuludq		xmm1,[si]
+	por		xmm1,xmm2
+	por		xmm1,[si]
+	psadbw		xmm1,xmm2
+	psadbw		xmm1,[si]
+	pshufd		xmm1,xmm2,3
+	pshufd		xmm1,[si],3
+	pshufhw		xmm1,xmm2,3
+	pshufhw		xmm1,[si],3
+	pshuflw		xmm1,xmm2,3
+	pshuflw		xmm1,[si],3
+	pslld		xmm1,xmm2
+	pslld		xmm1,[si]
+	pslld		xmm1,2
 
