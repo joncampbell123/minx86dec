@@ -666,4 +666,6 @@ _start:
 	hsubpd		xmm1,[si]
 	hsubps		xmm1,xmm2
 	hsubps		xmm1,[si]
-	
+	insertq		xmm1,xmm2,3,4
+	insertq		xmm1,xmm2
+
