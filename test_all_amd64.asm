@@ -969,4 +969,12 @@ _start:
 	vfmsubps	xmm1,xmm2,[si],xmm4
 	vfmsubps	ymm1,ymm2,ymm3,ymm4
 	vfmsubps	ymm1,ymm2,[si],ymm4
+	vfnmaddpd	xmm1,xmm2,xmm3,xmm4
+	vfnmaddpd	xmm1,xmm2,[si],xmm4
+	vfnmaddpd	ymm1,ymm2,ymm3,ymm4
+	vfnmaddpd	ymm1,ymm2,[si],ymm4
+	vfnmsubpd	xmm1,xmm2,xmm3,xmm4
+	vfnmsubpd	xmm1,xmm2,[si],xmm4
+	vfnmsubpd	ymm1,ymm2,ymm3,ymm4
+	vfnmsubpd	ymm1,ymm2,[si],ymm4
 
