@@ -1047,4 +1047,24 @@ _start:
 	vpmacsdd	xmm1,xmm2,[si],xmm4
 	vpmacsdqh	xmm1,xmm2,xmm3,xmm4
 	vpmacsdqh	xmm1,xmm2,[si],xmm4
+	vpmacsdql	xmm1,xmm2,xmm3,xmm4
+	vpmacsdql	xmm1,xmm2,[si],xmm4
+	vpmacssdd	xmm1,xmm2,xmm3,xmm4
+	vpmacssdd	xmm1,xmm2,[si],xmm4
+	vpmacssdqh	xmm1,xmm2,xmm3,xmm4
+	vpmacssdqh	xmm1,xmm2,[si],xmm4
+	vpmacssdql	xmm1,xmm2,xmm3,xmm4
+	vpmacssdql	xmm1,xmm2,[si],xmm4
+	vpmacsswd	xmm1,xmm2,xmm3,xmm4
+	vpmacsswd	xmm1,xmm2,[si],xmm4
+	vpmacssww	xmm1,xmm2,xmm3,xmm4
+	vpmacssww	xmm1,xmm2,[si],xmm4
+	vpmacswd	xmm1,xmm2,xmm3,xmm4
+	vpmacswd	xmm1,xmm2,[si],xmm4
+	vpmacsww	xmm1,xmm2,xmm3,xmm4
+	vpmacsww	xmm1,xmm2,[si],xmm4
+	vpmadcsswd	xmm1,xmm2,xmm3,xmm4
+	vpmadcsswd	xmm1,xmm2,[si],xmm4
+	vpmadcswd	xmm1,xmm2,xmm3,xmm4
+	vpmadcswd	xmm1,xmm2,[si],xmm4
 
