@@ -1045,10 +1045,13 @@ _start:
 	vphsubdq	xmm1,[si]
 	vpmacsdd	xmm1,xmm2,xmm3,xmm4
 	vpmacsdd	xmm1,xmm2,[si],xmm4
-	vpmacsdqh	xmm1,xmm2,xmm3,xmm4
-	vpmacsdqh	xmm1,xmm2,[si],xmm4
-	vpmacsdql	xmm1,xmm2,xmm3,xmm4
-	vpmacsdql	xmm1,xmm2,[si],xmm4
+;================================================================================
+; TODO: Either AMD mis-documented these, or NASM has the opcodes backwards, argh!
+;	vpmacsdql	xmm1,xmm2,xmm3,xmm4
+;	vpmacsdql	xmm1,xmm2,[si],xmm4
+;	vpmacsdqh	xmm1,xmm2,xmm3,xmm4
+;	vpmacsdqh	xmm1,xmm2,[si],xmm4
+;================================================================================
 	vpmacssdd	xmm1,xmm2,xmm3,xmm4
 	vpmacssdd	xmm1,xmm2,[si],xmm4
 	vpmacssdqh	xmm1,xmm2,xmm3,xmm4
@@ -1063,6 +1066,13 @@ _start:
 	vpmacswd	xmm1,xmm2,[si],xmm4
 	vpmacsww	xmm1,xmm2,xmm3,xmm4
 	vpmacsww	xmm1,xmm2,[si],xmm4
+
+	nop
+	nop
+	nop
+	nop
+	nop
+
 	vpmadcsswd	xmm1,xmm2,xmm3,xmm4
 	vpmadcsswd	xmm1,xmm2,[si],xmm4
 	vpmadcswd	xmm1,xmm2,xmm3,xmm4

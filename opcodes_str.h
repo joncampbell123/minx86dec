@@ -897,6 +897,8 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x324-0x327 */
 	"VPHSUBWD",
 	"VPHSUBDQ",
+	"VPMACSDD",
+	"VPMACSDQH",
 
 	NULL
 };
