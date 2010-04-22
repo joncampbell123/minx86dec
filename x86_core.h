@@ -3755,18 +3755,15 @@ decode_next:
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
-						struct minx86dec_argv *rm = &ins->argv[0];
-						struct minx86dec_argv *reg = &ins->argv[1];
+						struct minx86dec_argv *rm = &ins->argv[1];
+						struct minx86dec_argv *reg = &ins->argv[0];
 						union x86_mrm mrm = fetch_modregrm();
 						ins->argc = 2;
-						if (dataprefix32) {
-						}
-						else {
-							ins->opcode = MXOP_PMINUB;
-							rm->size = reg->size = 8;
-							set_mmx_register(reg,mrm.f.reg);
-							decode_rm_ex(mrm,rm,isaddr32,MX86_RT_MMX);
-						}
+						ins->opcode = MXOP_PMINUB;
+						if (dataprefix32) set_sse_register(reg,mrm.f.reg);
+						else set_mmx_register(reg,mrm.f.reg);
+						rm->size = reg->size = dataprefix32 ? 16 : 8;
+						decode_rm_ex(mrm,rm,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					}
 					break;
 
@@ -3774,18 +3771,15 @@ decode_next:
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
-						struct minx86dec_argv *rm = &ins->argv[0];
-						struct minx86dec_argv *reg = &ins->argv[1];
+						struct minx86dec_argv *rm = &ins->argv[1];
+						struct minx86dec_argv *reg = &ins->argv[0];
 						union x86_mrm mrm = fetch_modregrm();
 						ins->argc = 2;
-						if (dataprefix32) {
-						}
-						else {
-							ins->opcode = MXOP_PMAXUB;
-							rm->size = reg->size = 8;
-							set_mmx_register(reg,mrm.f.reg);
-							decode_rm_ex(mrm,rm,isaddr32,MX86_RT_MMX);
-						}
+						ins->opcode = MXOP_PMAXUB;
+						if (dataprefix32) set_sse_register(reg,mrm.f.reg);
+						else set_mmx_register(reg,mrm.f.reg);
+						rm->size = reg->size = dataprefix32 ? 16 : 8;
+						decode_rm_ex(mrm,rm,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					}
 					break;
 
@@ -3793,18 +3787,15 @@ decode_next:
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
-						struct minx86dec_argv *rm = &ins->argv[0];
-						struct minx86dec_argv *reg = &ins->argv[1];
+						struct minx86dec_argv *rm = &ins->argv[1];
+						struct minx86dec_argv *reg = &ins->argv[0];
 						union x86_mrm mrm = fetch_modregrm();
 						ins->argc = 2;
-						if (dataprefix32) {
-						}
-						else {
-							ins->opcode = MXOP_PMINSW;
-							rm->size = reg->size = 8;
-							set_mmx_register(reg,mrm.f.reg);
-							decode_rm_ex(mrm,rm,isaddr32,MX86_RT_MMX);
-						}
+						ins->opcode = MXOP_PMINSW;
+						if (dataprefix32) set_sse_register(reg,mrm.f.reg);
+						else set_mmx_register(reg,mrm.f.reg);
+						rm->size = reg->size = dataprefix32 ? 16 : 8;
+						decode_rm_ex(mrm,rm,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					}
 					break;
 
@@ -3812,18 +3803,15 @@ decode_next:
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
-						struct minx86dec_argv *rm = &ins->argv[0];
-						struct minx86dec_argv *reg = &ins->argv[1];
+						struct minx86dec_argv *rm = &ins->argv[1];
+						struct minx86dec_argv *reg = &ins->argv[0];
 						union x86_mrm mrm = fetch_modregrm();
 						ins->argc = 2;
-						if (dataprefix32) {
-						}
-						else {
-							ins->opcode = MXOP_PMAXSW;
-							rm->size = reg->size = 8;
-							set_mmx_register(reg,mrm.f.reg);
-							decode_rm_ex(mrm,rm,isaddr32,MX86_RT_MMX);
-						}
+						ins->opcode = MXOP_PMAXSW;
+						if (dataprefix32) set_sse_register(reg,mrm.f.reg);
+						else set_mmx_register(reg,mrm.f.reg);
+						rm->size = reg->size = dataprefix32 ? 16 : 8;
+						decode_rm_ex(mrm,rm,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					}
 					break;
 
@@ -3831,18 +3819,15 @@ decode_next:
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
-						struct minx86dec_argv *rm = &ins->argv[0];
-						struct minx86dec_argv *reg = &ins->argv[1];
+						struct minx86dec_argv *rm = &ins->argv[1];
+						struct minx86dec_argv *reg = &ins->argv[0];
 						union x86_mrm mrm = fetch_modregrm();
 						ins->argc = 2;
-						if (dataprefix32) {
-						}
-						else {
-							ins->opcode = MXOP_PMADDWD;
-							rm->size = reg->size = 8;
-							set_mmx_register(reg,mrm.f.reg);
-							decode_rm_ex(mrm,rm,isaddr32,MX86_RT_MMX);
-						}
+						ins->opcode = MXOP_PMADDWD;
+						if (dataprefix32) set_sse_register(reg,mrm.f.reg);
+						else set_mmx_register(reg,mrm.f.reg);
+						rm->size = reg->size = dataprefix32 ? 16 : 8;
+						decode_rm_ex(mrm,rm,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					}
 					break;
 

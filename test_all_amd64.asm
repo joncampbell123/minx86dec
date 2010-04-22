@@ -798,4 +798,15 @@ _start:
 	pcmpgtw		xmm1,[si]
 	pextrw		eax,xmm1,2
 	pinsrw		xmm1,eax,3
+	pmaddwd		xmm1,xmm2
+	pmaddwd		xmm1,[si]
+	pmaxsw		xmm1,xmm2
+	pmaxsw		xmm1,[si]
+	pmaxub		xmm1,xmm2
+	pmaxub		xmm1,[si]
+	pminsw		xmm1,xmm2
+	pminsw		xmm1,[si]
+	pminub		xmm1,xmm2
+	pminub		xmm1,[si]
+	pmovmskb	eax,xmm1
 
