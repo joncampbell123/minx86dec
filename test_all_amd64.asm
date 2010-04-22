@@ -932,4 +932,5 @@ _start:
 	xorpd		xmm1,[si]
 	xorps		xmm1,xmm2
 	xorps		xmm1,[si]
-	
+;===================VEX=================
+
