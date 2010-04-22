@@ -1043,4 +1043,8 @@ _start:
 	vphsubwd	xmm1,[si]
 	vphsubdq	xmm1,xmm2
 	vphsubdq	xmm1,[si]
+	vpmacsdd	xmm1,xmm2,xmm3,xmm4
+	vpmacsdd	xmm1,xmm2,[si],xmm4
+	vpmacsdqh	xmm1,xmm2,xmm3,xmm4
+	vpmacsdqh	xmm1,xmm2,[si],xmm4
 
