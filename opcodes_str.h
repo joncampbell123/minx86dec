@@ -829,6 +829,11 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"PSHUFLW",
 	"PSHUFHW",
 	"PSLLDQ",
+/* 0x290-0x293 */
+	"PSRLDQ",
+	"PUNPCKHQDQ",
+	"PUNPCKLQDQ",
+	"SQRTPD",
 
 	NULL
 };
