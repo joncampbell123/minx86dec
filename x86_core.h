@@ -591,6 +591,21 @@ decode_next:
 										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 									}
 								} break;
+							COVER_4(0xE0):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										if (opcode == 0xE0) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VPHSUBBW + (opcode & 3) - 1;
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
 						}
 					} break;
 				}

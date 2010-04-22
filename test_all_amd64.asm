@@ -1037,4 +1037,10 @@ _start:
 	vphaddwd	xmm1,[si]
 	vphaddwq	xmm1,xmm2
 	vphaddwq	xmm1,[si]
+	vphsubbw	xmm1,xmm2
+	vphsubbw	xmm1,[si]
+	vphsubwd	xmm1,xmm2
+	vphsubwd	xmm1,[si]
+	vphsubdq	xmm1,xmm2
+	vphsubdq	xmm1,[si]
 
