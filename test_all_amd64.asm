@@ -989,4 +989,44 @@ _start:
 	vfrczsd		xmm1,[si]
 	vfrczss		xmm1,xmm2
 	vfrczss		xmm1,[si]
+	vpcmov		xmm1,xmm2,xmm3,xmm4
+	vpcmov		xmm1,xmm2,[si],xmm4
+	vpcmov		ymm1,ymm2,ymm3,ymm4
+	vpcmov		ymm1,ymm2,[si],ymm4
+	vpcomb		xmm1,xmm2,xmm3,4
+	vpcomb		xmm1,xmm2,[si],4
+	vpcomd		xmm1,xmm2,xmm3,4
+	vpcomd		xmm1,xmm2,[si],4
+	vpcomw		xmm1,xmm2,xmm3,4
+	vpcomw		xmm1,xmm2,[si],4
+	vpcomq		xmm1,xmm2,xmm3,4
+	vpcomq		xmm1,xmm2,[si],4
+	vpcomub		xmm1,xmm2,xmm3,4
+	vpcomub		xmm1,xmm2,[si],4
+	vpcomuw		xmm1,xmm2,xmm3,4
+	vpcomuw		xmm1,xmm2,[si],4
+	vpcomud		xmm1,xmm2,xmm3,4
+	vpcomud		xmm1,xmm2,[si],4
+	vpcomuq		xmm1,xmm2,xmm3,4
+	vpcomuq		xmm1,xmm2,[si],4
+	vpermil2pd	xmm1,xmm2,xmm3,xmm4,5
+	vpermil2pd	xmm1,xmm2,[si],xmm4,5
+	vpermil2pd	ymm1,ymm2,ymm3,ymm4,5
+	vpermil2pd	ymm1,ymm2,[si],ymm4,5
+	vphaddbw	xmm1,xmm2
+	vphaddbw	xmm1,[si]
+	vphaddbd	xmm1,xmm2
+	vphaddbd	xmm1,[si]
+	vphaddbq	xmm1,xmm2
+	vphaddbq	xmm1,[si]
+	vphadddq	xmm1,xmm2
+	vphadddq	xmm1,[si]
+	db	0x8F,0xE9,0x78,0xD1,0xCA	; vphaddubw	xmm1,xmm2
+	db	0x8F,0xE9,0x78,0xD1,0x0C	; vphaddubw	xmm1,[si]
+	db	0x8F,0xE9,0x78,0xD2,0xCA	; vphaddubd	xmm1,xmm2
+	db	0x8F,0xE9,0x78,0xD2,0x0C	; vphaddubd	xmm1,[si]
+	db	0x8F,0xE9,0x78,0xD3,0xCA	; vphaddubq	xmm1,xmm2
+	db	0x8F,0xE9,0x78,0xD3,0x0C	; vphaddubq	xmm1,[si]
+	vphaddudq	xmm1,xmm2
+	vphaddudq	xmm1,[si]
 

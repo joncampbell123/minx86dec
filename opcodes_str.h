@@ -864,6 +864,30 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"VFRCZPD",
 	"VFRCZSS",
 	"VFRCZSD",
+/* 0x30C-0x30F */
+	"VPCMOV",
+	"VPCOMB",
+	"VPCOMW",
+	"VPCOMD",
+/* 0x310-0x313 */
+	"VPCOMQ",
+	"VPCOMUB",
+	"VPCOMUW",
+	"VPCOMUD",
+/* 0x314-0x317 */
+	"VPCOMUQ",
+	"VPERMIL2PS",
+	"VPERMIL2PD",
+	"VPHADDBW",
+/* 0x318-0x31B */
+	"VPHADDBD",
+	"VPHADDBQ",
+	"VPHADDDQ",
+	"VPHADDUBW",
+/* 0x31C-0x31F */
+	"VPHADDUBD",
+	"VPHADDUBQ",
+	"VPHADDUDQ",
 
 	NULL
 };
