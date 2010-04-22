@@ -251,4 +251,280 @@ _start:
 	fcmovne	st2
 	fcmovnu	st2
 	fcmovu	st2
+	fcom	st2
+	fcom	dword [si]
+	fcom	qword [si]
+	fcomp	st2
+	fcomp	dword [si]
+	fcomp	qword [si]
+	fcompp
+	fcomi	st2
+	fcomip	st2
+	fcos
+	fdecstp
+	fdiv	st0,st2
+	fdiv	st2,st0
+	fdiv	dword [si]
+	fdiv	qword [si]
+	fdivp	st2
+	fidiv	word [si]
+	fidiv	dword [si]
+	fdivr	st0,st2
+	fdivr	st2,st0
+	fdivr	dword [si]
+	fdivr	qword [si]
+	fdivrp	st2
+	fidivr	word [si]
+	fidivr	dword [si]
+	ffree	st2
+	ficom	word [si]
+	ficom	dword [si]
+	ficomp	word [si]
+	ficomp	dword [si]
+	fild	word [si]
+	fild	dword [si]
+	fild	qword [si]
+	finit
+	fninit
+	fist	word [si]
+	fist	dword [si]
+	fistp	word [si]
+	fistp	dword [si]
+	fistp	qword [si]
+	fld	st2
+	fld	dword [si]
+	fld	qword [si]
+	fld	tword [si]
+	fld1
+	fldcw	[si]
+	fldenv	[si]
+	fldl2e
+	fldl2t
+	fldlg2
+	fldln2
+	fldpi
+	fldz
+	fmul	st0,st2
+	fmul	st2,st0
+	fmul	dword [si]
+	fmul	qword [si]
+	fmulp	st2
+	fimul	word [si]
+	fimul	dword [si]
+	fnop
+	fpatan
+	fprem
+	fprem1
+	fptan
+	frndint
+	frstor	[si]
+	fsave	[si]
+	fnsave	[si]
+	fscale
+	fsin
+	fsincos
+	fsqrt
+	fst	st2
+	fst	dword [si]
+	fst	qword [si]
+	fstp	st2
+	fstp	dword [si]
+	fstp	qword [si]
+	fstp	tword [si]
+	fstcw	[si]
+	fnstcw	[si]
+	fstenv	[si]
+	fnstenv	[si]
+	fstsw	ax
+	fstsw	[si]
+	fnstsw	ax
+	fnstsw	[si]
+	fsub	st0,st2
+	fsub	st2,st0
+	fsub	dword [si]
+	fsub	qword [si]
+	fsubp	st2
+	fisub	word [si]
+	fisub	dword [si]
+	fsubr	st0,st2
+	fsubr	st2,st0
+	fsubr	dword [si]
+	fsubr	qword [si]
+	fsubrp	st2
+	fisubr	word [si]
+	fisubr	dword [si]
+	ftst
+	fucom	st2
+	fucomp	st2
+	fucompp
+	fucomi	st2
+	fucomip	st2
+	fwait
+	fxam
+	fxch	st2
+	fxrstor	[si]
+	fxsave	[si]
+	fxtract
+	fyl2x
+	fyl2xp1
+;===================MMX=================
+	cvtpd2pi	mm0,xmm1
+	cvtpd2pi	mm0,[si]
+	cvtpi2pd	xmm0,mm1
+	cvtpi2pd	xmm0,[si]
+	cvtpi2ps	xmm0,mm1
+	cvtpi2ps	xmm0,[si]
+	cvtps2pi	mm0,xmm1
+	cvtps2pi	mm0,[si]
+	cvttpd2pi	mm0,xmm1
+	cvttpd2pi	mm0,[si]
+	cvttps2pi	mm0,xmm1
+	cvttps2pi	mm0,[si]
+	emms
+	femms
+	fnsave		[si]
+	fsave		[si]
+	frstor		[si]
+	fxrstor		[si]
+	fxsave		[si]
+	maskmovq	mm0,mm1
+	maskmovq	mm1,mm0
+	movdq2q		mm0,xmm1
+	movntq		[si],mm1
+	movd		mm0,eax
+	movd		mm0,[si]
+	movd		eax,mm1
+	movd		[si],mm1
+	movq		mm0,mm1
+	movq		mm1,[si]
+	movq		[si],mm0
+	movq2dq		xmm1,mm0
+	packssdw	mm0,mm1
+	packssdw	mm0,[si]
+	packsswb	mm0,mm1
+	packsswb	mm0,[si]
+	packuswb	mm0,mm1
+	packuswb	mm0,[si]
+	paddb		mm0,mm1
+	paddb		mm0,[si]
+	paddd		mm0,mm1
+	paddd		mm0,[si]
+	paddq		mm0,mm1
+	paddq		mm0,[si]
+	paddsb		mm0,mm1
+	paddsb		mm0,[si]
+	paddsw		mm0,mm1
+	paddsw		mm0,[si]
+	paddusb		mm0,mm1
+	paddusb		mm0,[si]
+	paddusw		mm0,mm1
+	paddusw		mm0,[si]
+	paddw		mm0,mm1
+	paddw		mm0,[si]
+	pand		mm0,mm1
+	pand		mm0,[si]
+	pandn		mm0,mm1
+	pandn		mm0,[si]
+	pavgb		mm0,mm1
+	pavgb		mm0,[si]
+	pavgusb		mm0,mm1
+	pavgusb		mm0,[si]
+	pavgw		mm0,mm1
+	pavgw		mm0,[si]
+	pcmpeqb		mm0,mm1
+	pcmpeqb		mm0,[si]
+	pcmpeqd		mm0,mm1
+	pcmpeqd		mm0,[si]
+	pcmpeqw		mm0,mm1
+	pcmpeqw		mm0,[si]
+	pcmpgtb		mm0,mm1
+	pcmpgtb		mm0,[si]
+	pcmpgtd		mm0,mm1
+	pcmpgtd		mm0,[si]
+	pcmpgtw		mm0,mm1
+	pcmpgtw		mm0,[si]
+	pextrw		eax,mm0,0
+	pextrw		ebx,mm1,1
+	pf2id		mm0,mm1
+	pf2id		mm0,[si]
+	pf2iw		mm0,mm1
+	pf2iw		mm0,[si]
+	pfacc		mm0,mm1
+	pfacc		mm0,[si]
+	pfadd		mm0,mm1
+	pfadd		mm0,[si]
+	pfcmpeq		mm0,mm1
+	pfcmpeq		mm0,[si]
+	pfcmpge		mm0,mm1
+	pfcmpge		mm0,[si]
+	pfcmpgt		mm0,mm1
+	pfcmpgt		mm0,[si]
+	pfmax		mm0,mm1
+	pfmax		mm0,[si]
+	pfmin		mm0,mm1
+	pfmin		mm0,[si]
+	pfmul		mm0,mm1
+	pfmul		mm0,[si]
+	pfnacc		mm0,mm1
+	pfnacc		mm0,[si]
+	pfpnacc		mm0,mm1
+	pfpnacc		mm0,[si]
+	pfrcp		mm0,mm1
+	pfrcp		mm0,[si]
+	pfrcpit1	mm0,mm1
+	pfrcpit1	mm0,[si]
+	pfrcpit2	mm0,mm1
+	pfrcpit2	mm0,[si]
+	pfrsqit1	mm0,mm1
+	pfrsqit1	mm0,[si]
+	pfrsqrt		mm0,mm1
+	pfrsqrt		mm0,[si]
+	pfsub		mm0,mm1
+	pfsub		mm0,[si]
+	pfsubr		mm0,mm1
+	pfsubr		mm0,[si]
+	pi2fd		mm0,mm1
+	pi2fd		mm0,[si]
+	pi2fw		mm0,mm1
+	pi2fw		mm0,[si]
+	pinsrw		mm0,eax,0
+	pinsrw		mm1,ebx,1
+	pmaddwd		mm0,mm1
+	pmaddwd		mm0,[si]
+	pmaxsw		mm0,mm1
+	pmaxsw		mm0,[si]
+	pmaxub		mm0,mm1
+	pmaxub		mm0,[si]
+	pminsw		mm0,mm1
+	pminsw		mm0,[si]
+	pminub		mm0,mm1
+	pminub		mm0,[si]
+	pmovmskb	eax,mm0
+	pmulhrwa	mm0,mm1
+	pmulhrwa	mm0,[si]
+	pmulhuw		mm0,mm1
+	pmulhuw		mm0,[si]
+	pmulhw		mm0,mm1
+	pmulhw		mm0,[si]
+	pmullw		mm0,mm1
+	pmullw		mm0,[si]
+	pmuludq		mm0,mm1
+	pmuludq		mm0,[si]
+	por		mm0,mm1
+	por		mm0,[si]
+	psadbw		mm0,mm1
+	psadbw		mm0,[si]
+	pshufw		mm0,mm1,0
+	pshufw		mm0,[si],0
+	pshufw		mm0,mm1,2
+	pshufw		mm0,[si],2
+	pslld		mm0,mm1
+	pslld		mm0,[si]
+	pslld		mm0,1
+	psllq		mm0,mm1
+	psllq		mm0,[si]
+	psllq		mm0,1
+	psllw		mm0,mm1
+	psllw		mm0,[si]
+	psllw		mm0,1
 

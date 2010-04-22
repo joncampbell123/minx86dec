@@ -11,5 +11,9 @@ TODO:
    "opcode" which can be fed to a x87_core.h or whatever, thus segregating FPU and CPU
    instructions and FPU decoding can be done with a large efficient switch() statement.
 TODO:
-   When full x86-32 decoding is implemented, port decoding over to x86-64 core.
+   When full x86-32 decoding is implemented, port decoding over to x86-64 core. Or better
+   yet, find a way to conditionally include x86-64 decoding in x86_core.h
+TODO:
+   Remove superfluous seg_can_override() use now that x86_core.h sets all argv[] segments
+   to DS by default
 

@@ -772,6 +772,35 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x260-0x263 */
 	"VMRUN",
 	"VMSAVE",
+	"PACKUSWB",
+	"PADDQ",
+/* 0x264-0x267 */
+	"PAND",
+	"PANDN",
+	"PAVGB",
+	"PAVGW",
+/* 0x268-0x26B */
+	"PEXTRW",
+	"PINSRW",
+	"PMADDWD",
+	"PMAXSW",
+/* 0x26C-0x26F */
+	"PMAXUB",
+	"PMINSW",
+	"PMINUB",
+	"PMOVMSKB",
+/* 0x270-0x273 */
+	"PMULHUW",
+	"PMULHW",
+	"PMULLW",
+	"PMULUDQ",
+/* 0x274-0x277 */
+	"PSHUFW",
+	"PSADBW",
+	"PSLLD",
+	"PSLLQ",
+/* 0x278-0x27B */
+	"PSLLW",
 
 	NULL
 };

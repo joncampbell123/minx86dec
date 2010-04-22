@@ -54,6 +54,12 @@ static void minx86dec_memref_print(struct minx86dec_argv *a,char *output) {
 		output += sprintf(output,"%s:",sregnames[a->segment]);
 	else if (a->segment == MX86_SEG_IMM)
 		output += sprintf(output,"0x%04X:",a->segval);
+#if 1 /* DEBUG: there must be a segment register reference, or else */
+	else {
+		fprintf(stderr,"Memory reference without segment\n");
+		abort();
+	}
+#endif
 
 	if (a->size >= 0 && a->size <= 16)
 		output += sprintf(output,"%s[",memptrsizes[a->size]);
@@ -114,12 +120,14 @@ void minx86dec_regprint(struct minx86dec_argv *a,char *output) {
 			else
 				x = NULL;
 
+#if 1 /* DEBUG */
 			if (x == NULL) {
 				fprintf(stderr,"BUG: MX86_RT_REG with size=%d reg=%d which does not exist\n",
 					a->size,a->reg);
 
 				abort();
 			}
+#endif
 
 			strcpy(output,x != NULL ? x : "(null)");
 			break;
