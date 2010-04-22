@@ -830,4 +830,5 @@ _start:
 	pslld		xmm1,xmm2
 	pslld		xmm1,[si]
 	pslld		xmm1,2
+	pslldq		xmm1,2
 
