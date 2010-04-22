@@ -3296,15 +3296,43 @@ decode_next:
 				} break;
 
 				COVER_2(0x78):
-					ins->opcode = MXOP_VMREAD + (second_byte & 1);
-					ins->argc = 2; {
-						const int which = second_byte & 1;
-						struct minx86dec_argv *s = &ins->argv[which  ];
-						struct minx86dec_argv *d = &ins->argv[which^1];
+					if (dataprefix32) {
+						struct minx86dec_argv *d = &ins->argv[0];
 						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = 4;
-						set_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
+
+						if (second_byte & 1) {
+							ins->opcode = MXOP_EXTRQ;
+							ins->argc = 2;
+							ins->argv[1].size = d->size = 16;
+							decode_rm_ex(mrm,&ins->argv[1],isaddr32,MX86_RT_SSE);
+							set_sse_register(d,mrm.f.reg);
+						}
+						else {
+							switch (mrm.f.reg) {
+								case 0: {
+									d->size = 16;
+									ins->opcode = MXOP_EXTRQ;
+									ins->argc = 3;
+									ins->argv[1].size = ins->argv[2].size = 1;
+									decode_rm_ex(mrm,d,isaddr32,MX86_RT_SSE);
+									set_immediate(&ins->argv[1],fetch_u8());
+									set_immediate(&ins->argv[2],fetch_u8());
+								}
+								break;
+							}
+						}
+					}
+					else {
+						ins->opcode = MXOP_VMREAD + (second_byte & 1);
+						ins->argc = 2; {
+							const int which = second_byte & 1;
+							struct minx86dec_argv *s = &ins->argv[which  ];
+							struct minx86dec_argv *d = &ins->argv[which^1];
+							union x86_mrm mrm = fetch_modregrm();
+							d->size = s->size = 4;
+							set_register(d,mrm.f.reg);
+							decode_rm(mrm,s,isaddr32);
+						}
 					} break;
 
 				COVER_2(0x10): {
