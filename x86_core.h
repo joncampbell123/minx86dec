@@ -518,6 +518,21 @@ decode_next:
 										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 									}
 								} break;
+							COVER_2(0xC6):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										if (opcode == 0xD0) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VPHADDWD + (opcode & 1);
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
 							case 0xCB:
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
@@ -541,6 +556,21 @@ decode_next:
 										struct minx86dec_argv *s = &ins->argv[1];
 										union x86_mrm mrm = fetch_modregrm();
 										ins->opcode = MXOP_VPHADDUBW + (opcode & 3) - 1;
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+							COVER_2(0xD6):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										if (opcode == 0xD0) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VPHADDUWD + (opcode & 1);
 										ins->argc = 2;
 										d->size = s->size = vector_size;
 										set_sse_register(d,mrm.f.reg);

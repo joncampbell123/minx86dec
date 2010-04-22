@@ -1029,4 +1029,12 @@ _start:
 	db	0x8F,0xE9,0x78,0xD3,0x0C	; vphaddubq	xmm1,[si]
 	vphaddudq	xmm1,xmm2
 	vphaddudq	xmm1,[si]
+	vphadduwd	xmm1,xmm2
+	vphadduwd	xmm1,[si]
+	vphadduwq	xmm1,xmm2
+	vphadduwq	xmm1,[si]
+	vphaddwd	xmm1,xmm2
+	vphaddwd	xmm1,[si]
+	vphaddwq	xmm1,xmm2
+	vphaddwq	xmm1,[si]
 
