@@ -227,4 +227,28 @@ _start:
 	db	0x0F,0x01,0xDB		; vmsave
 	wbinvd
 	wrmsr
+;===================FPU=================
+	f2xm1
+	fabs
+	fadd	st0,st1
+	fadd	st1,st0
+	fadd	dword [si]
+	fadd	qword [si]
+	faddp	st3,st0
+	faddp	st1,st0
+	fiadd	word [si]
+	fiadd	dword [si]
+	fbld	[si]
+	fbstp	[si]
+	fchs
+	fclex
+	fnclex
+	fcmovb	st2
+	fcmovbe	st2
+	fcmove	st2
+	fcmovnb	st2
+	fcmovnbe st2
+	fcmovne	st2
+	fcmovnu	st2
+	fcmovu	st2
 
