@@ -70,6 +70,7 @@
 int fwait = 0;
 
 ins->lock = 0;
+ins->argv[0].segment = ins->argv[1].segment = ins->argv[2].segment = ins->argv[3].segment = ins->argv[4].segment = MX86_SEG_DS;
 #if defined(vex_level)
 ins->vex.raw = 0;
 #endif
@@ -247,14 +248,17 @@ decode_next:
 					where->size = where->memregsz = (first_byte & 1) ? data64wordsize : 1;
 				} break;
 				case 2: case 3: {
+					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
 					ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
 					where->size = where->memregsz = data64wordsize + ((mrm.f.reg & 1) ? 2 : 0);
 				} break;
 				case 4: case 5: {
+					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
 					ins->opcode = MXOP_JMP + (mrm.f.reg & 1);
 					where->size = where->memregsz = data64wordsize + ((mrm.f.reg & 1) ? 2 : 0);
 				} break;
 				case 6: case 7: {
+					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
 					ins->opcode = MXOP_PUSH + (mrm.f.reg & 1);
 					where->size = where->memregsz = data64wordsize + ((mrm.f.reg & 1) ? 2 : 0);
 				} break;
