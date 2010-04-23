@@ -4554,15 +4554,14 @@ decode_next:
 						case 1:	ins->opcode = MXOP_FXRSTOR; m = 1; break;
 						case 2:	ins->opcode = MXOP_LDMXCSR; m = 0; break;
 						case 3:	ins->opcode = MXOP_STMXCSR; m = 0; break;
-						case 4: if (isaddr32) {
-							ins->opcode = MXOP_XSAVE; ins->argc = 0;
+						case 4: if (mrm.f.mod == 3) {
 							} else {
-							/* undefined */
+							ins->opcode = MXOP_XSAVE; m = 0;
 							} break;
-						case 5:	if (isaddr32) {
-							ins->opcode = MXOP_XRSTOR; ins->argc = 0; /* Intel you oughta be ashamed of yourself. this is a sick way to extend your instruction set. Oh, and why doesn't your documentation mention the need for the 0x67 prefix? */
-							} else {
+						case 5:	if (mrm.f.mod == 3) {
 							ins->opcode = MXOP_LFENCE; ins->argc = 0;
+							} else {
+							ins->opcode = MXOP_XRSTOR; m = 0; /* right... */
 							} break;
 						case 6:	ins->opcode = MXOP_MFENCE; ins->argc = 0; break;
 						case 7: if (mrm.f.mod == 3) {

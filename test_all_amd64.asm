@@ -1131,4 +1131,107 @@ _start:
 	dpps		xmm1,xmm2,3
 	extractps	eax,xmm2,3
 	insertps	xmm1,xmm2,3
+	movntdqa	xmm1,[si]
+	mpsadbw		xmm1,xmm2,3
+	mpsadbw		xmm1,[si],3
+	pabsb		mm1,mm2
+	pabsb		xmm1,xmm2
+	pabsw		mm1,mm2
+	pabsw		xmm1,xmm2
+	pabsd		mm1,mm2
+	pabsd		xmm1,xmm2
+	packusdw	xmm1,xmm2
+	palignr		mm1,mm2,3
+	palignr		mm1,[si],3
+	palignr		xmm1,xmm2,3
+	palignr		xmm1,[si],3
+	pblendvb	xmm1,xmm2,xmm0
+	pblendvb	xmm1,[si],xmm0
+	pblendw		xmm1,xmm2,3
+	pblendw		xmm1,[si],3
+	pcmpestri	xmm1,xmm2,3
+	pcmpestri	xmm1,[si],3
+	pcmpestrm	xmm1,xmm2,3
+	pcmpestrm	xmm1,[si],3
+	pcmpistrm	xmm1,xmm2,3
+	pcmpistrm	xmm1,[si],3
+	pcmpgtq		xmm1,xmm2
+	pextrb		eax,xmm2,3
+	phaddw		mm1,mm2
+	phaddw		xmm1,xmm2
+	phaddd		mm1,mm2
+	phaddd		xmm1,xmm2
+	phaddsw		mm1,mm2
+	phaddsw		xmm1,xmm2
+	phminposuw	xmm1,xmm2
+	pinsrb		xmm1,eax,3
+	pinsrd		xmm1,eax,3
+	pmaddubsw	mm1,mm2
+	pmaddubsw	xmm1,xmm2
+	pmaddwd		mm1,mm2
+	pmaddwd		xmm1,xmm2
+	pmaxsb		xmm1,xmm2
+	pmaxsw		xmm1,xmm2
+	pmaxub		xmm1,xmm2
+	pmaxud		xmm1,xmm2
+	pmaxuw		xmm1,xmm2
+	pminsb		xmm1,xmm2
+	pminsd		xmm1,xmm2
+	pminsw		xmm1,xmm2
+	pmovsxbw	xmm1,xmm2
+	pmovsxbd	xmm1,xmm2
+	pmovsxbq	xmm1,xmm2
+	pmovsxwd	xmm1,xmm2
+	pmovsxwq	xmm1,xmm2
+	pmovsxdq	xmm1,xmm2
+	pmovzxbw	xmm1,xmm2
+	pmovzxbd	xmm1,xmm2
+	pmovzxbq	xmm1,xmm2
+	pmovzxwd	xmm1,xmm2
+	pmovzxwq	xmm1,xmm2
+	pmovzxdq	xmm1,xmm2
+	pmuldq		xmm1,xmm2
+	pmulhrsw	mm1,mm2
+	pmulhrsw	xmm1,xmm2
+	pmulld		xmm1,xmm2
+	pshufb		mm1,mm2
+	pshufb		xmm1,xmm2
+	psignb		mm1,mm2
+	psignb		xmm1,xmm2
+	psignw		mm1,mm2
+	psignw		xmm1,xmm2
+	psignd		mm1,mm2
+	psignd		xmm1,xmm2
+	ptest		xmm1,xmm2
+	roundpd		xmm1,xmm2,3
+	roundps		xmm1,xmm2,3
+	roundsd		xmm1,xmm2,3
+	roundss		xmm1,xmm2,3
+; force NASM to emit this
+bits 64
+	swapgs
+bits 16
+	xgetbv
+	xlat
+	xorpd		xmm1,xmm2
+	xorps		xmm1,xmm2
+	xrstor		[si]
+	lfence
+	xsave		[si]
+	xsetbv
+	invept		eax,[si]
+	invvpid		eax,[si]
+	vmcall
+	vmclear		[si]
+	vmlaunch
+	vmresume
+	vmptrld		[si]
+	vmptrst		[si]
+	vmread		eax,eax
+	vmread		[si],eax
+	vmwrite		eax,eax
+	vmwrite		eax,[si]
+	vmxoff
+	vmxon		[si]
+	getsec
 
