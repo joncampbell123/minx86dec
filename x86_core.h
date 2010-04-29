@@ -238,6 +238,16 @@ decode_next:
 				r->memreg[0] = (first_byte & 2) ? MX86_REG_EDI : MX86_REG_ESI;
 			} break;
 
+		case 0x8C: case 0x8E: /* mov r/m, seg reg */
+			ins->opcode = MXOP_MOV;
+			ins->argc = 2; {
+				const int which = (first_byte>>1)&1;
+				ARGV *rm = &ins->argv[which],*reg = &ins->argv[which^1];
+				rm->size = reg->size = 2;
+				INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM);
+				set_segment_register(reg,mrm.f.reg);
+			} break;
+
 #if core_level >= 3
 		/* 386+ instruction 32-bit prefixes */
 		case 0x66: /* 32-bit data override */
@@ -251,6 +261,7 @@ decode_next:
 			addrprefix32++;
 			if (--patience) goto decode_next;
 			break;
+
 		case 0x64: case 0x65: /* segment overrides FS and GS */
 			ins->segment = (first_byte & 1) + MX86_SEG_FS;
 			if (--patience) goto decode_next;
@@ -267,17 +278,6 @@ decode_next:
 #endif
 
 #ifndef x64_mode
-		case 0x8C: case 0x8E: /* mov r/m, seg reg */
-			ins->opcode = MXOP_MOV;
-			ins->argc = 2; {
-				const int which = (first_byte>>1)&1;
-				union x86_mrm mrm = fetch_modregrm();
-				ARGV *rm = &ins->argv[which],*reg = &ins->argv[which^1];
-				rm->size = reg->size = 2;
-				set_segment_register(reg,mrm.f.reg);
-				decode_rm(mrm,rm,isaddr32);
-			} break;
-
 		case 0x8D: /* LEA reg,mem */
 			ins->opcode = MXOP_LEA;
 			ins->argc = 2; {

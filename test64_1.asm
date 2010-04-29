@@ -1,5 +1,14 @@
 ; x86-64 test assembly language
 bits 64
+	mov	ax,es
+	mov	ds,ax
+	mov	bx,cs
+	mov	cs,bx
+	mov	cx,ds
+	mov	dx,ss
+	mov	[edi],es
+	mov	[esi],ds
+
 	a32	movsb
 
 	movsb
@@ -267,14 +276,6 @@ bits 64
 
 	lea	bx,[esi+3]
 	lea	cx,[ebx+edi+33h]
-	mov	ax,es
-	mov	ds,ax
-	mov	bx,cs
-	mov	cs,bx
-	mov	cx,ds
-	mov	dx,ss
-	mov	[edi],es
-	mov	[esi],ds
 	test	ax,bx
 	test	si,cx
 	test	cl,bh
