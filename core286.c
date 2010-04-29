@@ -10,6 +10,7 @@ void minx86dec_decode286(struct minx86dec_state *state,struct minx86dec_instruct
 #define core_level 2
 #define isdata32 0 /* no 386-style 32-bit */
 #define isaddr32 0 /* no 386-style 32-bit */
+#define no_32
 #define fpu_level 2
 
 	ins->start = state->read_ip;

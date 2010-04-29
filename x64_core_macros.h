@@ -156,7 +156,14 @@ static inline void set_test_register(struct minx86dec_argv_x64 *a,uint32_t reg) 
 }
 
 /* given a reg value, transform it for those +rb/+rw/etc instruction encodings */
-static inline uint32_t plusr_transform(union minx86dec_rex_x64 rex,uint32_t size,uint32_t reg) {
+static inline uint32_t plusr_transform(struct minx86dec_instruction_x64 *s,uint32_t size,uint32_t reg) {
+	union minx86dec_rex_x64 rex = s->rex;
+	if (rex.f.prefix && size == 1 && ((reg&(~3)) == 4)) return (reg - 4) + MX86_REG_SPL;
+	return reg;
+}
+
+/* given a reg value, transform it for those +rb/+rw/etc instruction encodings */
+static inline uint32_t plusr_transform_rex(union minx86dec_rex_x64 rex,uint32_t size,uint32_t reg) {
 	if (rex.f.prefix && size == 1 && ((reg&(~3)) == 4)) return (reg - 4) + MX86_REG_SPL;
 	return reg;
 }
@@ -176,7 +183,7 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 
 	if (mrm.f.mod == 3) {
 		a->regtype = MX86_RT_REG;
-		if (transform) a->reg = plusr_transform(rex,size,mrm.f.rm);
+		if (transform) a->reg = plusr_transform_rex(rex,size,mrm.f.rm);
 		else a->reg = mrm.f.rm;
 		return mrm;
 	}

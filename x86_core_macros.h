@@ -132,6 +132,103 @@ static int rm_addr32_mapping[8] = {
 	MX86_REG_ESP,	MX86_REG_EBP,	MX86_REG_ESI,	MX86_REG_EDI	};
 #endif
 
+#define PLUSR_TRANSFORM 0
+
+static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86dec_instruction *s,uint32_t size,int transform) {
+	union x86_mrm mrm = fetch_modregrm();
+
+	if (mrm.f.mod == 3) {
+		a->regtype = MX86_RT_REG;
+		a->reg = mrm.f.rm;
+		return mrm;
+	}
+	a->regtype = MX86_RT_NONE;
+
+#ifndef no_32
+	if (s->addr32) {
+		a->scalar = 0;
+		a->memregsz = 4;
+		a->memref_base = 0;
+
+		if (mrm.f.mod == 0) {
+			if (mrm.f.rm == 5) {
+				a->memregs = 0;
+				a->memref_base = fetch_u32();
+				return mrm;
+			}
+		}
+
+		if (mrm.f.rm == 4) { /* SIB byte follows */
+			union x86_sib sib;
+			sib.raw = fetch_u8();
+			if (sib.f.index == 4) {
+				if (sib.f.base != 5) {
+					a->memregs = 1;
+					a->memreg[0] = sib.f.base;
+				}
+				else {
+					a->memregs = 0;
+				}
+			}
+			else {
+				if (sib.f.base != 5) {
+					a->memregs = 2;
+					a->scalar = sib.f.scale;
+					a->memreg[0] = sib.f.index;
+					a->memreg[1] = sib.f.base;
+				}
+				else {
+					a->memregs = 1;
+					a->scalar = sib.f.scale;
+					a->memreg[0] = sib.f.index;
+				}
+			}
+
+			if (sib.f.base == 5 && mrm.f.mod == 0)
+				a->memref_base = (uint64_t)((int32_t)fetch_u32());
+		}
+		else {
+			a->memregs = 1;
+			a->memreg[0] = mrm.f.rm;
+		}
+
+		if (mrm.f.mod == 2)
+			a->memref_base = fetch_u32();
+		else if (mrm.f.mod == 1)
+			a->memref_base = (uint32_t)((char)fetch_u8());
+	}
+	else {
+#else
+	{
+#endif
+		a->scalar = 0;
+		a->memregsz = 2;
+		if (mrm.f.mod == 0) {
+			if (mrm.f.rm == 6) {
+				a->memregs = 0;
+				a->memref_base = fetch_u16();
+				return mrm;
+			}
+			a->memref_base = 0;
+		}
+		else if (mrm.f.mod == 2)
+			a->memref_base = fetch_u16();
+		else
+			a->memref_base = (uint32_t)((char)fetch_u8());
+
+		a->memregs = 2 - (mrm.f.rm >> 2);
+		a->memreg[0] = rm_addr16_mapping[mrm.f.rm];
+		a->memreg[1] = MX86_REG_SI + (mrm.f.rm & 1);
+	}
+
+	return mrm;
+}
+
+/* given a reg value, transform it for those +rb/+rw/etc instruction encodings */
+static inline uint32_t plusr_transform(struct minx86dec_instruction *s,uint32_t size,uint32_t reg) {
+	return reg;
+}
+
 static inline void decode_rm(union x86_mrm mrm,struct minx86dec_argv *a,const int addr32) {
 	if (mrm.f.mod == 3) {
 		a->regtype = MX86_RT_REG;
@@ -297,6 +394,32 @@ static inline void string_instruction(int opcode,struct minx86dec_instruction *i
 
 static inline unsigned int cyrix6x86_mmx_implied(unsigned int reg) {
 	return reg ^ 1;	/* mm0 -> mm1, mm1 -> mm0, etc */
+}
+
+/* read immediate, 64-bit if 64-bit enabled */
+static inline uint32_t imm64bysize(struct minx86dec_instruction *s) {
+	if (s->data32) return (uint32_t)fetch_u32();
+	return (uint32_t)fetch_u16();
+}
+
+/* read immediate, 32-bit sign-extended if 64-bit enabled */
+static inline uint32_t imm32sbysize(struct minx86dec_instruction *s) {
+	if (s->data32) return (uint32_t)fetch_u32();
+	return (uint32_t)fetch_u16();
+}
+
+/* read immediate, 32-bit zero-extended if 64-bit enabled */
+static inline uint32_t imm32zbysize(struct minx86dec_instruction *s) {
+	if (s->data32) return (uint32_t)fetch_u32();
+	return (uint32_t)fetch_u16();
+}
+
+static inline uint32_t data32_64_signextend(int is64,uint32_t x) {
+	return (uint32_t)x;
+}
+
+static inline uint64_t data32_64_zeroextend(int is64,uint32_t x) {
+	return (uint32_t)x;
 }
 
 /* warning: intended for use in x86_core.h */

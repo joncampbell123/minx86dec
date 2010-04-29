@@ -10,6 +10,7 @@ void minx86dec_decode8086(struct minx86dec_state *state,struct minx86dec_instruc
 #define core_level 0
 #define isdata32 0 /* no 386-style 32-bit */
 #define isaddr32 0 /* no 386-style 32-bit */
+#define no_32
 #define fpu_level 0
 
 	/* default to 8086-style invalid opcode (apparently there was no invalid opcode exception?) */

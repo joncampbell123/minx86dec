@@ -1,3 +1,8 @@
+
+#define x64_mode
+#include "x86_core.h"
+
+#if 0
 /* this is not complete code, this is a fragment included by the various "cores" provided.
  * context: inside a decode function.
  * 
@@ -287,4 +292,4 @@ decode_next:
 #undef data32wordsize
 
 /* } */
-
+#endif

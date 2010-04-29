@@ -17,9 +17,28 @@
  * 64-bit native support (such as: older DOS compilers!)
  *
  * ready? here we go! */
+#ifndef isdata64
+#define isdata64 (0)
+#endif
+
 #define data32wordsize (isdata32 ? 4 : 2)
 #define addr32wordsize (isaddr32 ? 4 : 2)
+#define data64wordsize (isdata64 ? 8 : data32wordsize)
 #define seg_can_override(x) (ins->segment >= 0 ? ins->segment : (x))
+
+#ifdef x64_mode
+#  define native_int_t		uint64_t
+#  define decode_rm_		decode_rm_x64
+#  define datawordsize		data64wordsize
+#  define ARGV			struct minx86dec_argv_x64
+#  define INS_MRM		struct x64_mrm
+#else
+#  define native_int_t		uint32_t
+#  define decode_rm_		decode_rm_x86
+#  define datawordsize		data32wordsize
+#  define ARGV			struct minx86dec_argv
+#  define INS_MRM		union x86_mrm
+#endif
 
 /* additional controls:
    
@@ -109,6 +128,9 @@ ins->argv[0].segment = ins->argv[1].segment = ins->argv[2].segment = ins->argv[3
 #if defined(vex_level)
 ins->vex.raw = 0;
 #endif
+#if defined(x64_mode)
+ins->rex.raw = 0;
+#endif
 ins->rep = MX86_REP_NONE;
 decode_next:
 {
@@ -121,10 +143,9 @@ decode_next:
 		COVER_2(0x34):	/* XOR */	COVER_2(0x3C):	/* CMP */
 			ins->opcode = MXOP_ADD+(first_byte>>3);
 			ins->argc = 2; {
-				struct minx86dec_argv *imm = &ins->argv[1];
-				struct minx86dec_argv *reg = &ins->argv[0];
-				imm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
-				set_immediate(imm,(first_byte & 1) ? (isdata32 ? fetch_u32() : fetch_u16()) : fetch_u8());
+				ARGV *imm = &ins->argv[1],*reg = &ins->argv[0];
+				imm->size = reg->size = (first_byte & 1) ? datawordsize : 1;
+				set_immediate(imm,(first_byte & 1) ? imm32sbysize(ins) : fetch_u8());
 				set_register(reg,MX86_REG_AX);
 			} break;
 		/* group 0x00-0x3F opcodes */
@@ -135,34 +156,54 @@ decode_next:
 			ins->opcode = MXOP_ADD+(first_byte>>3);
 			ins->argc = 2; {
 				const int which = (first_byte>>1)&1;
-				union x86_mrm mrm = fetch_modregrm();
-				struct minx86dec_argv *rm = &ins->argv[which];
-				struct minx86dec_argv *reg = &ins->argv[which^1];
-				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
-				set_register(reg,mrm.f.reg);
-				decode_rm(mrm,rm,isaddr32);
+				ARGV *rm = &ins->argv[which],*reg = &ins->argv[which^1];
+				rm->size = reg->size = (first_byte & 1) ? datawordsize : 1;
+				INS_MRM mrm = decode_rm_(rm,ins,reg->size,PLUSR_TRANSFORM);
+				rm->segment = seg_can_override(MX86_SEG_DS);
+				set_register(reg,plusr_transform(ins,reg->size,mrm.f.reg));
 			} break;
 
 		COVER_4(0x80):	/* immediate group 1 */
 			ins->argc = 2; {
-				union x86_mrm mrm = fetch_modregrm();
-				struct minx86dec_argv *rm = &ins->argv[0];
-				struct minx86dec_argv *imm = &ins->argv[1];
-				ins->opcode = MXOP_ADD+mrm.f.reg;
-				rm->size = imm->size = (first_byte & 1) ? data32wordsize : 1;
-				decode_rm(mrm,rm,isaddr32);
+				ARGV *rm = &ins->argv[0],*imm = &ins->argv[1];
+				rm->size = imm->size = (first_byte & 1) ? datawordsize : 1;
 				imm->regtype = MX86_RT_IMM;
-				if (first_byte == 0x83)		imm->value = (uint32_t)((char)fetch_u8());
-				else if (first_byte == 0x81)	imm->value = (isdata32 ? fetch_u32() : fetch_u16());
+				INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM);
+				ins->opcode = MXOP_ADD+mrm.f.reg;
+				if (first_byte == 0x83)		imm->value = (native_int_t)((signed char)fetch_u8());
+				else if (first_byte == 0x81)	imm->value = imm32sbysize(ins);
 				else				imm->value = fetch_u8();
 			} break;
 
+#if core_level >= 3
+		/* 386+ instruction 32-bit prefixes */
+		case 0x66: /* 32-bit data override */
+			ins->data32 ^= 1;
+			dataprefix32++;
+			if (--patience) goto decode_next;
+			break;
+
+		case 0x67: /* 32-bit address override */
+			ins->addr32 ^= 1;
+			addrprefix32++;
+			if (--patience) goto decode_next;
+			break;
+#endif
+
+#ifdef x64_mode
+		/* REX prefix */
+		COVER_ROW(0x40):
+			ins->data64 = (first_byte >> 3) & 1;
+			ins->rex.raw = first_byte;
+			if (--patience) goto decode_next;
+			goto decode_next;
+
+#else
 		COVER_2(0x84):	/* TEST */
 			ins->opcode = MXOP_TEST;
 			ins->argc = 2; {
 				union x86_mrm mrm = fetch_modregrm();
-				struct minx86dec_argv *rm = &ins->argv[0];
-				struct minx86dec_argv *reg = &ins->argv[1];
+				ARGV *rm = &ins->argv[0],*reg = &ins->argv[1];
 				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
 				set_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
@@ -172,8 +213,7 @@ decode_next:
 			ins->opcode = MXOP_XCHG;
 			ins->argc = 2; {
 				union x86_mrm mrm = fetch_modregrm();
-				struct minx86dec_argv *rm = &ins->argv[0];
-				struct minx86dec_argv *reg = &ins->argv[1];
+				ARGV *rm = &ins->argv[0],*reg = &ins->argv[1];
 				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
 				set_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
@@ -184,8 +224,7 @@ decode_next:
 			ins->argc = 2; {
 				const int which = (first_byte>>1)&1;
 				union x86_mrm mrm = fetch_modregrm();
-				struct minx86dec_argv *rm = &ins->argv[which];
-				struct minx86dec_argv *reg = &ins->argv[which^1];
+				ARGV *rm = &ins->argv[which],*reg = &ins->argv[which^1];
 				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
 				set_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
@@ -202,7 +241,7 @@ decode_next:
 		COVER_4(0xAA): COVER_2(0xAE):
 			ins->opcode = MXOP_STOS + ((first_byte - 0xAA) >> 1);
 			ins->argc = 1; {
-				struct minx86dec_argv *r = &ins->argv[0];
+				ARGV *r = &ins->argv[0];
 				r->size = (first_byte & 1) ? data32wordsize : 1;
 				r->regtype = MX86_RT_NONE;
 				r->segment = first_byte & 2 ? MX86_SEG_ES : seg_can_override(MX86_SEG_DS);
@@ -218,8 +257,7 @@ decode_next:
 			ins->argc = 2; {
 				const int which = (first_byte>>1)&1;
 				union x86_mrm mrm = fetch_modregrm();
-				struct minx86dec_argv *rm = &ins->argv[which];
-				struct minx86dec_argv *reg = &ins->argv[which^1];
+				ARGV *rm = &ins->argv[which],*reg = &ins->argv[which^1];
 				rm->size = reg->size = 2;
 				set_segment_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
@@ -229,8 +267,7 @@ decode_next:
 			ins->opcode = MXOP_LEA;
 			ins->argc = 2; {
 				union x86_mrm mrm = fetch_modregrm();
-				struct minx86dec_argv *reg = &ins->argv[0];
-				struct minx86dec_argv *rm = &ins->argv[1];
+				ARGV *reg = &ins->argv[0],*rm = &ins->argv[1];
 				rm->size = reg->size = data32wordsize;
 				set_register(reg,mrm.f.reg);
 				decode_rm(mrm,rm,isaddr32);
@@ -239,7 +276,7 @@ decode_next:
 		case 0xE8:
 			ins->opcode = MXOP_CALL;
 			ins->argc = 1; {
-				struct minx86dec_argv *mref = &ins->argv[0];
+				ARGV *mref = &ins->argv[0];
 				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
 				mref->size = mref->memregsz = data32wordsize;
 				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
@@ -249,7 +286,7 @@ decode_next:
 		case 0xE9:
 			ins->opcode = MXOP_JMP;
 			ins->argc = 1; {
-				struct minx86dec_argv *mref = &ins->argv[0];
+				ARGV *mref = &ins->argv[0];
 				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
 				mref->size = mref->memregsz = data32wordsize;
 				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
@@ -5050,20 +5087,6 @@ decode_next:
 			}
 			break;
 #endif
-#if core_level >= 3
-		/* 386+ instruction 32-bit prefixes */
-		case 0x66: /* 32-bit data override */
-			ins->data32 ^= 1;
-			dataprefix32++;
-			if (--patience) goto decode_next;
-			break;
-
-		case 0x67: /* 32-bit address override */
-			ins->addr32 ^= 1;
-			addrprefix32++;
-			if (--patience) goto decode_next;
-			break;
-#endif
 #if 1 /* TODO: #define for FPU support */
 /* ---------------------------------- FPU instructions ---------------------------------- */
 /* TODO: separate out FPU instructions according to whether we are decoding for 286, 386, etc.. */
@@ -6271,6 +6294,8 @@ decode_next:
 			} break; }
 #endif
 
+#endif /* x64_mode */
+
 		default:
 			/* fall through */
 			break;
@@ -6278,6 +6303,7 @@ decode_next:
 }
 
 #undef data32wordsize
+#undef ARGV
 
 /* } */
 
