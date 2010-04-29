@@ -12,6 +12,16 @@ bits 64
 	cmpsd
 	cmpsq
 
+	stosb
+	stosw
+	stosd
+	stosq
+
+	lodsb
+	lodsw
+	lodsd
+	lodsq
+
 	xchg	bl,dl
 	xchg	[esi],cl
 	xchg	[edi],si

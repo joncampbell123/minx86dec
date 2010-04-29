@@ -224,6 +224,20 @@ decode_next:
 			string_instruction_typical(MXOP_CMPS);	/* <- warning: macro */
 			break;
 
+		COVER_4(0xAA): COVER_2(0xAE):
+			ins->opcode = MXOP_STOS + ((first_byte - 0xAA) >> 1);
+			ins->argc = 1; {
+				ARGV *r = &ins->argv[0];
+				r->size = (first_byte & 1) ? datawordsize : 1;
+				r->regtype = MX86_RT_NONE;
+				r->segment = first_byte & 2 ? MX86_SEG_ES : seg_can_override(MX86_SEG_DS);
+				r->scalar = 0;
+				r->memregs = 1;
+				r->memref_base = 0;
+				r->memregsz = addrwordsize;
+				r->memreg[0] = (first_byte & 2) ? MX86_REG_EDI : MX86_REG_ESI;
+			} break;
+
 #if core_level >= 3
 		/* 386+ instruction 32-bit prefixes */
 		case 0x66: /* 32-bit data override */
@@ -253,20 +267,6 @@ decode_next:
 #endif
 
 #ifndef x64_mode
-		COVER_4(0xAA): COVER_2(0xAE):
-			ins->opcode = MXOP_STOS + ((first_byte - 0xAA) >> 1);
-			ins->argc = 1; {
-				ARGV *r = &ins->argv[0];
-				r->size = (first_byte & 1) ? data32wordsize : 1;
-				r->regtype = MX86_RT_NONE;
-				r->segment = first_byte & 2 ? MX86_SEG_ES : seg_can_override(MX86_SEG_DS);
-				r->scalar = 0;
-				r->memregs = 1;
-				r->memref_base = 0;
-				r->memregsz = addr32wordsize;
-				r->memreg[0] = (first_byte & 2) ? MX86_REG_EDI : MX86_REG_ESI;
-			} break;
-
 		case 0x8C: case 0x8E: /* mov r/m, seg reg */
 			ins->opcode = MXOP_MOV;
 			ins->argc = 2; {
