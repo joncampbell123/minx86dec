@@ -179,7 +179,7 @@ struct minx86dec_instruction_x64 {
 	int				rep;		/* REP prefix or 0 */
 
 	int				argc;		/* number of instruction operands */
-	struct minx86dec_argv_x64	argv[4];	/* instruction operands */
+	struct minx86dec_argv_x64	argv[5];	/* instruction operands */
 
 	uint8_t				addr32:1;	/* 32-bit addr */
 	uint8_t				data32:1;	/* 32-bit data */

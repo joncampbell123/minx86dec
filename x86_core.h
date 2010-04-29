@@ -30,12 +30,15 @@
 #  define native_int_t		uint64_t
 #  define decode_rm_		decode_rm_x64
 #  define datawordsize		data64wordsize
+#  define addr64wordsize	(isaddr32 ? 4 : 8)
+#  define addrwordsize		addr64wordsize
 #  define ARGV			struct minx86dec_argv_x64
 #  define INS_MRM		struct x64_mrm
 #else
 #  define native_int_t		uint32_t
 #  define decode_rm_		decode_rm_x86
 #  define datawordsize		data32wordsize
+#  define addrwordsize		addr32wordsize
 #  define ARGV			struct minx86dec_argv
 #  define INS_MRM		union x86_mrm
 #endif
@@ -175,6 +178,52 @@ decode_next:
 				else				imm->value = fetch_u8();
 			} break;
 
+		/* MOV a,imm */
+		COVER_ROW(0xB0):
+			ins->opcode = MXOP_MOV;
+			ins->argc = 2; {
+				ARGV *r = &ins->argv[0],*imm = &ins->argv[1];
+				r->size = imm->size = (first_byte & 8) ? datawordsize : 1;
+				set_immediate(imm,(first_byte & 8) ? imm64bysize(ins) : fetch_u8());
+				set_register(r,first_byte & 7);
+			} break;
+
+		COVER_2(0x84):	/* TEST */
+			ins->opcode = MXOP_TEST;
+			ins->argc = 2; {
+				ARGV *rm = &ins->argv[0],*reg = &ins->argv[1];
+				rm->size = reg->size = (first_byte & 1) ? datawordsize : 1;
+				INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM);
+				set_register(reg,mrm.f.reg);
+			} break;
+
+		COVER_2(0x86):	/* XCHG */
+			ins->opcode = MXOP_XCHG;
+			ins->argc = 2; {
+				ARGV *rm = &ins->argv[0],*reg = &ins->argv[1];
+				rm->size = reg->size = (first_byte & 1) ? datawordsize : 1;
+				INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM);
+				set_register(reg,mrm.f.reg);
+			} break;
+
+		COVER_4(0x88):	/* MOV */
+			ins->opcode = MXOP_MOV;
+			ins->argc = 2; {
+				const int which = (first_byte>>1)&1;
+				ARGV *rm = &ins->argv[which],*reg = &ins->argv[which^1];
+				rm->size = reg->size = (first_byte & 1) ? datawordsize : 1;
+				INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM);
+				set_register(reg,mrm.f.reg);
+			} break;
+
+		COVER_2(0xA4):
+			string_instruction_typical(MXOP_MOVS);	/* <- warning: macro */
+			break;
+
+		COVER_2(0xA6):
+			string_instruction_typical(MXOP_CMPS);	/* <- warning: macro */
+			break;
+
 #if core_level >= 3
 		/* 386+ instruction 32-bit prefixes */
 		case 0x66: /* 32-bit data override */
@@ -188,6 +237,10 @@ decode_next:
 			addrprefix32++;
 			if (--patience) goto decode_next;
 			break;
+		case 0x64: case 0x65: /* segment overrides FS and GS */
+			ins->segment = (first_byte & 1) + MX86_SEG_FS;
+			if (--patience) goto decode_next;
+			break;
 #endif
 
 #ifdef x64_mode
@@ -197,47 +250,9 @@ decode_next:
 			ins->rex.raw = first_byte;
 			if (--patience) goto decode_next;
 			goto decode_next;
+#endif
 
-#else
-		COVER_2(0x84):	/* TEST */
-			ins->opcode = MXOP_TEST;
-			ins->argc = 2; {
-				union x86_mrm mrm = fetch_modregrm();
-				ARGV *rm = &ins->argv[0],*reg = &ins->argv[1];
-				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
-				set_register(reg,mrm.f.reg);
-				decode_rm(mrm,rm,isaddr32);
-			} break;
-
-		COVER_2(0x86):	/* XCHG */
-			ins->opcode = MXOP_XCHG;
-			ins->argc = 2; {
-				union x86_mrm mrm = fetch_modregrm();
-				ARGV *rm = &ins->argv[0],*reg = &ins->argv[1];
-				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
-				set_register(reg,mrm.f.reg);
-				decode_rm(mrm,rm,isaddr32);
-			} break;
-
-		COVER_4(0x88):	/* MOV */
-			ins->opcode = MXOP_MOV;
-			ins->argc = 2; {
-				const int which = (first_byte>>1)&1;
-				union x86_mrm mrm = fetch_modregrm();
-				ARGV *rm = &ins->argv[which],*reg = &ins->argv[which^1];
-				rm->size = reg->size = (first_byte & 1) ? data32wordsize : 1;
-				set_register(reg,mrm.f.reg);
-				decode_rm(mrm,rm,isaddr32);
-			} break;
-
-		COVER_2(0xA4):
-			string_instruction_typical(MXOP_MOVS);	/* <- warning: macro */
-			break;
-
-		COVER_2(0xA6):
-			string_instruction_typical(MXOP_CMPS);	/* <- warning: macro */
-			break;
-
+#ifndef x64_mode
 		COVER_4(0xAA): COVER_2(0xAE):
 			ins->opcode = MXOP_STOS + ((first_byte - 0xAA) >> 1);
 			ins->argc = 1; {
@@ -2064,23 +2079,6 @@ decode_next:
 			goto decode_next;
 #endif
 
-#if core_level >= 3
-		case 0x64: case 0x65: /* segment overrides FS and GS */
-			ins->segment = (first_byte & 1) + MX86_SEG_FS;
-			if (--patience) goto decode_next;
-			break;
-#endif
-
-		/* MOV a,imm */
-		COVER_ROW(0xB0):
-			ins->opcode = MXOP_MOV;
-			ins->argc = 2; {
-				struct minx86dec_argv *r = &ins->argv[0];
-				struct minx86dec_argv *imm = &ins->argv[1];
-				r->size = imm->size = (first_byte & 8) ? data32wordsize : 1;
-				set_immediate(imm,(first_byte & 8) ? (isdata32 ? fetch_u32() : fetch_u16()) : fetch_u8());
-				set_register(r,first_byte & 7);
-			} break;
 #if core_level > 0
 		/* extended opcode escape */
 		case 0x0F: {

@@ -254,3 +254,20 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 	return mrm;
 }
 
+static inline void string_instruction(int opcode,struct minx86dec_instruction_x64 *ins,unsigned int sz,unsigned int addrsz,int segment) {
+	ins->opcode = opcode;
+	ins->argc = 2; {
+		struct minx86dec_argv_x64 *d = &ins->argv[0];
+		struct minx86dec_argv_x64 *s = &ins->argv[1];
+		d->size = s->size = sz;
+		d->memregsz = s->memregsz = addrsz;
+		s->segment = segment;
+		d->segment = MX86_SEG_ES;
+		set_mem_ref_reg(s,MX86_REG_ESI);
+		set_mem_ref_reg(d,MX86_REG_EDI);
+	}
+}
+
+/* warning: intended for use in x86_core.h */
+#define string_instruction_typical(opcode) string_instruction(opcode,ins,(first_byte & 1) ? datawordsize : 1,addrwordsize,seg_can_override(MX86_SEG_DS))
+

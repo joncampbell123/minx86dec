@@ -8,7 +8,6 @@ static minx86_read_ptr_t cip;
 
 void minx86dec_decodeall_x64(struct minx86dec_state_x64 *state,struct minx86dec_instruction_x64 *ins) {
 	unsigned int dataprefix32 = 0,addrprefix32 = 0;
-	unsigned int __data32 = 1;
 	register unsigned int patience = 6;
 	cip = state->read_ip;
 #define isdata64 ins->data64
@@ -26,9 +25,9 @@ void minx86dec_decodeall_x64(struct minx86dec_state_x64 *state,struct minx86dec_
 #define ssse3
 #define mmx
 
-	ins->data64 = state->data64;
-	ins->data32 = __data32;
-	ins->addr32 = state->addr32;
+	ins->data64 = 0;
+	ins->data32 = 1;
+	ins->addr32 = 0;
 	ins->start = state->read_ip;
 	ins->opcode = MXOP_UD;
 	ins->segment = -1;
