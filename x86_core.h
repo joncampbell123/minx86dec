@@ -248,6 +248,50 @@ decode_next:
 				set_segment_register(reg,mrm.f.reg);
 			} break;
 
+		case 0x8D: /* LEA reg,mem */
+			ins->opcode = MXOP_LEA;
+			ins->argc = 2; {
+				ARGV *reg = &ins->argv[0],*rm = &ins->argv[1];
+				rm->size = reg->size = data32wordsize;
+				INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM);
+				set_register(reg,mrm.f.reg);
+			} break;
+
+		case 0xF8:
+			ins->opcode = MXOP_CLC;
+			ins->argc = 0;
+			break;
+
+		case 0xF9:
+			ins->opcode = MXOP_STC;
+			ins->argc = 0;
+			break;
+
+		case 0xFC:
+			ins->opcode = MXOP_CLD;
+			ins->argc = 0;
+			break;
+
+		case 0xFD:
+			ins->opcode = MXOP_STD;
+			ins->argc = 0;
+			break;
+
+		case 0x9E:
+			ins->opcode = MXOP_SAHF;
+			ins->argc = 0;
+			break;
+
+		COVER_2(0xA8):
+			ins->opcode = MXOP_TEST;
+			ins->argc = 2; {
+				ARGV *rm = &ins->argv[0],*imm = &ins->argv[1];
+				rm->size = imm->size = first_byte & 1 ? datawordsize : 1;
+				set_register(rm,MX86_REG_EAX);
+				if (first_byte & 1) set_immediate(imm,imm32sbysize(ins));
+				else set_immediate(imm,fetch_u8());
+			} break;
+
 #if core_level >= 3
 		/* 386+ instruction 32-bit prefixes */
 		case 0x66: /* 32-bit data override */
@@ -278,16 +322,6 @@ decode_next:
 #endif
 
 #ifndef x64_mode
-		case 0x8D: /* LEA reg,mem */
-			ins->opcode = MXOP_LEA;
-			ins->argc = 2; {
-				union x86_mrm mrm = fetch_modregrm();
-				ARGV *reg = &ins->argv[0],*rm = &ins->argv[1];
-				rm->size = reg->size = data32wordsize;
-				set_register(reg,mrm.f.reg);
-				decode_rm(mrm,rm,isaddr32);
-			} break;
-
 		case 0xE8:
 			ins->opcode = MXOP_CALL;
 			ins->argc = 1; {
@@ -308,26 +342,6 @@ decode_next:
 				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
 			} break;
 
-		case 0xF8:
-			ins->opcode = MXOP_CLC;
-			ins->argc = 0;
-			break;
-
-		case 0xF9:
-			ins->opcode = MXOP_STC;
-			ins->argc = 0;
-			break;
-
-		case 0xFC:
-			ins->opcode = MXOP_CLD;
-			ins->argc = 0;
-			break;
-
-		case 0xFD:
-			ins->opcode = MXOP_STD;
-			ins->argc = 0;
-			break;
-
 		case 0xF0:
 			ins->lock = 1;
 			goto decode_next;
@@ -337,22 +351,6 @@ decode_next:
 			ins->argc = 0;
 			break;
 #endif
-		case 0x9E:
-			ins->opcode = MXOP_SAHF;
-			ins->argc = 0;
-			break;
-
-		COVER_2(0xA8):
-			ins->opcode = MXOP_TEST;
-			ins->argc = 2; {
-				struct minx86dec_argv *rm = &ins->argv[0];
-				struct minx86dec_argv *imm = &ins->argv[1];
-				rm->size = imm->size = data32wordsize;
-				set_register(rm,MX86_REG_EAX);
-				if (isdata32) set_immediate(imm,fetch_u32());
-				else if (first_byte & 1) set_immediate(imm,fetch_u16());
-				else set_immediate(imm,fetch_u8());
-			} break;
 
 		case 0x06: case 0x07: /* PUSH/POP ES */
 		case 0x0E: /* PUSH/POP CS */

@@ -1,5 +1,27 @@
 ; x86-64 test assembly language
 bits 64
+	test	al,12h
+	test	ax,1234h
+	test	eax,12345678h
+	test	rax,12345678h
+	test	rax,0FFFFFFFFFFFFFFFFh
+
+	lea	rsi,[rel 0]
+	lea	esi,[rel 0]
+	lea	si,[rel 0]
+
+	lea	eax,[abs 1234h]
+	lea	eax,[rax-3]
+	lea	eax,[rbx+7fh]
+	lea	eax,[rcx+0x180]
+	lea	rax,[rbx*4+rcx-5]
+	lea	ax,[esi+ebx]
+	lea	r14,[r8d+esi]
+	lea	r8,[r9+rdi]
+
+	lea	rsi,[r8*8+r9+22224444h]
+	lea	r15,[r15*2+r14-7ffffffh]
+
 	mov	ax,es
 	mov	ds,ax
 	mov	bx,cs
@@ -172,9 +194,6 @@ bits 64
 	add	rbx,[rel 0x80000000]
 	add	rbx,[rel 0x90000000]	; OOPS! NASM will happily encode this, even though it now makes a negative number!
 	add	rbx,[rel 0x100000000]	; NASM will happily let this overflow, giving a relative addr of 0
-	lea	rsi,[rel 0]
-	lea	esi,[rel 0]
-	lea	si,[rel 0]
 	add	bl,[r8]
 	add	bl,[r13]
 	add	bl,[r15]
@@ -215,18 +234,6 @@ bits 64
 	sub	ax,1234h
 	xor	ax,1234h
 	cmp	ax,1234h
-
-	lea	eax,[abs 1234h]
-	lea	eax,[rax-3]
-	lea	eax,[rbx+7fh]
-	lea	eax,[rcx+0x180]
-	lea	rax,[rbx*4+rcx-5]
-	lea	ax,[esi+ebx]
-	lea	r14,[r8d+esi]
-	lea	r8,[r9+rdi]
-
-	lea	rsi,[r8*8+r9+22224444h]
-	lea	r15,[r15*2+r14-7ffffffh]
 
 ; taken from test1.asm
 	add	bl,[esp]
