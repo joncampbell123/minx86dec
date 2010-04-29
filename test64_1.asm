@@ -1,5 +1,9 @@
 ; x86-64 test assembly language
 bits 64
+	call	12345678h
+	jmp	12345678h
+	jmp	short $
+
 	test	al,12h
 	test	ax,1234h
 	test	eax,12345678h

@@ -292,6 +292,138 @@ decode_next:
 				else set_immediate(imm,fetch_u8());
 			} break;
 
+		case 0xE8:
+			ins->opcode = MXOP_CALL;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+				mref->size = mref->memregsz = datawordsize;
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)fetch_u32() + curp + 4) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
+				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
+#endif
+			} break;
+
+		case 0xE9:
+			ins->opcode = MXOP_JMP;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+				mref->size = mref->memregsz = datawordsize;
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)fetch_u32() + curp + 4) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
+				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
+#endif
+			} break;
+
+		/* JMP */
+		case 0xEB:
+			ins->opcode = MXOP_JMP;
+			ins->argc = 1; {
+				ARGV *r = &ins->argv[0];
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(r,curp + 1 + ((uint64_t)((char)fetch_u8())));
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(r,curp + 1 + ((uint32_t)((char)fetch_u8())));
+#endif
+				r->size = addrwordsize;
+			} break;
+
+		case 0xF0:
+			ins->lock = 1;
+			goto decode_next;
+
+		COVER_2(0xC2):
+			ins->opcode = MXOP_RET;
+			ins->argc = 0;
+			if ((first_byte & 1) == 0) {
+				ARGV *imm = &ins->argv[ins->argc++];
+				imm->size = 2;
+				set_immediate(imm,fetch_u16());
+			} break;
+
+		COVER_2(0xCA):
+			ins->opcode = MXOP_RETF;
+			ins->argc = 0;
+			if ((first_byte & 1) == 0) {
+				ARGV *imm = &ins->argv[ins->argc++];
+				imm->size = 2;
+				set_immediate(imm,fetch_u16());
+			} break;
+
+		/* INT 3 */
+		case 0xCC:
+			ins->opcode = MXOP_INT;
+			ins->argc = 1; {
+				struct minx86dec_argv *r = &ins->argv[0];
+				set_immediate(r,3);
+			} break;
+
+		/* INT N */
+		case 0xCD:
+			ins->opcode = MXOP_INT;
+			ins->argc = 1; {
+				struct minx86dec_argv *r = &ins->argv[0];
+				set_immediate(r,fetch_u8());
+			} break;
+
+		/* IRET */
+		case 0xCF:
+			ins->opcode = isdata32 ? MXOP_IRETD : MXOP_IRET;
+			ins->argc = 0;
+			break;
+
+		/* XLAT */
+		case 0xD7:
+			ins->opcode = MXOP_XLAT;
+			ins->argc = 0;
+			break;
+
+#if !defined(no_icebp) && (core_level >= 3) && !defined(x64_mode)
+		case 0xF1:
+			ins->opcode = MXOP_ICEBP;
+			ins->argc = 0;
+			break;
+#endif
+
+#ifndef x64_mode
+		/* not valid in 64-bit mode */
+		case 0x27: case 0x2F: case 0x37: case 0x3F: /* DAA/DAS/AAA/AAS */
+			ins->opcode = MXOP_DAA+((first_byte>>3)&3);
+			ins->argc = 0;
+			break;
+
+		/* not valid in 64-bit mode */
+		case 0x06: case 0x07: /* PUSH/POP ES */
+		case 0x0E: /* PUSH/POP CS */
+#if core_level == 0 /* 8086 only: 0x0F is POP CS (pop stack into CS!). Later CPUs use this as a prefix for other instructions */
+		case 0x0F:
+#endif
+		case 0x16: case 0x17: /* PUSH/POP SS */
+		case 0x1E: case 0x1F: /* PUSH/POP DS */
+			ins->opcode = MXOP_PUSH+(first_byte&1);
+			ins->argc = 1; {
+				struct minx86dec_argv *a = &ins->argv[0];
+				set_segment_register(a,first_byte >> 3);
+				a->size = data32wordsize;
+			} break;
+
+		/* INTO */
+		/* not valid in 64-bit mode */
+		case 0xCE:
+			ins->opcode = MXOP_INTO;
+			ins->argc = 0;
+			break;
+#endif
+
 #if core_level >= 3
 		/* 386+ instruction 32-bit prefixes */
 		case 0x66: /* 32-bit data override */
@@ -322,54 +454,6 @@ decode_next:
 #endif
 
 #ifndef x64_mode
-		case 0xE8:
-			ins->opcode = MXOP_CALL;
-			ins->argc = 1; {
-				ARGV *mref = &ins->argv[0];
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				mref->size = mref->memregsz = data32wordsize;
-				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
-				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
-			} break;
-
-		case 0xE9:
-			ins->opcode = MXOP_JMP;
-			ins->argc = 1; {
-				ARGV *mref = &ins->argv[0];
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				mref->size = mref->memregsz = data32wordsize;
-				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
-				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
-			} break;
-
-		case 0xF0:
-			ins->lock = 1;
-			goto decode_next;
-#if !defined(no_icebp) && (core_level >= 3)
-		case 0xF1:
-			ins->opcode = MXOP_ICEBP;
-			ins->argc = 0;
-			break;
-#endif
-
-		case 0x06: case 0x07: /* PUSH/POP ES */
-		case 0x0E: /* PUSH/POP CS */
-#if core_level == 0 /* 8086 only: 0x0F is POP CS (pop stack into CS!). Later CPUs use this as a prefix for other instructions */
-		case 0x0F:
-#endif
-		case 0x16: case 0x17: /* PUSH/POP SS */
-		case 0x1E: case 0x1F: /* PUSH/POP DS */
-			ins->opcode = MXOP_PUSH+(first_byte&1);
-			ins->argc = 1; {
-				struct minx86dec_argv *a = &ins->argv[0];
-				set_segment_register(a,first_byte >> 3);
-				a->size = data32wordsize;
-			} break;
-
-		case 0x27: case 0x2F: case 0x37: case 0x3F: /* DAA/DAS/AAA/AAS */
-			ins->opcode = MXOP_DAA+((first_byte>>3)&3);
-			ins->argc = 0;
-			break;
 
 		COVER_2(0xC0):
 			ins->argc = 2; {
@@ -389,24 +473,6 @@ decode_next:
 				decode_rm(mrm,d,isaddr32);
 				imm->size = 1;
 				set_immediate(imm,fetch_u8());
-			} break;
-
-		COVER_2(0xC2):
-			ins->opcode = MXOP_RET;
-			ins->argc = 0;
-			if ((first_byte & 1) == 0) {
-				struct minx86dec_argv *imm = &ins->argv[ins->argc++];
-				imm->size = 2;
-				set_immediate(imm,fetch_u16());
-			} break;
-
-		COVER_2(0xCA):
-			ins->opcode = MXOP_RETF;
-			ins->argc = 0;
-			if ((first_byte & 1) == 0) {
-				struct minx86dec_argv *imm = &ins->argv[ins->argc++];
-				imm->size = 2;
-				set_immediate(imm,fetch_u16());
 			} break;
 
 		COVER_4(0xD0):
@@ -966,16 +1032,6 @@ decode_next:
 		/* JCXZ */
 		case 0xE3:
 			ins->opcode = MXOP_JCXZ;
-			ins->argc = 1; {
-				struct minx86dec_argv *r = &ins->argv[0];
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				set_immediate(r,curp + 1 + ((uint32_t)((char)fetch_u8())));
-				r->size = addr32wordsize;
-			} break;
-
-		/* JMP */
-		case 0xEB:
-			ins->opcode = MXOP_JMP;
 			ins->argc = 1; {
 				struct minx86dec_argv *r = &ins->argv[0];
 				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
@@ -1942,40 +1998,6 @@ decode_next:
 					};
 				} break;
 			} } break;
-
-		/* INT 3 */
-		case 0xCC:
-			ins->opcode = MXOP_INT;
-			ins->argc = 1; {
-				struct minx86dec_argv *r = &ins->argv[0];
-				set_immediate(r,3);
-			} break;
-
-		/* INT N */
-		case 0xCD:
-			ins->opcode = MXOP_INT;
-			ins->argc = 1; {
-				struct minx86dec_argv *r = &ins->argv[0];
-				set_immediate(r,fetch_u8());
-			} break;
-
-		/* INTO */
-		case 0xCE:
-			ins->opcode = MXOP_INTO;
-			ins->argc = 0;
-			break;
-
-		/* IRET */
-		case 0xCF:
-			ins->opcode = isdata32 ? MXOP_IRETD : MXOP_IRET;
-			ins->argc = 0;
-			break;
-
-		/* XLAT */
-		case 0xD7:
-			ins->opcode = MXOP_XLAT;
-			ins->argc = 0;
-			break;
 
 		/* LOOPNE */
 		case 0xE0:
