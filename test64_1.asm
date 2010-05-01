@@ -14,6 +14,15 @@ bits 64
 	vpmacsdd	xmm1,xmm2,xmm3,xmm4
 	vpmacsdd	xmm1,xmm2,[rsi],xmm4
 
+	vpcmov		xmm1,xmm2,xmm3,xmm4
+	vpcmov		xmm1,xmm2,[rsi],xmm4
+	vpperm		xmm1,xmm2,xmm3,xmm4
+	vpperm		xmm1,xmm2,[rsi],xmm4
+	vpmadcsswd	xmm1,xmm2,xmm3,xmm4
+	vpmadcsswd	xmm1,xmm2,[rsi],xmm4
+	vpmadcswd	xmm1,xmm2,xmm3,xmm4
+	vpmadcswd	xmm1,xmm2,[rsi],xmm4
+
 	mov	bl,12h
 	mov	bx,1234h
 	mov	ebx,12345678h
