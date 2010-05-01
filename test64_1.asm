@@ -1,5 +1,110 @@
 ; x86-64 test assembly language
 bits 64
+	in	al,21h
+	in	ax,21h
+	in	eax,21h
+	in	al,dx
+	in	ax,dx
+	in	eax,dx
+	out	21h,al
+	out	21h,ax
+	out	21h,eax
+	out	dx,al
+	out	dx,ax
+	out	dx,eax
+	cli
+	sti
+	cmc
+	hlt
+
+	mov	al,[1]
+	mov	ax,[1]
+	mov	eax,[1]
+	mov	rax,[1]
+
+	xchg	al,ah
+	xchg	ax,bx
+	xchg	eax,ebx
+	xchg	rax,rbx
+
+	cwd
+	cdq
+	cqo
+
+	cbw
+	cwde
+	cdqe
+
+	jecxz	$
+	jrcxz	$
+
+	jz	$
+	jnz	$
+	jc	$
+	jnc	$
+
+	rol	byte [cs:esi],1
+	rol	byte [ds:esi],1
+	rol	byte [es:esi],1
+	rol	byte [fs:esi],1
+	rol	byte [gs:esi],1
+	rol	byte [ss:esi],1
+
+	pop	ax
+	pop	rax
+	push	ax
+	push	rax
+
+	rol	al,1
+	rol	ax,1
+	rol	eax,1
+	rol	rax,1
+
+	rol	al,2
+	rol	ax,2
+	rol	eax,2
+	rol	rax,2
+
+	rol	byte [esi],1
+	rol	word [esi],1
+	rol	dword [esi],1
+	rol	qword [esi],1
+
+	rol	byte [rsi],1
+	rol	word [rsi],1
+	rol	dword [rsi],1
+	rol	qword [rsi],1
+
+	ror	al,1
+	ror	ax,1
+	ror	eax,1
+	ror	rax,1
+
+	rcl	al,1
+	rcl	ax,1
+	rcl	eax,1
+	rcl	rax,1
+
+	rcr	al,1
+	rcr	ax,1
+	rcr	eax,1
+	rcr	rax,1
+
+	shl	al,1
+	shl	ax,1
+	shl	eax,1
+	shl	rax,1
+
+	shr	al,1
+	shr	ax,1
+	shr	eax,1
+	shr	rax,1
+
+	sar	al,1
+	sar	ax,1
+	sar	eax,1
+	sar	rax,1
+
 	call	12345678h
 	jmp	12345678h
 	jmp	short $
