@@ -166,6 +166,22 @@ decode_next:
 				set_register(reg,plusr_transform(ins,reg->size,mrm.f.reg));
 			} break;
 
+#ifndef x64_mode /* not valid in 64-bit mode */
+		case 0x06: case 0x07: /* PUSH/POP ES */
+		case 0x0E: /* PUSH/POP CS */
+# if core_level == 0 /* 8086 only: 0x0F is POP CS (pop stack into CS!). Later CPUs use this as a prefix for other instructions */
+		case 0x0F:
+# endif
+		case 0x16: case 0x17: /* PUSH/POP SS */
+		case 0x1E: case 0x1F: /* PUSH/POP DS */
+			ins->opcode = MXOP_PUSH+(first_byte&1);
+			ins->argc = 1; {
+				struct minx86dec_argv *a = &ins->argv[0];
+				set_segment_register(a,first_byte >> 3);
+				a->size = data32wordsize;
+			} break;
+#endif
+
 		/* segment overrides */
 		case 0x26: case 0x2E: case 0x36: case 0x3E:
 			ins->argv[0].segment = ins->argv[1].segment =
@@ -173,6 +189,31 @@ decode_next:
 			ins->segment = (first_byte >> 3) & 3;
 			if (--patience) goto decode_next;
 			break;
+
+#ifndef x64_mode /* not valid in 64-bit mode */
+		case 0x27: case 0x2F: case 0x37: case 0x3F: /* DAA/DAS/AAA/AAS */
+			ins->opcode = MXOP_DAA+((first_byte>>3)&3);
+			ins->argc = 0;
+			break;
+#endif
+
+#ifdef x64_mode
+		/* REX prefix */
+		COVER_ROW(0x40):
+			ins->data64 = (first_byte >> 3) & 1;
+			ins->rex.raw = first_byte;
+			if (--patience) goto decode_next;
+			goto decode_next;
+#else
+		/* INC/DEC register */
+		COVER_ROW(0x40):
+			ins->opcode = MXOP_INC+((first_byte>>3)&1);
+			ins->argc = 1; {
+				struct minx86dec_argv *reg = &ins->argv[0];
+				set_register(reg,first_byte & 7);
+				reg->size = data32wordsize;
+			} break;
+#endif
 
 		/* PUSH/POP register */
 		COVER_ROW(0x50):
@@ -186,6 +227,48 @@ decode_next:
 				reg->size = datawordsize;
 #endif
 			} break;
+
+#if core_level >= 3
+		COVER_2(0x64): /* segment overrides FS and GS */
+			ins->segment = (first_byte & 1) + MX86_SEG_FS;
+			if (--patience) goto decode_next;
+			break;
+#endif
+
+#if defined(do_necv20) /* NEC V20/V30 */
+		COVER_2(0x64): /* REPC/REPNC */
+			ins->rep = (first_byte & 1) + MX86_REPNC;
+			goto decode_next;
+#endif
+
+#if core_level >= 3
+		/* 386+ instruction 32-bit prefixes */
+		case 0x66: /* 32-bit data override */
+			ins->data32 ^= 1;
+			dataprefix32++;
+			if (--patience) goto decode_next;
+			break;
+
+		case 0x67: /* 32-bit address override */
+			ins->addr32 ^= 1;
+			addrprefix32++;
+			if (--patience) goto decode_next;
+			break;
+#endif
+
+#if defined(do_necv20) /* NEC V20/V30 */
+		COVER_2(0x66): /* FP02 conflicts with 386+ address/data prefix */
+			ins->opcode = MXOP_FP02;
+			ins->argc = 2; {
+				union x86_mrm mrm = fetch_modregrm();
+				struct minx86dec_argv *s = &ins->argv[0];
+				struct minx86dec_argv *d = &ins->argv[1];
+				d->size = s->size = 2;
+				set_immediate(d,mrm.f.reg | ((first_byte & 1) << 3));
+				set_register(s,mrm.f.rm);
+				decode_rm(mrm,s,0);
+			} break;
+#endif
 
 		/* Jcc short */
 		COVER_ROW(0x70):
@@ -287,6 +370,19 @@ decode_next:
 			ins->argc = 0;
 			break;
 
+#ifndef x64_mode /* not valid in 64-bit mode */
+		case 0x9A:
+			ins->opcode = MXOP_CALL_FAR;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+				mref->size = mref->memregsz = data32wordsize + 2;
+				mref->regtype = MX86_RT_IMM,mref->segment = MX86_SEG_IMM;
+				if (isdata32)	mref->value = fetch_u32();
+				else		mref->value = fetch_u16();
+				mref->segval = fetch_u16();
+			} break;
+#endif
+
 		case 0x9B:
 			/* hold on... check next opcode */
 			if (cip[0] == 0xD9) {
@@ -348,6 +444,14 @@ decode_next:
 			ins->opcode = MXOP_SAHF;
 			ins->argc = 0;
 			break;
+
+#ifndef x64_mode /* not valid in 64-bit mode */
+		case 0x9F:
+			ins->opcode = MXOP_LAHF;
+			ins->argc = 0;
+			break;
+
+#endif
 
 		/* MOV a,[memory addr] or
 		 * MOV [memory addr],a */
@@ -454,6 +558,14 @@ decode_next:
 				set_immediate(r,fetch_u8());
 			} break;
 
+#ifndef x64_mode /* not valid in 64-bit mode */
+		/* INTO */
+		case 0xCE:
+			ins->opcode = MXOP_INTO;
+			ins->argc = 0;
+			break;
+#endif
+
 		/* IRET */
 		case 0xCF:
 			ins->opcode = isdata32 ? MXOP_IRETD : MXOP_IRET;
@@ -477,6 +589,16 @@ decode_next:
 				if (first_byte & 2) set_register(imm,MX86_REG_CL);
 				else set_immediate(imm,1);
 			} break;
+
+#ifndef x64_mode /* not valid in 64-bit mode */
+		COVER_2(0xD4):
+			ins->opcode = MXOP_AAM+(first_byte&1);
+			ins->argc = 1; {
+				struct minx86dec_argv *im = &ins->argv[0];
+				set_immediate(im,fetch_u8());
+				im->size = 1;
+			} break;
+#endif
 
 #if !defined(no_salc)
 		case 0xD6:
@@ -606,6 +728,20 @@ decode_next:
 				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
 #endif
 			} break;
+
+#ifndef x64_mode /* not valid in 64-bit mode */
+		case 0xEA:
+			ins->opcode = MXOP_JMP_FAR;
+			ins->argc = 1; {
+				struct minx86dec_argv *mref = &ins->argv[0];
+				mref->size = mref->memregsz = data32wordsize + 2;
+				mref->regtype = MX86_RT_IMM;
+				mref->segment = MX86_SEG_IMM;
+				if (isdata32)	mref->value = fetch_u32();
+				else		mref->value = fetch_u16();
+				mref->segval = fetch_u16();
+			} break;
+#endif
 
 		/* JMP */
 		case 0xEB:
@@ -742,130 +878,6 @@ decode_next:
 				} break;
 			}
 			break; }
-
-#ifndef x64_mode
-		/* not valid in 64-bit mode */
-		case 0x27: case 0x2F: case 0x37: case 0x3F: /* DAA/DAS/AAA/AAS */
-			ins->opcode = MXOP_DAA+((first_byte>>3)&3);
-			ins->argc = 0;
-			break;
-
-		/* not valid in 64-bit mode */
-		case 0x06: case 0x07: /* PUSH/POP ES */
-		case 0x0E: /* PUSH/POP CS */
-#if core_level == 0 /* 8086 only: 0x0F is POP CS (pop stack into CS!). Later CPUs use this as a prefix for other instructions */
-		case 0x0F:
-#endif
-		case 0x16: case 0x17: /* PUSH/POP SS */
-		case 0x1E: case 0x1F: /* PUSH/POP DS */
-			ins->opcode = MXOP_PUSH+(first_byte&1);
-			ins->argc = 1; {
-				struct minx86dec_argv *a = &ins->argv[0];
-				set_segment_register(a,first_byte >> 3);
-				a->size = data32wordsize;
-			} break;
-
-		/* INTO */
-		/* not valid in 64-bit mode */
-		case 0xCE:
-			ins->opcode = MXOP_INTO;
-			ins->argc = 0;
-			break;
-
-		/* not valid in 64-bit mode */
-		case 0xEA:
-			ins->opcode = MXOP_JMP_FAR;
-			ins->argc = 1; {
-				struct minx86dec_argv *mref = &ins->argv[0];
-				mref->size = mref->memregsz = data32wordsize + 2;
-				mref->regtype = MX86_RT_IMM;
-				mref->segment = MX86_SEG_IMM;
-				if (isdata32)	mref->value = fetch_u32();
-				else		mref->value = fetch_u16();
-				mref->segval = fetch_u16();
-			} break;
-
-		/* not valid in 64-bit mode */
-		COVER_2(0xD4):
-			ins->opcode = MXOP_AAM+(first_byte&1);
-			ins->argc = 1; {
-				struct minx86dec_argv *im = &ins->argv[0];
-				set_immediate(im,fetch_u8());
-				im->size = 1;
-			} break;
-
-		/* not valid in 64-bit mode */
-		case 0x9A:
-			ins->opcode = MXOP_CALL_FAR;
-			ins->argc = 1; {
-				ARGV *mref = &ins->argv[0];
-				mref->size = mref->memregsz = data32wordsize + 2;
-				mref->regtype = MX86_RT_IMM,mref->segment = MX86_SEG_IMM;
-				if (isdata32)	mref->value = fetch_u32();
-				else		mref->value = fetch_u16();
-				mref->segval = fetch_u16();
-			} break;
-
-		/* not valid in 64-bit mode */
-		case 0x9F:
-			ins->opcode = MXOP_LAHF;
-			ins->argc = 0;
-			break;
-
-#endif
-
-#if core_level >= 3
-		/* 386+ instruction 32-bit prefixes */
-		case 0x66: /* 32-bit data override */
-			ins->data32 ^= 1;
-			dataprefix32++;
-			if (--patience) goto decode_next;
-			break;
-
-		case 0x67: /* 32-bit address override */
-			ins->addr32 ^= 1;
-			addrprefix32++;
-			if (--patience) goto decode_next;
-			break;
-
-		case 0x64: case 0x65: /* segment overrides FS and GS */
-			ins->segment = (first_byte & 1) + MX86_SEG_FS;
-			if (--patience) goto decode_next;
-			break;
-#elif defined(do_necv20) /* NEC V20/V30 */
-		COVER_2(0x66): /* FP02 conflicts with 386+ address/data prefix */
-			ins->opcode = MXOP_FP02;
-			ins->argc = 2; {
-				union x86_mrm mrm = fetch_modregrm();
-				struct minx86dec_argv *s = &ins->argv[0];
-				struct minx86dec_argv *d = &ins->argv[1];
-				d->size = s->size = 2;
-				set_immediate(d,mrm.f.reg | ((first_byte & 1) << 3));
-				set_register(s,mrm.f.rm);
-				decode_rm(mrm,s,0);
-			} break;
-		COVER_2(0x64): /* REPC/REPNC */
-			ins->rep = (first_byte & 1) + MX86_REPNC;
-			goto decode_next;
-#endif
-
-#ifdef x64_mode
-		/* REX prefix */
-		COVER_ROW(0x40):
-			ins->data64 = (first_byte >> 3) & 1;
-			ins->rex.raw = first_byte;
-			if (--patience) goto decode_next;
-			goto decode_next;
-#else
-		/* INC/DEC register */
-		COVER_ROW(0x40):
-			ins->opcode = MXOP_INC+((first_byte>>3)&1);
-			ins->argc = 1; {
-				struct minx86dec_argv *reg = &ins->argv[0];
-				set_register(reg,first_byte & 7);
-				reg->size = data32wordsize;
-			} break;
-#endif
 
 /*---------------------------------------------------------------------------------------------------------*/
 #ifndef x64_mode
