@@ -59,6 +59,12 @@ bits 64
 	vprotq		xmm1,xmm2,3
 	vprotq		xmm1,[rsi],3
 
+	vfrczps		xmm1,xmm2
+	vfrczps		xmm1,[rsi]
+
+	vfrczpd		xmm1,xmm2
+	vfrczpd		xmm1,[rsi]
+
 	mov	bl,12h
 	mov	bx,1234h
 	mov	ebx,12345678h

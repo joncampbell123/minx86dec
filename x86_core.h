@@ -173,7 +173,7 @@
 /* template:
  * AMD 0x8F VEX instruction of the form
  * 
- * op    A,B,C,D
+ * op    A,B,C
  * A = mrm.f.reg
  * B = r/m
  * C = 8-bit immediate
@@ -187,6 +187,22 @@
 	INS_MRM mrm = decode_rm_ex_(s1,ins,s1->size,PLUSR_TRANSFORM,MX86_RT_SSE);	\
 	set_sse_register(d,mrm.f.reg);							\
 	set_immediate(s2,fetch_u8());							\
+}
+
+/* template:
+ * AMD 0x8F VEX instruction of the form
+ * 
+ * op    A,B
+ * A = mrm.f.reg
+ * B = r/m
+ * all registers are SSE xmm/ymm */
+#  define typical_x86_amd_vex_m_rm(op,vector_size)					\
+{											\
+	ARGV *d = &ins->argv[0],*s = &ins->argv[1];					\
+	ins->opcode = op,ins->argc = 2;							\
+	d->size = s->size = vector_size;						\
+	INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);		\
+	set_sse_register(d,mrm.f.reg);							\
 }
 
 #endif
@@ -454,7 +470,7 @@ decode_next:
 								break;
 							COVER_2(0x9E):
 								if (v.f.pp == 0)
-									typical_x86_amd_vex_m_v_rm_it4(MXOP_VPMACSDD + (opcode & 1),vector_size);
+									typical_x86_amd_vex_m_v_rm_it4(MXOP_VPMACSDD+(opcode&1),vector_size);
 								break;
 							case 0xA2:
 								if (v.f.pp == 0)
@@ -476,35 +492,27 @@ decode_next:
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
 										if (v.f.l) break;
-										typical_x86_amd_vex_m_rm_i8(MXOP_VPROTB + (opcode & 3),vector_size);
+										typical_x86_amd_vex_m_rm_i8(MXOP_VPROTB+(opcode&3),vector_size);
 									}
 								} break;
 							COVER_4(0xCC):
 								if (v.f.pp == 0)
-									typical_x86_amd_vex_m_v_rm_i8(MXOP_VPCOMB + ins->oes,vector_size);
+									typical_x86_amd_vex_m_v_rm_i8(MXOP_VPCOMB+ins->oes,vector_size);
 								break;
 							COVER_4(0xEC):
 								if (v.f.pp == 0)
-									typical_x86_amd_vex_m_v_rm_i8(MXOP_VPCOMUB + ins->oes,vector_size);
+									typical_x86_amd_vex_m_v_rm_i8(MXOP_VPCOMUB+ins->oes,vector_size);
 								break;
 						}
 					} break;
-#  if 0
 					case 0x9: {
 						switch (opcode) {
 							COVER_2(0x80):
 								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VFRCZPS + (opcode & 1);
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-									}
+									if (v.f.v == 0)
+										typical_x86_amd_vex_m_rm(MXOP_VFRCZPS+(opcode&1),vector_size);
 								} break;
+#  if 0
 							COVER_2(0x82):
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
@@ -667,9 +675,9 @@ decode_next:
 										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 									}
 								} break;
+#  endif
 						}
 					} break;
-#  endif
 				}
 #  endif
 			}
