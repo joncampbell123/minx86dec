@@ -134,11 +134,11 @@ static int rm_addr32_mapping[8] = {
 
 #define PLUSR_TRANSFORM 0
 
-static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86dec_instruction *s,uint32_t size,int transform) {
+static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86dec_instruction *s,uint32_t size,int transform,const int typ) {
 	union x86_mrm mrm = fetch_modregrm();
 
 	if (mrm.f.mod == 3) {
-		a->regtype = MX86_RT_REG;
+		a->regtype = typ; // MX86_RT_REG;
 		a->reg = mrm.f.rm;
 		return mrm;
 	}
@@ -222,6 +222,10 @@ static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86
 	}
 
 	return mrm;
+}
+
+static inline union x86_mrm decode_rm_x86_reg(struct minx86dec_argv *a,struct minx86dec_instruction *s,uint32_t size,int transform) {
+	return decode_rm_x86(a,s,size,transform,MX86_RT_REG);
 }
 
 /* given a reg value, transform it for those +rb/+rw/etc instruction encodings */

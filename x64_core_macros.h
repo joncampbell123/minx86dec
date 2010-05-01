@@ -170,7 +170,7 @@ static inline uint32_t plusr_transform_rex(union minx86dec_rex_x64 rex,uint32_t 
 
 #define PLUSR_TRANSFORM 1
 
-static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct minx86dec_instruction_x64 *s,uint32_t size,int transform) {
+static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct minx86dec_instruction_x64 *s,uint32_t size,int transform,int typ) {
 	union x64_mrm_byte r_mrm; r_mrm.raw = fetch_u8();
 	union minx86dec_rex_x64 rex = s->rex;
 	struct x64_mrm mrm;
@@ -182,7 +182,7 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 	mrm.f.mod = r_mrm.f.mod;
 
 	if (mrm.f.mod == 3) {
-		a->regtype = MX86_RT_REG;
+		a->regtype = typ;//MX86_RT_REG;
 		if (transform) a->reg = plusr_transform_rex(rex,size,mrm.f.rm);
 		else a->reg = mrm.f.rm;
 		return mrm;
@@ -252,6 +252,10 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 		a->memref_base = (uint64_t)((char)fetch_u8());
 
 	return mrm;
+}
+
+static inline struct x64_mrm decode_rm_x64_reg(struct minx86dec_argv_x64 *a,struct minx86dec_instruction_x64 *s,uint32_t size,int transform) {
+	return decode_rm_x64(a,s,size,transform,MX86_RT_REG);
 }
 
 static inline void string_instruction(int opcode,struct minx86dec_instruction_x64 *ins,unsigned int sz,unsigned int addrsz,int segment) {

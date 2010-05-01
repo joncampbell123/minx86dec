@@ -181,6 +181,9 @@ struct minx86dec_instruction_x64 {
 	int				argc;		/* number of instruction operands */
 	struct minx86dec_argv_x64	argv[5];	/* instruction operands */
 
+	union minx86dec_vex		vex;		/* VEX state (AVX extensions) */
+	unsigned char			oes;		/* AMD VEX: operand element size */
+
 	uint8_t				addr32:1;	/* 32-bit addr */
 	uint8_t				data32:1;	/* 32-bit data */
 	uint8_t				data64:1;	/* 64-bit operand override */

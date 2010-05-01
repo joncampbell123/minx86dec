@@ -1,9 +1,28 @@
 ; x86-64 test assembly language
 bits 64
+	vpmacssww	xmm1,xmm2,xmm3,xmm4
+	vpmacssww	xmm1,xmm2,[rsi],xmm4
+	vpmacsswd	xmm1,xmm2,xmm3,xmm4
+	vpmacsswd	xmm1,xmm2,[rsi],xmm4
+	vpmacssdd	xmm1,xmm2,xmm3,xmm4
+	vpmacssdd	xmm1,xmm2,[rsi],xmm4
+
+	mov	bl,12h
+	mov	bx,1234h
+	mov	ebx,12345678h
+	mov	rbx,123456789ABCDEF0h
+
+	mov	byte [rsi],12h
+	mov	word [rsi],1234h
+	mov	dword [rsi],12345678h
+	mov	qword [rsi],12345678h
+	mov	qword [rsi],0xFFFFFFFFEDCBA987
+
 	test	al,12h
 	test	ax,1234h
 	test	eax,12345678h
 	test	rax,12345678h
+	test	rax,0xFFFFFFFFEDCBA987
 
 	not	al
 	not	ax

@@ -17,13 +17,15 @@ void minx86dec_decodeall_x64(struct minx86dec_state_x64 *state,struct minx86dec_
 #define fpu_level 99
 #define amd_3dnow 99
 #define sse_level 99
+#define vex_level 1
 #define pentium 99
 #define emmx_cyrix
 #define pentiumpro
+#define everything
 #define mmx_amd
 #define cpuid
 #define ssse3
-#define mmx
+#define mmx 99
 
 	ins->data64 = 0;
 	ins->data32 = 1;

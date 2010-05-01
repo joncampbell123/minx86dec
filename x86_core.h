@@ -28,7 +28,8 @@
 
 #ifdef x64_mode
 #  define native_int_t		uint64_t
-#  define decode_rm_		decode_rm_x64
+#  define decode_rm_		decode_rm_x64_reg
+#  define decode_rm_ex_		decode_rm_x64
 #  define datawordsize		data64wordsize
 #  define addr64wordsize	(isaddr32 ? 4 : 8)
 #  define addrwordsize		addr64wordsize
@@ -36,7 +37,8 @@
 #  define INS_MRM		struct x64_mrm
 #else
 #  define native_int_t		uint32_t
-#  define decode_rm_		decode_rm_x86
+#  define decode_rm_		decode_rm_x86_reg
+#  define decode_rm_ex_		decode_rm_x86
 #  define datawordsize		data32wordsize
 #  define addrwordsize		addr32wordsize
 #  define ARGV			struct minx86dec_argv
@@ -121,6 +123,30 @@
 
 #if defined(do_necv20) && core_level != 1
 #  undef do_necv20
+#endif
+
+#if defined(vex_level)
+/* template:
+ * AMD 0x8F VEX instruction of the form
+ * 
+ * op    A,B,C,D
+ * A = mrm.f.reg
+ * B = v.f.v
+ * C = r/m
+ * D = top 4 bits of immediate byte
+ * all registers are SSE xmm/ymm */
+#  define typical_x86_amd_vex_m_v_rm_it4(op,vector_size)				\
+{											\
+	ARGV *d = &ins->argv[0],*s1 = &ins->argv[1];					\
+	ARGV *s2 = &ins->argv[2],*s3 = &ins->argv[3];					\
+	ins->argc = 4,ins->opcode = op;							\
+	d->size = s1->size = s2->size = s3->size = vector_size;				\
+	INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);	\
+	set_sse_register(d,mrm.f.reg);							\
+	set_sse_register(s1,v.f.v);							\
+	unsigned char c = fetch_u8();							\
+	set_sse_register(s3,c>>4);							\
+}
 #endif
 
 /* did we encounter FWAIT? (another odd prefix tacked on by Intel to instructions, yech!!) */
@@ -344,6 +370,403 @@ decode_next:
 				set_register(reg,mrm.f.reg);
 			} break;
 
+		case 0x8F:
+			if (*cip >= 0x08) {
+#  if defined(vex_level) || defined(everything)
+				union minx86dec_vex v;
+				v.raw = fetch_u16() ^ 0x78E0;
+
+				ins->vex = v;
+				switch (v.f.pp) {
+					case 0x1: ins->data32 ^= 1; dataprefix32++; break;	/* as if 0x66 prefix */
+					case 0x2: ins->rep = MX86_REPNE; break;			/* as if 0xF3 prefix */
+					case 0x3: ins->rep = MX86_REPE; break;			/* as if 0xF2 prefix */
+				};
+
+				unsigned int vector_size = 16 << (v.f.l?1:0);
+				const unsigned char opcode = *cip++;
+				ins->oes = opcode & 3;
+
+				switch (v.f.m) {
+					case 0x8: {
+						switch (opcode) {
+							case 0x85:
+								if (v.f.pp == 0)
+									typical_x86_amd_vex_m_v_rm_it4(MXOP_VPMACSSWW,vector_size);
+								break;
+							case 0x86:
+								if (v.f.pp == 0)
+									typical_x86_amd_vex_m_v_rm_it4(MXOP_VPMACSSWD,vector_size);
+								break;
+							case 0x8E:
+								if (v.f.pp == 0)
+									typical_x86_amd_vex_m_v_rm_it4(MXOP_VPMACSSDD,vector_size);
+								break;
+#  if 0
+							case 0x95:
+								if (v.f.pp == 0) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									struct minx86dec_argv *s3 = &ins->argv[3];
+									ins->opcode = MXOP_VPMACSWW;
+									ins->argc = 4;
+									d->size = s1->size = s2->size = s3->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s1,v.f.v);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									unsigned char c = fetch_u8();
+									set_sse_register(s3,c>>4);
+								} break;
+							case 0x96:
+								if (v.f.pp == 0) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									struct minx86dec_argv *s3 = &ins->argv[3];
+									ins->opcode = MXOP_VPMACSWD;
+									ins->argc = 4;
+									d->size = s1->size = s2->size = s3->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s1,v.f.v);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									unsigned char c = fetch_u8();
+									set_sse_register(s3,c>>4);
+								} break;
+							COVER_2(0x9E):
+								if (v.f.pp == 0) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									struct minx86dec_argv *s3 = &ins->argv[3];
+									ins->opcode = MXOP_VPMACSDD + (opcode & 1);
+									ins->argc = 4;
+									s3->size = 1;
+									d->size = s1->size = s2->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s1,v.f.v);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									set_immediate(s3,fetch_u8());
+								} break;
+							case 0xA2:
+								if (v.f.pp == 0) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									struct minx86dec_argv *s3 = &ins->argv[3];
+									ins->opcode = MXOP_VPCMOV;
+									ins->argc = 4;
+									d->size = s1->size = s2->size = s3->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s1,v.f.v);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									unsigned char c = fetch_u8();
+									set_sse_register(s3,c>>4);
+								} break;
+							case 0xA3:
+								if (v.f.pp == 0) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2^v.f.w];
+									struct minx86dec_argv *s3 = &ins->argv[3^v.f.w];
+									ins->opcode = MXOP_VPPERM;
+									ins->argc = 4;
+									d->size = s1->size = s2->size = s3->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s1,v.f.v);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									unsigned char c = fetch_u8();
+									set_sse_register(s3,c>>4);
+								} break;
+							case 0xA6:
+								if (v.f.pp == 0) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									struct minx86dec_argv *s3 = &ins->argv[3];
+									ins->opcode = MXOP_VPMADCSSWD;
+									ins->argc = 4;
+									d->size = s1->size = s2->size = s3->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s1,v.f.v);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									unsigned char c = fetch_u8();
+									set_sse_register(s3,c>>4);
+								} break;
+							case 0xB6:
+								if (v.f.pp == 0) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									struct minx86dec_argv *s3 = &ins->argv[3];
+									ins->opcode = MXOP_VPMADCSWD;
+									ins->argc = 4;
+									d->size = s1->size = s2->size = s3->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s1,v.f.v);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									unsigned char c = fetch_u8();
+									set_sse_register(s3,c>>4);
+								} break;
+							COVER_4(0xC0):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										union x86_mrm mrm = fetch_modregrm();
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s1 = &ins->argv[1];
+										struct minx86dec_argv *s2 = &ins->argv[2];
+										ins->opcode = MXOP_VPROTB + (opcode & 3);
+										ins->argc = 3;
+										s2->size = 1;
+										d->size = s1->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
+										set_immediate(s2,fetch_u8());
+									}
+								} break;
+							COVER_4(0xCC):
+								if (v.f.pp == 0) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									struct minx86dec_argv *s3 = &ins->argv[3];
+									ins->opcode = MXOP_VPCOMB + ins->oes;
+									ins->argc = 4;
+									s3->size = 1;
+									d->size = s1->size = s2->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s1,v.f.v);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									set_immediate(s3,fetch_u8());
+								} break;
+							COVER_4(0xEC):
+								if (v.f.pp == 0) {
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1];
+									struct minx86dec_argv *s2 = &ins->argv[2];
+									struct minx86dec_argv *s3 = &ins->argv[3];
+									ins->opcode = MXOP_VPCOMUB + ins->oes;
+									ins->argc = 4;
+									s3->size = 1;
+									d->size = s1->size = s2->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s1,v.f.v);
+									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
+									set_immediate(s3,fetch_u8());
+								} break;
+#  endif
+						}
+					} break;
+#  if 0
+					case 0x9: {
+						switch (opcode) {
+							COVER_2(0x80):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VFRCZPS + (opcode & 1);
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+							COVER_2(0x82):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VFRCZSS + (opcode & 1);
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+							COVER_4(0x90):
+								if (v.f.pp == 0) {
+									if (v.f.l) break;
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1+v.f.w];
+									struct minx86dec_argv *s2 = &ins->argv[2-v.f.w];
+									ins->opcode = MXOP_VPROTB + (opcode & 3);
+									ins->argc = 3;
+									d->size = s1->size = s2->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s2,v.f.v);
+									decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
+								} break;
+
+							COVER_4(0x94):
+								if (v.f.pp == 0) {
+									if (v.f.l) break;
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1+v.f.w];
+									struct minx86dec_argv *s2 = &ins->argv[2-v.f.w];
+									ins->opcode = MXOP_VPSHLB + (opcode & 3);
+									ins->argc = 3;
+									d->size = s1->size = s2->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s2,v.f.v);
+									decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
+								} break;
+
+							COVER_4(0x98):
+								if (v.f.pp == 0) {
+									if (v.f.l) break;
+									union x86_mrm mrm = fetch_modregrm();
+									struct minx86dec_argv *d = &ins->argv[0];
+									struct minx86dec_argv *s1 = &ins->argv[1+v.f.w];
+									struct minx86dec_argv *s2 = &ins->argv[2-v.f.w];
+									ins->opcode = MXOP_VPSHAB + (opcode & 3);
+									ins->argc = 3;
+									d->size = s1->size = s2->size = vector_size;
+									set_sse_register(d,mrm.f.reg);
+									set_sse_register(s2,v.f.v);
+									decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
+								} break;
+
+							COVER_4(0xC0):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										if (opcode == 0xC0) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VPHADDBW + (opcode & 3) - 1;
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+							COVER_2(0xC6):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										if (opcode == 0xD0) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VPHADDWD + (opcode & 1);
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+							case 0xCB:
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VPHADDDQ;
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+							COVER_4(0xD0):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										if (opcode == 0xD0) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VPHADDUBW + (opcode & 3) - 1;
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+							COVER_2(0xD6):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										if (opcode == 0xD0) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VPHADDUWD + (opcode & 1);
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+							case 0xDB:
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VPHADDUDQ;
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+							COVER_4(0xE0):
+								if (v.f.pp == 0) {
+									if (v.f.v == 0) {
+										if (v.f.l) break;
+										if (opcode == 0xE0) break;
+										struct minx86dec_argv *d = &ins->argv[0];
+										struct minx86dec_argv *s = &ins->argv[1];
+										union x86_mrm mrm = fetch_modregrm();
+										ins->opcode = MXOP_VPHSUBBW + (opcode & 3) - 1;
+										ins->argc = 2;
+										d->size = s->size = vector_size;
+										set_sse_register(d,mrm.f.reg);
+										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+									}
+								} break;
+						}
+					} break;
+#  endif
+				}
+#  endif
+			}
+			else {
+#  if 0
+				struct minx86dec_argv *d = &ins->argv[0];
+				union x86_mrm mrm = fetch_modregrm();
+				switch (mrm.f.reg) {
+					case 0:
+						/* FIXME: is size specified or implied? */
+						ins->opcode = MXOP_POP;
+						d->size = data32wordsize;
+						ins->argc = 1;
+						decode_rm(mrm,d,isaddr32);
+						break;
+				}
+#  endif
+			} break;
+
 		/* NOP */
 		case 0x90:
 			if (core_level >= 6 && ins->rep == MX86_REPNE) ins->opcode = MXOP_PAUSE;
@@ -532,6 +955,23 @@ decode_next:
 				imm->size = 2;
 				set_immediate(imm,fetch_u16());
 			} break;
+
+		COVER_2(0xC6): {
+			ins->argc = 2;
+			ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+			s->size = d->size = (first_byte & 1) ? datawordsize : 1;
+			INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+			switch (mrm.f.reg) {
+				case 0: {
+					ins->opcode = MXOP_MOV;
+					switch (d->size) {
+						case 1:	set_immediate(s,fetch_u8()); break;
+						case 2:	set_immediate(s,fetch_u16()); break;
+						case 4:	set_immediate(s,fetch_u32()); break;
+						case 8: set_immediate(s,(uint64_t)((int32_t)fetch_u32())); break;
+					};
+				} break;
+			} } break;
 
 		COVER_2(0xCA):
 			ins->opcode = MXOP_RETF;
@@ -881,435 +1321,6 @@ decode_next:
 
 /*---------------------------------------------------------------------------------------------------------*/
 #ifndef x64_mode
-		case 0x8F:
-			if (*cip >= 0x08) {
-#  if defined(vex_level) || defined(everything)
-				union minx86dec_vex v;
-				v.raw = fetch_u16() ^ 0x78E0;
-
-				ins->vex = v;
-				switch (v.f.pp) {
-					case 0x1: ins->data32 ^= 1; dataprefix32++; break;	/* as if 0x66 prefix */
-					case 0x2: ins->rep = MX86_REPNE; break;			/* as if 0xF3 prefix */
-					case 0x3: ins->rep = MX86_REPE; break;			/* as if 0xF2 prefix */
-				};
-
-				unsigned int vector_size = 16 << (v.f.l?1:0);
-				const unsigned char opcode = *cip++;
-				ins->oes = opcode & 3;
-
-//				printf("v=0x%04X oes=%u\n",v.raw,ins->oes);
-
-				switch (v.f.m) {
-					case 0x8: {
-						switch (opcode) {
-							case 0x85:
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPMACSSWW;
-									ins->argc = 4;
-									d->size = s1->size = s2->size = s3->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									unsigned char c = fetch_u8();
-									set_sse_register(s3,c>>4);
-								} break;
-							case 0x86:
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPMACSSWD;
-									ins->argc = 4;
-									d->size = s1->size = s2->size = s3->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									unsigned char c = fetch_u8();
-									set_sse_register(s3,c>>4);
-								} break;
-							case 0x8E:
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPMACSSDD;
-									ins->argc = 4;
-									d->size = s1->size = s2->size = s3->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									unsigned char c = fetch_u8();
-									set_sse_register(s3,c>>4);
-								} break;
-							case 0x95:
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPMACSWW;
-									ins->argc = 4;
-									d->size = s1->size = s2->size = s3->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									unsigned char c = fetch_u8();
-									set_sse_register(s3,c>>4);
-								} break;
-							case 0x96:
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPMACSWD;
-									ins->argc = 4;
-									d->size = s1->size = s2->size = s3->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									unsigned char c = fetch_u8();
-									set_sse_register(s3,c>>4);
-								} break;
-							COVER_2(0x9E):
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPMACSDD + (opcode & 1);
-									ins->argc = 4;
-									s3->size = 1;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_immediate(s3,fetch_u8());
-								} break;
-							case 0xA2:
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPCMOV;
-									ins->argc = 4;
-									d->size = s1->size = s2->size = s3->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									unsigned char c = fetch_u8();
-									set_sse_register(s3,c>>4);
-								} break;
-							case 0xA3:
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2^v.f.w];
-									struct minx86dec_argv *s3 = &ins->argv[3^v.f.w];
-									ins->opcode = MXOP_VPPERM;
-									ins->argc = 4;
-									d->size = s1->size = s2->size = s3->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									unsigned char c = fetch_u8();
-									set_sse_register(s3,c>>4);
-								} break;
-							case 0xA6:
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPMADCSSWD;
-									ins->argc = 4;
-									d->size = s1->size = s2->size = s3->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									unsigned char c = fetch_u8();
-									set_sse_register(s3,c>>4);
-								} break;
-							case 0xB6:
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPMADCSWD;
-									ins->argc = 4;
-									d->size = s1->size = s2->size = s3->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									unsigned char c = fetch_u8();
-									set_sse_register(s3,c>>4);
-								} break;
-							COVER_4(0xC0):
-								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										if (v.f.l) break;
-										union x86_mrm mrm = fetch_modregrm();
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s1 = &ins->argv[1];
-										struct minx86dec_argv *s2 = &ins->argv[2];
-										ins->opcode = MXOP_VPROTB + (opcode & 3);
-										ins->argc = 3;
-										s2->size = 1;
-										d->size = s1->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
-										set_immediate(s2,fetch_u8());
-									}
-								} break;
-							COVER_4(0xCC):
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPCOMB + ins->oes;
-									ins->argc = 4;
-									s3->size = 1;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_immediate(s3,fetch_u8());
-								} break;
-							COVER_4(0xEC):
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPCOMUB + ins->oes;
-									ins->argc = 4;
-									s3->size = 1;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_immediate(s3,fetch_u8());
-								} break;
-						}
-					} break;
-					case 0x9: {
-						switch (opcode) {
-							COVER_2(0x80):
-								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VFRCZPS + (opcode & 1);
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-									}
-								} break;
-							COVER_2(0x82):
-								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										if (v.f.l) break;
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VFRCZSS + (opcode & 1);
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-									}
-								} break;
-							COVER_4(0x90):
-								if (v.f.pp == 0) {
-									if (v.f.l) break;
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1+v.f.w];
-									struct minx86dec_argv *s2 = &ins->argv[2-v.f.w];
-									ins->opcode = MXOP_VPROTB + (opcode & 3);
-									ins->argc = 3;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s2,v.f.v);
-									decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
-								} break;
-
-							COVER_4(0x94):
-								if (v.f.pp == 0) {
-									if (v.f.l) break;
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1+v.f.w];
-									struct minx86dec_argv *s2 = &ins->argv[2-v.f.w];
-									ins->opcode = MXOP_VPSHLB + (opcode & 3);
-									ins->argc = 3;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s2,v.f.v);
-									decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
-								} break;
-
-							COVER_4(0x98):
-								if (v.f.pp == 0) {
-									if (v.f.l) break;
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1+v.f.w];
-									struct minx86dec_argv *s2 = &ins->argv[2-v.f.w];
-									ins->opcode = MXOP_VPSHAB + (opcode & 3);
-									ins->argc = 3;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s2,v.f.v);
-									decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
-								} break;
-
-							COVER_4(0xC0):
-								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										if (v.f.l) break;
-										if (opcode == 0xC0) break;
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VPHADDBW + (opcode & 3) - 1;
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-									}
-								} break;
-							COVER_2(0xC6):
-								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										if (v.f.l) break;
-										if (opcode == 0xD0) break;
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VPHADDWD + (opcode & 1);
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-									}
-								} break;
-							case 0xCB:
-								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										if (v.f.l) break;
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VPHADDDQ;
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-									}
-								} break;
-							COVER_4(0xD0):
-								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										if (v.f.l) break;
-										if (opcode == 0xD0) break;
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VPHADDUBW + (opcode & 3) - 1;
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-									}
-								} break;
-							COVER_2(0xD6):
-								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										if (v.f.l) break;
-										if (opcode == 0xD0) break;
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VPHADDUWD + (opcode & 1);
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-									}
-								} break;
-							case 0xDB:
-								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										if (v.f.l) break;
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VPHADDUDQ;
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-									}
-								} break;
-							COVER_4(0xE0):
-								if (v.f.pp == 0) {
-									if (v.f.v == 0) {
-										if (v.f.l) break;
-										if (opcode == 0xE0) break;
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VPHSUBBW + (opcode & 3) - 1;
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-									}
-								} break;
-						}
-					} break;
-				}
-#  endif
-			}
-			else {
-				struct minx86dec_argv *d = &ins->argv[0];
-				union x86_mrm mrm = fetch_modregrm();
-				switch (mrm.f.reg) {
-					case 0:
-						/* FIXME: is size specified or implied? */
-						ins->opcode = MXOP_POP;
-						d->size = data32wordsize;
-						ins->argc = 1;
-						decode_rm(mrm,d,isaddr32);
-						break;
-				}
-			} break;
-
 		COVER_2(0xC4): /* LDS/LES */
 			if ((*cip & 0xC0) == 0xC0) { /* NOPE! AVX/VEX extensions (illegal encoding of LDS/LES) */
 #  if defined(vex_level) || defined(everything)
@@ -2082,24 +2093,6 @@ decode_next:
 				ins->argc = 2;
 			}
 			break;
-
-		COVER_2(0xC6): {
-			union x86_mrm mrm = fetch_modregrm();
-			switch (mrm.f.reg) {
-				case 0: {
-					ins->argc = 2;
-					ins->opcode = MXOP_MOV;
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					s->size = d->size = (first_byte & 1) ? data32wordsize : 1;
-					decode_rm(mrm,d,isaddr32);
-					switch (d->size) {
-						case 1:	set_immediate(s,fetch_u8()); break;
-						case 2:	set_immediate(s,fetch_u16()); break;
-						case 4:	set_immediate(s,fetch_u32()); break;
-					};
-				} break;
-			} } break;
 
 #if core_level > 0
 		/* extended opcode escape */

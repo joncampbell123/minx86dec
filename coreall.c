@@ -14,6 +14,7 @@ void minx86dec_decodeall(struct minx86dec_state *state,struct minx86dec_instruct
 #define fpu_level 99
 #define amd_3dnow 99
 #define sse_level 99
+#define vex_level 1
 #define everything
 #define pentium 99
 #define emmx_cyrix
@@ -22,7 +23,6 @@ void minx86dec_decodeall(struct minx86dec_state *state,struct minx86dec_instruct
 #define cpuid
 #define ssse3
 #define mmx 99
-#define vex_level 1
 
 	ins->data32 = state->data32;
 	ins->addr32 = state->addr32;
