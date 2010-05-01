@@ -839,8 +839,8 @@ decode_next:
 			} break;
 #endif
 
+/*---------------------------------------------------------------------------------------------------------*/
 #ifndef x64_mode
-
 		case 0x8F:
 			if (*cip >= 0x08) {
 #  if defined(vex_level) || defined(everything)
