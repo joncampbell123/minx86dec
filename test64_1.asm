@@ -1,5 +1,19 @@
 ; x86-64 test assembly language
 bits 64
+	test	al,12h
+	test	ax,1234h
+	test	eax,12345678h
+	test	rax,12345678h
+
+	not	al
+	not	ax
+	not	eax
+	not	rax
+	mul	al
+	mul	ax
+	mul	eax
+	mul	rax
+
 	in	al,21h
 	in	ax,21h
 	in	eax,21h

@@ -437,6 +437,51 @@ decode_next:
 				mref->size = addrwordsize;
 			} break;
 
+		/* LOOPNE */
+		case 0xE0:
+			ins->opcode = MXOP_LOOPNE;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
+#endif
+				mref->size = addrwordsize;
+			} break;
+
+		/* LOOPE */
+		case 0xE1:
+			ins->opcode = MXOP_LOOPE;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
+#endif
+				mref->size = addrwordsize;
+			} break;
+
+		/* LOOP */
+		case 0xE2:
+			ins->opcode = MXOP_LOOP;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
+#endif
+				mref->size = addrwordsize;
+			} break;
+
 		case 0x9B:
 			/* hold on... check next opcode */
 			if (cip[0] == 0xD9) {
@@ -627,6 +672,20 @@ decode_next:
 				mref->size = addrwordsize;
 			} break;
 
+		COVER_2(0xF6): {
+			ins->argc = 1;
+			ARGV *where = &ins->argv[0],*imm = &ins->argv[1];
+			where->size = where->memregsz = imm->size = (first_byte & 1) ? datawordsize : 1;
+			where->regtype = MX86_RT_NONE;
+			INS_MRM mrm = decode_rm_(where,ins,where->size,PLUSR_TRANSFORM);
+			static int map_f6[8] = {MXOP_TEST,MXOP_UD,MXOP_NOT,MXOP_NEG, MXOP_MUL,MXOP_IMUL,MXOP_DIV,MXOP_IDIV};
+			ins->opcode = map_f6[mrm.f.reg]; ins->argc = 1;
+			if (mrm.f.reg == 0) {
+				ins->argc++;
+				set_immediate(imm,(first_byte & 1) ? imm32sbysize(ins) : fetch_u8());
+			}
+			break; }
+
 #if !defined(no_salc)
 		case 0xD6:
 # if !defined(x64_mode) && (defined(umc) || defined(everything))
@@ -745,6 +804,21 @@ decode_next:
 			ins->segment = (first_byte & 1) + MX86_SEG_FS;
 			if (--patience) goto decode_next;
 			break;
+#elif defined(do_necv20) /* NEC V20/V30 */
+		COVER_2(0x66): /* FP02 conflicts with 386+ address/data prefix */
+			ins->opcode = MXOP_FP02;
+			ins->argc = 2; {
+				union x86_mrm mrm = fetch_modregrm();
+				struct minx86dec_argv *s = &ins->argv[0];
+				struct minx86dec_argv *d = &ins->argv[1];
+				d->size = s->size = 2;
+				set_immediate(d,mrm.f.reg | ((first_byte & 1) << 3));
+				set_register(s,mrm.f.rm);
+				decode_rm(mrm,s,0);
+			} break;
+		COVER_2(0x64): /* REPC/REPNC */
+			ins->rep = (first_byte & 1) + MX86_REPNC;
+			goto decode_next;
 #endif
 
 #ifdef x64_mode
@@ -769,7 +843,7 @@ decode_next:
 
 		case 0x8F:
 			if (*cip >= 0x08) {
-#  if defined(vex_level)
+#  if defined(vex_level) || defined(everything)
 				union minx86dec_vex v;
 				v.raw = fetch_u16() ^ 0x78E0;
 
@@ -1196,22 +1270,6 @@ decode_next:
 				}
 			} break;
 
-		COVER_2(0xF6): {
-			ins->argc = 1;
-			struct minx86dec_argv *where = &ins->argv[0];
-			struct minx86dec_argv *imm = &ins->argv[1];
-			union x86_mrm mrm = fetch_modregrm();
-			where->size = where->memregsz = imm->size = (first_byte & 1) ? data32wordsize : 1;
-			where->regtype = MX86_RT_NONE;
-			decode_rm(mrm,where,isaddr32);
-			static int map_f6[8] = {MXOP_TEST,MXOP_UD,MXOP_NOT,MXOP_NEG, MXOP_MUL,MXOP_IMUL,MXOP_DIV,MXOP_IDIV};
-			ins->opcode = map_f6[mrm.f.reg]; ins->argc = 1;
-			if (mrm.f.reg == 0) {
-				ins->argc++;
-				set_immediate(imm,(first_byte & 1) ? imm32bysize(ins) : fetch_u8());
-			}
-			break; }
-
 		/* group 0xFE-0xFF */
 		COVER_2(0xFE): {
 			union x86_mrm mrm = fetch_modregrm();
@@ -1267,7 +1325,7 @@ decode_next:
 
 		COVER_2(0xC4): /* LDS/LES */
 			if ((*cip & 0xC0) == 0xC0) { /* NOPE! AVX/VEX extensions (illegal encoding of LDS/LES) */
-#  if defined(vex_level)
+#  if defined(vex_level) || defined(everything)
 				union minx86dec_vex v;
 
 				if (first_byte & 1) { /* 2-byte */
@@ -2055,56 +2113,6 @@ decode_next:
 					};
 				} break;
 			} } break;
-
-		/* LOOPNE */
-		case 0xE0:
-			ins->opcode = MXOP_LOOPNE;
-			ins->argc = 1; {
-				struct minx86dec_argv *r = &ins->argv[0];
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				r->size = data32wordsize;
-				if (isdata32)	set_immediate(r,((char)fetch_u8() + curp + 1) & 0xFFFFFFFFUL);
-				else		set_immediate(r,((char)fetch_u8() + curp + 1) & 0x0000FFFFUL);
-			} break;
-
-		/* LOOPE */
-		case 0xE1:
-			ins->opcode = MXOP_LOOPE;
-			ins->argc = 1; {
-				struct minx86dec_argv *r = &ins->argv[0];
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				r->size = data32wordsize;
-				if (isdata32)	set_immediate(r,((char)fetch_u8() + curp + 1) & 0xFFFFFFFFUL);
-				else		set_immediate(r,((char)fetch_u8() + curp + 1) & 0x0000FFFFUL);
-			} break;
-
-		/* LOOP */
-		case 0xE2:
-			ins->opcode = MXOP_LOOP;
-			ins->argc = 1; {
-				struct minx86dec_argv *r = &ins->argv[0];
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				r->size = data32wordsize;
-				if (isdata32)	set_immediate(r,((char)fetch_u8() + curp + 1) & 0xFFFFFFFFUL);
-				else		set_immediate(r,((char)fetch_u8() + curp + 1) & 0x0000FFFFUL);
-			} break;
-
-# if defined(do_necv20) /* NEC V20/V30 */
-		COVER_2(0x66): /* FP02 conflicts with 386+ address/data prefix */
-			ins->opcode = MXOP_FP02;
-			ins->argc = 2; {
-				union x86_mrm mrm = fetch_modregrm();
-				struct minx86dec_argv *s = &ins->argv[0];
-				struct minx86dec_argv *d = &ins->argv[1];
-				d->size = s->size = 2;
-				set_immediate(d,mrm.f.reg | ((first_byte & 1) << 3));
-				set_register(s,mrm.f.rm);
-				decode_rm(mrm,s,0);
-			} break;
-		COVER_2(0x64): /* REPC/REPNC */
-			ins->rep = (first_byte & 1) + MX86_REPNC;
-			goto decode_next;
-#endif
 
 #if core_level > 0
 		/* extended opcode escape */
