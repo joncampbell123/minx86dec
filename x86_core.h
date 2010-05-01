@@ -512,21 +512,14 @@ decode_next:
 									if (v.f.v == 0)
 										typical_x86_amd_vex_m_rm(MXOP_VFRCZPS+(opcode&1),vector_size);
 								} break;
-#  if 0
 							COVER_2(0x82):
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
 										if (v.f.l) break;
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										union x86_mrm mrm = fetch_modregrm();
-										ins->opcode = MXOP_VFRCZSS + (opcode & 1);
-										ins->argc = 2;
-										d->size = s->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+										typical_x86_amd_vex_m_rm(MXOP_VFRCZSS+(opcode&1),vector_size);
 									}
 								} break;
+#  if 0
 							COVER_4(0x90):
 								if (v.f.pp == 0) {
 									if (v.f.l) break;
