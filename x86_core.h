@@ -166,6 +166,42 @@ decode_next:
 				set_register(reg,plusr_transform(ins,reg->size,mrm.f.reg));
 			} break;
 
+		/* segment overrides */
+		case 0x26: case 0x2E: case 0x36: case 0x3E:
+			ins->argv[0].segment = ins->argv[1].segment =
+			ins->argv[2].segment = ins->argv[3].segment =
+			ins->segment = (first_byte >> 3) & 3;
+			if (--patience) goto decode_next;
+			break;
+
+		/* PUSH/POP register */
+		COVER_ROW(0x50):
+			ins->opcode = MXOP_PUSH+((first_byte>>3)&1);
+			ins->argc = 1; {
+				ARGV *reg = &ins->argv[0];
+				set_register(reg,first_byte & 7);
+#ifdef x64_mode
+				reg->size = dataprefix32 ? 2 : 8;
+#else
+				reg->size = datawordsize;
+#endif
+			} break;
+
+		/* Jcc short */
+		COVER_ROW(0x70):
+			ins->opcode = MXOP_JO+(first_byte&0xF);
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
+#endif
+				mref->size = addrwordsize;
+			} break;
+
 		COVER_4(0x80):	/* immediate group 1 */
 			ins->argc = 2; {
 				ARGV *rm = &ins->argv[0],*imm = &ins->argv[1];
@@ -176,16 +212,6 @@ decode_next:
 				if (first_byte == 0x83)		imm->value = (native_int_t)((signed char)fetch_u8());
 				else if (first_byte == 0x81)	imm->value = imm32sbysize(ins);
 				else				imm->value = fetch_u8();
-			} break;
-
-		/* MOV a,imm */
-		COVER_ROW(0xB0):
-			ins->opcode = MXOP_MOV;
-			ins->argc = 2; {
-				ARGV *r = &ins->argv[0],*imm = &ins->argv[1];
-				r->size = imm->size = (first_byte & 8) ? datawordsize : 1;
-				set_immediate(imm,(first_byte & 8) ? imm64bysize(ins) : fetch_u8());
-				set_register(r,first_byte & 7);
 			} break;
 
 		COVER_2(0x84):	/* TEST */
@@ -216,28 +242,6 @@ decode_next:
 				set_register(reg,mrm.f.reg);
 			} break;
 
-		COVER_2(0xA4):
-			string_instruction_typical(MXOP_MOVS);	/* <- warning: macro */
-			break;
-
-		COVER_2(0xA6):
-			string_instruction_typical(MXOP_CMPS);	/* <- warning: macro */
-			break;
-
-		COVER_4(0xAA): COVER_2(0xAE):
-			ins->opcode = MXOP_STOS + ((first_byte - 0xAA) >> 1);
-			ins->argc = 1; {
-				ARGV *r = &ins->argv[0];
-				r->size = (first_byte & 1) ? datawordsize : 1;
-				r->regtype = MX86_RT_NONE;
-				r->segment = first_byte & 2 ? MX86_SEG_ES : seg_can_override(MX86_SEG_DS);
-				r->scalar = 0;
-				r->memregs = 1;
-				r->memref_base = 0;
-				r->memregsz = addrwordsize;
-				r->memreg[0] = (first_byte & 2) ? MX86_REG_EDI : MX86_REG_ESI;
-			} break;
-
 		case 0x8C: case 0x8E: /* mov r/m, seg reg */
 			ins->opcode = MXOP_MOV;
 			ins->argc = 2; {
@@ -257,230 +261,31 @@ decode_next:
 				set_register(reg,mrm.f.reg);
 			} break;
 
-		case 0xF8:
-			ins->opcode = MXOP_CLC;
-			ins->argc = 0;
+		/* NOP */
+		case 0x90:
+			if (core_level >= 6 && ins->rep == MX86_REPNE) ins->opcode = MXOP_PAUSE;
+			else ins->opcode = MXOP_NOP;
 			break;
 
-		case 0xF9:
-			ins->opcode = MXOP_STC;
-			ins->argc = 0;
-			break;
-
-		case 0xFC:
-			ins->opcode = MXOP_CLD;
-			ins->argc = 0;
-			break;
-
-		case 0xFD:
-			ins->opcode = MXOP_STD;
-			ins->argc = 0;
-			break;
-
-		case 0x9E:
-			ins->opcode = MXOP_SAHF;
-			ins->argc = 0;
-			break;
-
-		COVER_2(0xA8):
-			ins->opcode = MXOP_TEST;
+		/* XCHG AX,[reg] */
+		COVER_4(0x91): COVER_2(0x95): case 0x97:
+			ins->opcode = MXOP_XCHG;
 			ins->argc = 2; {
-				ARGV *rm = &ins->argv[0],*imm = &ins->argv[1];
-				rm->size = imm->size = first_byte & 1 ? datawordsize : 1;
-				set_register(rm,MX86_REG_EAX);
-				if (first_byte & 1) set_immediate(imm,imm32sbysize(ins));
-				else set_immediate(imm,fetch_u8());
+				ARGV *a = &ins->argv[0],*r = &ins->argv[1];
+				a->size = r->size = datawordsize;
+				set_register(r,first_byte & 7);
+				set_register(a,MX86_REG_AX);
 			} break;
 
-		case 0xE8:
-			ins->opcode = MXOP_CALL;
-			ins->argc = 1; {
-				ARGV *mref = &ins->argv[0];
-				mref->size = mref->memregsz = datawordsize;
-#ifdef x64_mode
-				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
-				set_immediate(mref,((int32_t)fetch_u32() + curp + 4) & 0xFFFFFFFFFFFFFFFFULL);
-#else
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
-				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
-#endif
-			} break;
-
-		case 0xE9:
-			ins->opcode = MXOP_JMP;
-			ins->argc = 1; {
-				ARGV *mref = &ins->argv[0];
-				mref->size = mref->memregsz = datawordsize;
-#ifdef x64_mode
-				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
-				set_immediate(mref,((int32_t)fetch_u32() + curp + 4) & 0xFFFFFFFFFFFFFFFFULL);
-#else
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
-				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
-#endif
-			} break;
-
-		/* JMP */
-		case 0xEB:
-			ins->opcode = MXOP_JMP;
-			ins->argc = 1; {
-				ARGV *r = &ins->argv[0];
-#ifdef x64_mode
-				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
-				set_immediate(r,curp + 1 + ((uint64_t)((char)fetch_u8())));
-#else
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				set_immediate(r,curp + 1 + ((uint32_t)((char)fetch_u8())));
-#endif
-				r->size = addrwordsize;
-			} break;
-
-		case 0xF0:
-			ins->lock = 1;
-			goto decode_next;
-
-		COVER_2(0xC2):
-			ins->opcode = MXOP_RET;
-			ins->argc = 0;
-			if ((first_byte & 1) == 0) {
-				ARGV *imm = &ins->argv[ins->argc++];
-				imm->size = 2;
-				set_immediate(imm,fetch_u16());
-			} break;
-
-		COVER_2(0xCA):
-			ins->opcode = MXOP_RETF;
-			ins->argc = 0;
-			if ((first_byte & 1) == 0) {
-				ARGV *imm = &ins->argv[ins->argc++];
-				imm->size = 2;
-				set_immediate(imm,fetch_u16());
-			} break;
-
-		COVER_2(0xC0):
-			ins->argc = 2; {
-				ARGV *d = &ins->argv[0],*imm = &ins->argv[1];
-				d->size = (first_byte & 1) ? datawordsize : 1,imm->size = 1;
-				INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
-				switch (mrm.f.reg) {
-					case 0:	ins->opcode = MXOP_ROL; break;
-					case 1:	ins->opcode = MXOP_ROR; break;
-					case 2:	ins->opcode = MXOP_RCL; break;
-					case 3:	ins->opcode = MXOP_RCR; break;
-					case 4:	ins->opcode = MXOP_SHL; break;
-					case 5:	ins->opcode = MXOP_SHR; break;
-					case 7:	ins->opcode = MXOP_SAR; break;
-				};
-				set_immediate(imm,fetch_u8());
-			} break;
-
-		COVER_4(0xD0):
-			ins->argc = 2; {
-				ARGV *d = &ins->argv[0],*imm = &ins->argv[1];
-				d->size = (first_byte & 1) ? datawordsize : 1,imm->size = 1;
-				INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
-				switch (mrm.f.reg) {
-					case 0:	ins->opcode = MXOP_ROL; break;
-					case 1:	ins->opcode = MXOP_ROR; break;
-					case 2:	ins->opcode = MXOP_RCL; break;
-					case 3:	ins->opcode = MXOP_RCR; break;
-					case 4:	ins->opcode = MXOP_SHL; break;
-					case 5:	ins->opcode = MXOP_SHR; break;
-					case 7:	ins->opcode = MXOP_SAR; break;
-				};
-				if (first_byte & 2) set_register(imm,MX86_REG_CL);
-				else set_immediate(imm,1);
-			} break;
-
-		/* INT 3 */
-		case 0xCC:
-			ins->opcode = MXOP_INT;
-			ins->argc = 1; {
-				ARGV *r = &ins->argv[0];
-				set_immediate(r,3);
-			} break;
-
-		/* INT N */
-		case 0xCD:
-			ins->opcode = MXOP_INT;
-			ins->argc = 1; {
-				ARGV *r = &ins->argv[0];
-				set_immediate(r,fetch_u8());
-			} break;
-
-		/* IRET */
-		case 0xCF:
-			ins->opcode = isdata32 ? MXOP_IRETD : MXOP_IRET;
+		case 0x98:
+			ins->opcode = isdata64 ? MXOP_CDQE : (isdata32 ? MXOP_CWDE : MXOP_CBW);
 			ins->argc = 0;
 			break;
 
-		/* XLAT */
-		case 0xD7:
-			ins->opcode = MXOP_XLAT;
+		case 0x99:
+			ins->opcode = isdata64 ? MXOP_CQO : (MXOP_CWD + (isdata32 & 1));
 			ins->argc = 0;
 			break;
-
-		/* Jcc short */
-		COVER_ROW(0x70):
-			ins->opcode = MXOP_JO+(first_byte&0xF);
-			ins->argc = 1; {
-				ARGV *mref = &ins->argv[0];
-#ifdef x64_mode
-				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
-				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
-#else
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
-#endif
-				mref->size = addrwordsize;
-			} break;
-
-		/* LOOPNE */
-		case 0xE0:
-			ins->opcode = MXOP_LOOPNE;
-			ins->argc = 1; {
-				ARGV *mref = &ins->argv[0];
-#ifdef x64_mode
-				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
-				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
-#else
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
-#endif
-				mref->size = addrwordsize;
-			} break;
-
-		/* LOOPE */
-		case 0xE1:
-			ins->opcode = MXOP_LOOPE;
-			ins->argc = 1; {
-				ARGV *mref = &ins->argv[0];
-#ifdef x64_mode
-				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
-				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
-#else
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
-#endif
-				mref->size = addrwordsize;
-			} break;
-
-		/* LOOP */
-		case 0xE2:
-			ins->opcode = MXOP_LOOP;
-			ins->argc = 1; {
-				ARGV *mref = &ins->argv[0];
-#ifdef x64_mode
-				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
-				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
-#else
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
-#endif
-				mref->size = addrwordsize;
-			} break;
 
 		case 0x9B:
 			/* hold on... check next opcode */
@@ -529,17 +334,229 @@ decode_next:
 			ins->argc = 0;
 			break;
 
-		/* PUSH/POP register */
-		COVER_ROW(0x50):
-			ins->opcode = MXOP_PUSH+((first_byte>>3)&1);
+		case 0x9C:
+			ins->opcode = isdata32 ? MXOP_PUSHFD : MXOP_PUSHF;
+			ins->argc = 0;
+			break;
+
+		case 0x9D:
+			ins->opcode = isdata32 ? MXOP_POPFD : MXOP_POPF;
+			ins->argc = 0;
+			break;
+
+		case 0x9E:
+			ins->opcode = MXOP_SAHF;
+			ins->argc = 0;
+			break;
+
+		/* MOV a,[memory addr] or
+		 * MOV [memory addr],a */
+		COVER_4(0xA0):
+			ins->opcode = MXOP_MOV;
+			ins->argc = 2; {
+				const int which = (first_byte >> 1) & 1;
+				ARGV *areg = &ins->argv[which],*mref = &ins->argv[which^1];
+				areg->size = mref->size = (first_byte & 1) ? datawordsize : 1;
+				set_mem_ref_imm(mref,isaddr32 ? fetch_u32() : fetch_u16());
+				set_register(areg,MX86_REG_AX);
+			} break;
+
+		COVER_2(0xA4):
+			string_instruction_typical(MXOP_MOVS);	/* <- warning: macro */
+			break;
+
+		COVER_2(0xA6):
+			string_instruction_typical(MXOP_CMPS);	/* <- warning: macro */
+			break;
+
+		COVER_2(0xA8):
+			ins->opcode = MXOP_TEST;
+			ins->argc = 2; {
+				ARGV *rm = &ins->argv[0],*imm = &ins->argv[1];
+				rm->size = imm->size = first_byte & 1 ? datawordsize : 1;
+				set_register(rm,MX86_REG_EAX);
+				if (first_byte & 1) set_immediate(imm,imm32sbysize(ins));
+				else set_immediate(imm,fetch_u8());
+			} break;
+
+		COVER_4(0xAA): COVER_2(0xAE):
+			ins->opcode = MXOP_STOS + ((first_byte - 0xAA) >> 1);
 			ins->argc = 1; {
-				ARGV *reg = &ins->argv[0];
-				set_register(reg,first_byte & 7);
-#ifdef x64_mode
-				reg->size = dataprefix32 ? 2 : 8;
-#else
-				reg->size = datawordsize;
+				ARGV *r = &ins->argv[0];
+				r->size = (first_byte & 1) ? datawordsize : 1;
+				r->regtype = MX86_RT_NONE;
+				r->segment = first_byte & 2 ? MX86_SEG_ES : seg_can_override(MX86_SEG_DS);
+				r->scalar = 0;
+				r->memregs = 1;
+				r->memref_base = 0;
+				r->memregsz = addrwordsize;
+				r->memreg[0] = (first_byte & 2) ? MX86_REG_EDI : MX86_REG_ESI;
+			} break;
+
+		/* MOV a,imm */
+		COVER_ROW(0xB0):
+			ins->opcode = MXOP_MOV;
+			ins->argc = 2; {
+				ARGV *r = &ins->argv[0],*imm = &ins->argv[1];
+				r->size = imm->size = (first_byte & 8) ? datawordsize : 1;
+				set_immediate(imm,(first_byte & 8) ? imm64bysize(ins) : fetch_u8());
+				set_register(r,first_byte & 7);
+			} break;
+
+		COVER_2(0xC0):
+			ins->argc = 2; {
+				ARGV *d = &ins->argv[0],*imm = &ins->argv[1];
+				d->size = (first_byte & 1) ? datawordsize : 1,imm->size = 1;
+				INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+				switch (mrm.f.reg) {
+					case 0:	ins->opcode = MXOP_ROL; break;
+					case 1:	ins->opcode = MXOP_ROR; break;
+					case 2:	ins->opcode = MXOP_RCL; break;
+					case 3:	ins->opcode = MXOP_RCR; break;
+					case 4:	ins->opcode = MXOP_SHL; break;
+					case 5:	ins->opcode = MXOP_SHR; break;
+					case 7:	ins->opcode = MXOP_SAR; break;
+				};
+				set_immediate(imm,fetch_u8());
+			} break;
+
+		COVER_2(0xC2):
+			ins->opcode = MXOP_RET;
+			ins->argc = 0;
+			if ((first_byte & 1) == 0) {
+				ARGV *imm = &ins->argv[ins->argc++];
+				imm->size = 2;
+				set_immediate(imm,fetch_u16());
+			} break;
+
+		COVER_2(0xCA):
+			ins->opcode = MXOP_RETF;
+			ins->argc = 0;
+			if ((first_byte & 1) == 0) {
+				ARGV *imm = &ins->argv[ins->argc++];
+				imm->size = 2;
+				set_immediate(imm,fetch_u16());
+			} break;
+
+		/* INT 3 */
+		case 0xCC:
+			ins->opcode = MXOP_INT;
+			ins->argc = 1; {
+				ARGV *r = &ins->argv[0];
+				set_immediate(r,3);
+			} break;
+
+		/* INT N */
+		case 0xCD:
+			ins->opcode = MXOP_INT;
+			ins->argc = 1; {
+				ARGV *r = &ins->argv[0];
+				set_immediate(r,fetch_u8());
+			} break;
+
+		/* IRET */
+		case 0xCF:
+			ins->opcode = isdata32 ? MXOP_IRETD : MXOP_IRET;
+			ins->argc = 0;
+			break;
+
+		COVER_4(0xD0):
+			ins->argc = 2; {
+				ARGV *d = &ins->argv[0],*imm = &ins->argv[1];
+				d->size = (first_byte & 1) ? datawordsize : 1,imm->size = 1;
+				INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+				switch (mrm.f.reg) {
+					case 0:	ins->opcode = MXOP_ROL; break;
+					case 1:	ins->opcode = MXOP_ROR; break;
+					case 2:	ins->opcode = MXOP_RCL; break;
+					case 3:	ins->opcode = MXOP_RCR; break;
+					case 4:	ins->opcode = MXOP_SHL; break;
+					case 5:	ins->opcode = MXOP_SHR; break;
+					case 7:	ins->opcode = MXOP_SAR; break;
+				};
+				if (first_byte & 2) set_register(imm,MX86_REG_CL);
+				else set_immediate(imm,1);
+			} break;
+
+#if !defined(no_salc)
+		case 0xD6:
+# if !defined(x64_mode) && (defined(umc) || defined(everything))
+			if (ins->segment == MX86_SEG_FS) {	/* UMC identification */
+				ins->opcode = MXOP_UMC_IDENT;
+				ins->argc = 0;
+			} else
+# endif
+			{
+				ins->opcode = MXOP_SALC;
+				ins->argc = 0;
+			}
+			break;
 #endif
+
+		/* XLAT */
+		case 0xD7:
+			ins->opcode = MXOP_XLAT;
+			ins->argc = 0;
+			break;
+
+		/* LOOPNE */
+		case 0xE0:
+			ins->opcode = MXOP_LOOPNE;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
+#endif
+				mref->size = addrwordsize;
+			} break;
+
+		/* LOOPE */
+		case 0xE1:
+			ins->opcode = MXOP_LOOPE;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
+#endif
+				mref->size = addrwordsize;
+			} break;
+
+		/* LOOP */
+		case 0xE2:
+			ins->opcode = MXOP_LOOP;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
+#endif
+				mref->size = addrwordsize;
+			} break;
+
+		/* JCXZ */
+		case 0xE3:
+			ins->opcode = MXOP_JCXZ;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
+#endif
+				mref->size = addrwordsize;
 			} break;
 
 		COVER_2(0xE4):
@@ -549,6 +566,60 @@ decode_next:
 				d->size = datawordsize;
 				set_register(d,MX86_REG_AX);
 				set_immediate(s,fetch_u8());
+			} break;
+
+		COVER_2(0xE6):
+			ins->opcode = MXOP_OUT;
+			ins->argc = 2; {
+				ARGV *ioport = &ins->argv[0],*reg = &ins->argv[1];
+				set_immediate(ioport,fetch_u8());
+				reg->size = (first_byte & 1) ? data32wordsize : 1;
+				set_register(reg,MX86_REG_AX);
+			} break;
+
+		case 0xE8:
+			ins->opcode = MXOP_CALL;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+				mref->size = mref->memregsz = datawordsize;
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)fetch_u32() + curp + 4) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
+				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
+#endif
+			} break;
+
+		case 0xE9:
+			ins->opcode = MXOP_JMP;
+			ins->argc = 1; {
+				ARGV *mref = &ins->argv[0];
+				mref->size = mref->memregsz = datawordsize;
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(mref,((int32_t)fetch_u32() + curp + 4) & 0xFFFFFFFFFFFFFFFFULL);
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				if (isdata32)	set_immediate(mref,(fetch_u32() + curp + 4) & 0xFFFFFFFFUL);
+				else		set_immediate(mref,(fetch_u16() + curp + 2) & 0x0000FFFFUL);
+#endif
+			} break;
+
+		/* JMP */
+		case 0xEB:
+			ins->opcode = MXOP_JMP;
+			ins->argc = 1; {
+				ARGV *r = &ins->argv[0];
+#ifdef x64_mode
+				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
+				set_immediate(r,curp + 1 + ((uint64_t)((char)fetch_u8())));
+#else
+				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+				set_immediate(r,curp + 1 + ((uint32_t)((char)fetch_u8())));
+#endif
+				r->size = addrwordsize;
 			} break;
 
 		COVER_2(0xEC):
@@ -561,63 +632,6 @@ decode_next:
 				set_register(s,MX86_REG_DX);
 			} break;
 
-		case 0x9C:
-			ins->opcode = isdata32 ? MXOP_PUSHFD : MXOP_PUSHF;
-			ins->argc = 0;
-			break;
-
-		case 0x9D:
-			ins->opcode = isdata32 ? MXOP_POPFD : MXOP_POPF;
-			ins->argc = 0;
-			break;
-
-		/* NOP */
-		case 0x90:
-			if (core_level >= 6 && ins->rep == MX86_REPNE) ins->opcode = MXOP_PAUSE;
-			else ins->opcode = MXOP_NOP;
-			break;
-
-		/* MOV a,[memory addr] or
-		 * MOV [memory addr],a */
-		case 0xA0: case 0xA1: case 0xA2: case 0xA3:
-			ins->opcode = MXOP_MOV;
-			ins->argc = 2; {
-				const int which = (first_byte >> 1) & 1;
-				ARGV *areg = &ins->argv[which],*mref = &ins->argv[which^1];
-				areg->size = mref->size = (first_byte & 1) ? datawordsize : 1;
-				set_mem_ref_imm(mref,isaddr32 ? fetch_u32() : fetch_u16());
-				set_register(areg,MX86_REG_AX);
-			} break;
-
-		/* XCHG AX,[reg] */
-		COVER_4(0x91): COVER_2(0x95): case 0x97:
-			ins->opcode = MXOP_XCHG;
-			ins->argc = 2; {
-				ARGV *a = &ins->argv[0],*r = &ins->argv[1];
-				a->size = r->size = datawordsize;
-				set_register(r,first_byte & 7);
-				set_register(a,MX86_REG_AX);
-			} break;
-
-		case 0x98:
-			ins->opcode = isdata64 ? MXOP_CDQE : (isdata32 ? MXOP_CWDE : MXOP_CBW);
-			ins->argc = 0;
-			break;
-
-		case 0x99:
-			ins->opcode = isdata64 ? MXOP_CQO : (MXOP_CWD + (isdata32 & 1));
-			ins->argc = 0;
-			break;
-
-		COVER_2(0xE6):
-			ins->opcode = MXOP_OUT;
-			ins->argc = 2; {
-				ARGV *ioport = &ins->argv[0],*reg = &ins->argv[1];
-				set_immediate(ioport,fetch_u8());
-				reg->size = (first_byte & 1) ? data32wordsize : 1;
-				set_register(reg,MX86_REG_AX);
-			} break;
-
 		COVER_2(0xEE):
 			ins->opcode = MXOP_OUT;
 			ins->argc = 2; {
@@ -627,6 +641,17 @@ decode_next:
 				set_register(rax,MX86_REG_AX);
 				set_register(rdx,MX86_REG_DX);
 			} break;
+
+		case 0xF0:
+			ins->lock = 1;
+			goto decode_next;
+
+#if !defined(no_icebp) && (core_level >= 3) && !defined(x64_mode)
+		case 0xF1:
+			ins->opcode = MXOP_ICEBP;
+			ins->argc = 0;
+			break;
+#endif
 
 		/* REP/REPE/REPNE */
 		COVER_2(0xF2):
@@ -645,33 +670,6 @@ decode_next:
 			ins->argc = 0;
 			break;
 
-		/* CLI */
-		case 0xFA:
-			ins->opcode = MXOP_CLI;
-			ins->argc = 0;
-			break;
-
-		/* STI */
-		case 0xFB:
-			ins->opcode = MXOP_STI;
-			ins->argc = 0;
-			break;
-
-		/* JCXZ */
-		case 0xE3:
-			ins->opcode = MXOP_JCXZ;
-			ins->argc = 1; {
-				ARGV *mref = &ins->argv[0];
-#ifdef x64_mode
-				uint64_t curp = state->ip_value + (uint64_t)(cip - state->read_ip);
-				set_immediate(mref,((int64_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFFFFFFFFFULL);
-#else
-				uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-				set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
-#endif
-				mref->size = addrwordsize;
-			} break;
-
 		COVER_2(0xF6): {
 			ins->argc = 1;
 			ARGV *where = &ins->argv[0],*imm = &ins->argv[1];
@@ -686,34 +684,64 @@ decode_next:
 			}
 			break; }
 
-#if !defined(no_salc)
-		case 0xD6:
-# if !defined(x64_mode) && (defined(umc) || defined(everything))
-			if (ins->segment == MX86_SEG_FS) {	/* UMC identification */
-				ins->opcode = MXOP_UMC_IDENT;
-				ins->argc = 0;
-			} else
-# endif
-			{
-				ins->opcode = MXOP_SALC;
-				ins->argc = 0;
-			}
-			break;
-#endif
-
-#if !defined(no_icebp) && (core_level >= 3) && !defined(x64_mode)
-		case 0xF1:
-			ins->opcode = MXOP_ICEBP;
+		case 0xF8:
+			ins->opcode = MXOP_CLC;
 			ins->argc = 0;
 			break;
-#endif
 
-		case 0x26: case 0x2E: case 0x36: case 0x3E: /* segment overrides */
-			ins->argv[0].segment = ins->argv[1].segment =
-			ins->argv[2].segment = ins->argv[3].segment =
-			ins->segment = (first_byte >> 3) & 3;
-			if (--patience) goto decode_next;
+		case 0xF9:
+			ins->opcode = MXOP_STC;
+			ins->argc = 0;
 			break;
+
+		/* CLI */
+		case 0xFA:
+			ins->opcode = MXOP_CLI;
+			ins->argc = 0;
+			break;
+
+		/* STI */
+		case 0xFB:
+			ins->opcode = MXOP_STI;
+			ins->argc = 0;
+
+		case 0xFC:
+			ins->opcode = MXOP_CLD;
+			ins->argc = 0;
+			break;
+
+		case 0xFD:
+			ins->opcode = MXOP_STD;
+			ins->argc = 0;
+			break;
+			break;
+
+		/* group 0xFE-0xFF */
+		COVER_2(0xFE): {
+			ins->argc = 1;
+			ARGV *where = &ins->argv[0];
+			where->size = where->memregsz = (first_byte & 1) ? datawordsize : 1;
+			where->regtype = MX86_RT_NONE;
+			INS_MRM mrm = decode_rm_(where,ins,where->size,PLUSR_TRANSFORM);
+			switch (mrm.f.reg) {
+				case 0:	ins->opcode = MXOP_INC;	break;
+				case 1:	ins->opcode = MXOP_DEC;	break;
+				case 2: case 3: {
+					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
+					ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
+					where->size = (where->memregsz += ((mrm.f.reg & 1) ? 2 : 0));
+				} break;
+				case 4: case 5: {
+					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
+					ins->opcode = MXOP_JMP + (mrm.f.reg & 1);
+					where->size = (where->memregsz += ((mrm.f.reg & 1) ? 2 : 0));
+				} break;
+				case 6: case 7: {
+					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
+					ins->opcode = MXOP_PUSH + (mrm.f.reg & 1);
+				} break;
+			}
+			break; }
 
 #ifndef x64_mode
 		/* not valid in 64-bit mode */
@@ -1269,59 +1297,6 @@ decode_next:
 						break;
 				}
 			} break;
-
-		/* group 0xFE-0xFF */
-		COVER_2(0xFE): {
-			union x86_mrm mrm = fetch_modregrm();
-			switch (mrm.f.reg) {
-				case 0: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					ins->argc = 1;
-					ins->opcode = MXOP_INC;
-					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
-				case 1: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					ins->argc = 1;
-					ins->opcode = MXOP_DEC;
-					where->size = where->memregsz = (first_byte & 1) ? data32wordsize : 1;
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
-				case 2: case 3: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					const unsigned int sz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
-					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
-					ins->argc = 1;
-					ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
-					where->size = where->memregsz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
-				case 4: case 5: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					const unsigned int sz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
-					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
-					ins->argc = 1;
-					ins->opcode = MXOP_JMP + (mrm.f.reg & 1);
-					where->size = where->memregsz = sz;
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
-				case 6: case 7: {
-					struct minx86dec_argv *where = &ins->argv[0];
-					const unsigned int sz = data32wordsize + ((mrm.f.reg & 1) ? 2 : 0);
-					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
-					ins->argc = 1;
-					ins->opcode = MXOP_PUSH + (mrm.f.reg & 1);
-					where->size = where->memregsz = sz;
-					where->regtype = MX86_RT_NONE;
-					decode_rm(mrm,where,isaddr32);
-				} break;
-			}
-			break; }
 
 		COVER_2(0xC4): /* LDS/LES */
 			if ((*cip & 0xC0) == 0xC0) { /* NOPE! AVX/VEX extensions (illegal encoding of LDS/LES) */
