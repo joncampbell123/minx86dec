@@ -1,5 +1,43 @@
 ; x86-64 test assembly language
 bits 64
+
+	vphsubbw	xmm1,xmm2
+	vphsubbw	xmm1,[rsi]
+	vphsubwd	xmm1,xmm2
+	vphsubwd	xmm1,[rsi]
+	vphsubdq	xmm1,xmm2
+	vphsubdq	xmm1,[rsi]
+
+	vphaddudq	xmm1,xmm2
+	vphaddudq	xmm1,[rsi]
+
+	vphadduwd	xmm1,xmm2
+	vphadduwd	xmm1,[rsi]
+	vphadduwq	xmm1,xmm2
+	vphadduwq	xmm1,[rsi]
+
+	vphaddubw	xmm1,xmm2
+	vphaddubw	xmm1,[rsi]
+	vphaddubd	xmm1,xmm2
+	vphaddubd	xmm1,[rsi]
+	vphaddubq	xmm1,xmm2
+	vphaddubq	xmm1,[rsi]
+
+	vphadddq	xmm1,xmm2
+	vphadddq	xmm1,[rsi]
+
+	vphaddwd	xmm1,xmm2
+	vphaddwd	xmm1,[rsi]
+	vphaddwq	xmm1,xmm2
+	vphaddwq	xmm1,[rsi]
+
+	vphaddbw	xmm1,xmm2
+	vphaddbw	xmm1,[rsi]
+	vphaddbd	xmm1,xmm2
+	vphaddbd	xmm1,[rsi]
+	vphaddbq	xmm1,xmm2
+	vphaddbq	xmm1,[rsi]
+
 	vpmacssww	xmm1,xmm2,xmm3,xmm4
 	vpmacssww	xmm1,xmm2,[rsi],xmm4
 	vpmacsswd	xmm1,xmm2,xmm3,xmm4
