@@ -126,6 +126,7 @@
 #endif
 
 #if defined(vex_level)
+
 /* template:
  * AMD 0x8F VEX instruction of the form
  * 
@@ -147,6 +148,47 @@
 	unsigned char c = fetch_u8();							\
 	set_sse_register(s3,c>>4);							\
 }
+
+/* template:
+ * AMD 0x8F VEX instruction of the form
+ * 
+ * op    A,B,C,D
+ * A = mrm.f.reg
+ * B = v.f.v
+ * C = r/m
+ * D = 8-bit immediate
+ * all registers are SSE xmm/ymm */
+#  define typical_x86_amd_vex_m_v_rm_i8(op,vector_size)					\
+{											\
+	ARGV *d = &ins->argv[0],*s1 = &ins->argv[1];					\
+	ARGV *s2 = &ins->argv[2],*s3 = &ins->argv[3];					\
+	ins->argc = 4,ins->opcode = op;							\
+	d->size = s1->size = s2->size = s3->size = vector_size;				\
+	INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);	\
+	set_sse_register(d,mrm.f.reg);							\
+	set_sse_register(s1,v.f.v);							\
+	set_immediate(s3,fetch_u8());							\
+}
+
+/* template:
+ * AMD 0x8F VEX instruction of the form
+ * 
+ * op    A,B,C,D
+ * A = mrm.f.reg
+ * B = r/m
+ * C = 8-bit immediate
+ * all registers are SSE xmm/ymm */
+#  define typical_x86_amd_vex_m_rm_i8(op,vector_size)					\
+{											\
+	ARGV *d = &ins->argv[0],*s1 = &ins->argv[1];					\
+	ARGV *s2 = &ins->argv[2];							\
+	ins->opcode = op,ins->argc = 3,s2->size = 1;					\
+	d->size = s1->size = vector_size;						\
+	INS_MRM mrm = decode_rm_ex_(s1,ins,s1->size,PLUSR_TRANSFORM,MX86_RT_SSE);	\
+	set_sse_register(d,mrm.f.reg);							\
+	set_immediate(s2,fetch_u8());							\
+}
+
 #endif
 
 /* did we encounter FWAIT? (another odd prefix tacked on by Intel to instructions, yech!!) */
@@ -430,57 +472,21 @@ decode_next:
 								if (v.f.pp == 0)
 									typical_x86_amd_vex_m_v_rm_it4(MXOP_VPMADCSWD,vector_size);
 								break;
-#  if 0
 							COVER_4(0xC0):
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
 										if (v.f.l) break;
-										union x86_mrm mrm = fetch_modregrm();
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s1 = &ins->argv[1];
-										struct minx86dec_argv *s2 = &ins->argv[2];
-										ins->opcode = MXOP_VPROTB + (opcode & 3);
-										ins->argc = 3;
-										s2->size = 1;
-										d->size = s1->size = vector_size;
-										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
-										set_immediate(s2,fetch_u8());
+										typical_x86_amd_vex_m_rm_i8(MXOP_VPROTB + (opcode & 3),vector_size);
 									}
 								} break;
 							COVER_4(0xCC):
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPCOMB + ins->oes;
-									ins->argc = 4;
-									s3->size = 1;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_immediate(s3,fetch_u8());
-								} break;
+								if (v.f.pp == 0)
+									typical_x86_amd_vex_m_v_rm_i8(MXOP_VPCOMB + ins->oes,vector_size);
+								break;
 							COVER_4(0xEC):
-								if (v.f.pp == 0) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *s3 = &ins->argv[3];
-									ins->opcode = MXOP_VPCOMUB + ins->oes;
-									ins->argc = 4;
-									s3->size = 1;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s1,v.f.v);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_immediate(s3,fetch_u8());
-								} break;
-#  endif
+								if (v.f.pp == 0)
+									typical_x86_amd_vex_m_v_rm_i8(MXOP_VPCOMUB + ins->oes,vector_size);
+								break;
 						}
 					} break;
 #  if 0

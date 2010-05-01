@@ -23,6 +23,42 @@ bits 64
 	vpmadcswd	xmm1,xmm2,xmm3,xmm4
 	vpmadcswd	xmm1,xmm2,[rsi],xmm4
 
+	vpcomb		xmm1,xmm2,xmm3,4
+	vpcomb		xmm1,xmm2,[rsi],4
+	vpcomw		xmm1,xmm2,xmm3,4
+	vpcomw		xmm1,xmm2,[rsi],4
+	vpcomd		xmm1,xmm2,xmm3,4
+	vpcomd		xmm1,xmm2,[rsi],4
+	vpcomq		xmm1,xmm2,xmm3,4
+	vpcomq		xmm1,xmm2,[rsi],4
+
+	vpcomb		xmm1,xmm2,xmm3,0xA5
+	vpcomb		xmm1,xmm2,[rsi],0xA5
+	vpcomw		xmm1,xmm2,xmm3,0xA5
+	vpcomw		xmm1,xmm2,[rsi],0xA5
+	vpcomd		xmm1,xmm2,xmm3,0xA5
+	vpcomd		xmm1,xmm2,[rsi],0xA5
+	vpcomq		xmm1,xmm2,xmm3,0xA5
+	vpcomq		xmm1,xmm2,[rsi],0xA5
+
+	vpcomub		xmm1,xmm2,xmm3,0xA5
+	vpcomub		xmm1,xmm2,[rsi],0xA5
+	vpcomuw		xmm1,xmm2,xmm3,0xA5
+	vpcomuw		xmm1,xmm2,[rsi],0xA5
+	vpcomud		xmm1,xmm2,xmm3,0xA5
+	vpcomud		xmm1,xmm2,[rsi],0xA5
+	vpcomuq		xmm1,xmm2,xmm3,0xA5
+	vpcomuq		xmm1,xmm2,[rsi],0xA5
+
+	vprotb		xmm1,xmm2,3
+	vprotb		xmm1,[rsi],3
+	vprotw		xmm1,xmm2,3
+	vprotw		xmm1,[rsi],3
+	vprotd		xmm1,xmm2,3
+	vprotd		xmm1,[rsi],3
+	vprotq		xmm1,xmm2,3
+	vprotq		xmm1,[rsi],3
+
 	mov	bl,12h
 	mov	bx,1234h
 	mov	ebx,12345678h
