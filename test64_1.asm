@@ -1,5 +1,44 @@
 ; x86-64 test assembly language
 bits 64
+	push		byte 0x12
+	push		word 0x1234
+	push		qword 0x12345678
+
+	mov		word [0x12345678],ax
+	mov		dword [0x12345678],eax
+	mov		qword [0x12345678],rax
+
+	mov		qword [0xFFFFFFFFEDCBA987],rax
+
+	pop		word [rsi]
+	pop		qword [rsi]
+
+	vprotb		xmm1,xmm2,xmm3
+	vprotb		xmm1,[rsi],xmm3
+	vprotw		xmm1,xmm2,xmm3
+	vprotw		xmm1,[rsi],xmm3
+	vprotd		xmm1,xmm2,xmm3
+	vprotd		xmm1,[rsi],xmm3
+	vprotq		xmm1,xmm2,xmm3
+	vprotq		xmm1,[rsi],xmm3
+
+	vpshlb		xmm1,xmm2,xmm3
+	vpshlb		xmm1,[rsi],xmm3
+	vpshlw		xmm1,xmm2,xmm3
+	vpshlw		xmm1,[rsi],xmm3
+	vpshld		xmm1,xmm2,xmm3
+	vpshld		xmm1,[rsi],xmm3
+	vpshlq		xmm1,xmm2,xmm3
+	vpshlq		xmm1,[rsi],xmm3
+
+	vpshab		xmm1,xmm2,xmm3
+	vpshab		xmm1,[rsi],xmm3
+	vpshaw		xmm1,xmm2,xmm3
+	vpshaw		xmm1,[rsi],xmm3
+	vpshad		xmm1,xmm2,xmm3
+	vpshad		xmm1,[rsi],xmm3
+	vpshaq		xmm1,xmm2,xmm3
+	vpshaq		xmm1,[rsi],xmm3
 
 	vphsubbw	xmm1,xmm2
 	vphsubbw	xmm1,[rsi]

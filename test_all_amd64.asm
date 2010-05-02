@@ -3,6 +3,10 @@
 
 _start:
 
+	push	byte 0x12
+	push	word 0x1234
+	push	dword 0x12345678
+
 ;===================general================
 	aaa
 	aad
@@ -89,6 +93,8 @@ _start:
 	movd	xmm0,eax
 	movd	eax,mm0
 	movd	eax,xmm0
+	mov	[0x1234],ax
+	mov	[a32 0x12345678],eax
 	db	0x66,0x0F,0x50,0xC0		; movmkspd eax,xmm0
 	db	0x0F,0x50,0xC0			; movmksps eax,xmm0
 	movnti	[esi],eax
@@ -106,7 +112,9 @@ _start:
 	outsw
 	pause
 	pop	ax
+	pop	eax
 	pop	si
+	pop	esi
 	pop	es
 	popa
 	popcnt	ax,ax
@@ -118,6 +126,7 @@ _start:
 	prefetcht1 [esi]
 	prefetcht2 [esi]
 	push	ax
+	push	eax
 	push	cs
 	pusha
 	pushf

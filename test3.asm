@@ -5,6 +5,51 @@
 org 0
 
 _start:
+	fadd	st0,st1
+	fmul	st0,st1
+	fcom	st0,st1
+	fcomp	st0,st1
+	fsub	st0,st1
+	fsubr	st0,st1
+	fdiv	st0,st1
+	fdivr	st0,st1
+
+	fadd	st1,st0
+	fmul	st1,st0
+;	fcom	st1,st0
+;	fcomp	st1,st0
+	fsub	st1,st0
+	fsubr	st1,st0
+	fdiv	st1,st0
+	fdivr	st1,st0
+
+	fadd	dword [si]
+	fmul	dword [si]
+	fcom	dword [si]
+	fcomp	dword [si]
+	fsub	dword [si]
+	fsubr	dword [si]
+	fdiv	dword [si]
+	fdivr	dword [si]
+
+	fadd	dword [si+3]
+	fmul	dword [si+3]
+	fcom	dword [si+3]
+	fcomp	dword [si+3]
+	fsub	dword [si+3]
+	fsubr	dword [si+3]
+	fdiv	dword [si+3]
+	fdivr	dword [si+3]
+
+	fadd	qword [si]
+	fmul	qword [si]
+	fcom	qword [si]
+	fcomp	qword [si]
+	fsub	qword [si]
+	fsubr	qword [si]
+	fdiv	qword [si]
+	fdivr	qword [si]
+
 	aaa					; 37
 
 	aad					; D5 0A

@@ -33,6 +33,7 @@
 #  define datawordsize		data64wordsize
 #  define addr64wordsize	(isaddr32 ? 4 : 8)
 #  define addrwordsize		addr64wordsize
+#  define stackwordsize		(dataprefix32 ? 2 : 8)
 #  define ARGV			struct minx86dec_argv_x64
 #  define INS_MRM		struct x64_mrm
 #else
@@ -41,6 +42,7 @@
 #  define decode_rm_ex_		decode_rm_x86
 #  define datawordsize		data32wordsize
 #  define addrwordsize		addr32wordsize
+#  define stackwordsize		data32wordsize
 #  define ARGV			struct minx86dec_argv
 #  define INS_MRM		union x86_mrm
 #endif
@@ -60,6 +62,10 @@
 
 #define COVER_8(x) COVER_4(x): COVER_4(x+4)
 #define COVER_ROW(x) COVER_8(x): COVER_8(x+8)
+#define COVER_2ROW(x) COVER_ROW(x): COVER_ROW(x+0x10)
+#define COVER_4ROW(x) COVER_2ROW(x): COVER_2ROW(x+0x20)
+#define COVER_8ROW(x) COVER_4ROW(x): COVER_4ROW(x+0x40)
+#define COVER_16ROW(x) COVER_8ROW(x): COVER_8ROW(x+0x80)
 
 /* defaults */
 #ifndef core_level
@@ -205,6 +211,26 @@
 	set_sse_register(d,mrm.f.reg);							\
 }
 
+/* template:
+ * AMD 0x8F VEX instruction of the form
+ * 
+ * op    A,B,C
+ * A = mrm.f.reg
+ * B = r/m
+ * C = v.f.v
+ * all registers are SSE xmm/ymm
+ * v.f.w if set switches order of B & C */
+#  define typical_x86_amd_vex_m_rm_v_wswap(op,vector_size)				\
+{											\
+	ARGV *d = &ins->argv[0],*s1 = &ins->argv[1+v.f.w];				\
+	ARGV *s2 = &ins->argv[2-v.f.w];							\
+	ins->opcode = op,ins->argc = 3;							\
+	d->size = s1->size = s2->size = vector_size;					\
+	INS_MRM mrm = decode_rm_ex_(s1,ins,s1->size,PLUSR_TRANSFORM,MX86_RT_SSE);	\
+	set_sse_register(d,mrm.f.reg);							\
+	set_sse_register(s2,v.f.v);							\
+}
+
 #endif
 
 /* did we encounter FWAIT? (another odd prefix tacked on by Intel to instructions, yech!!) */
@@ -305,12 +331,38 @@ decode_next:
 			ins->argc = 1; {
 				ARGV *reg = &ins->argv[0];
 				set_register(reg,first_byte & 7);
-#ifdef x64_mode
-				reg->size = dataprefix32 ? 2 : 8;
-#else
-				reg->size = datawordsize;
-#endif
+				reg->size = stackwordsize;
 			} break;
+
+#if core_level >= 1
+		COVER_2(0x60):
+			ins->opcode = MXOP_PUSHA+(first_byte&1)+(isdata32?2:0);
+			ins->argc = 0;
+			break;
+#endif
+
+#if core_level >= 1 && !defined(x64_mode)
+		case 0x62: /* not valid in 64-bit mode */
+			ins->opcode = MXOP_BOUND;
+			ins->argc = 2; {
+				ARGV *ai = &ins->argv[0],*mp = &ins->argv[1];
+				ai->size = data32wordsize; mp->size = data32wordsize * 2;
+				INS_MRM mrm = decode_rm_(mp,ins,mp->size,PLUSR_TRANSFORM);
+				set_register(ai,mrm.f.reg);
+			} break;
+#endif
+
+#if core_level >= 2 && !defined(x64_mode)
+		case 0x63:
+			ins->opcode = MXOP_ARPL;
+			ins->argc = 2; {
+				ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+				INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+				s->size = d->size = 2;
+				set_register(s,mrm.f.reg);
+			}
+			break;
+#endif
 
 #if core_level >= 3
 		COVER_2(0x64): /* segment overrides FS and GS */
@@ -352,6 +404,44 @@ decode_next:
 				set_register(s,mrm.f.rm);
 				decode_rm(mrm,s,0);
 			} break;
+#endif
+
+#if core_level >= 2
+		case 0x68: /* FIXME: did this version of PUSH appear on the 286? */
+			ins->opcode = MXOP_PUSH;
+			ins->argc = 1; {
+				ARGV *s = &ins->argv[0];
+				s->size = data32wordsize;
+#if defined(x64_mode)
+				set_immediate(s,(uint64_t)(isdata32 ? (int32_t)fetch_u32() : (int16_t)fetch_u16()));
+#else
+				set_immediate(s,isdata32 ? fetch_u32() : fetch_u16());
+#endif
+			}
+			break;
+#endif
+
+#if core_level >= 2
+		case 0x6A: /* FIXME: did this version of PUSH appear on the 286? */
+			ins->opcode = MXOP_PUSH;
+			ins->argc = 1; {
+				ARGV *s = &ins->argv[0]; s->size = 1;
+				set_immediate(s,fetch_u8());
+			}
+			break;
+#endif
+
+#if core_level >= 1
+		COVER_4(0x6C):
+			ins->opcode = MXOP_INS+((first_byte>>1)&1);
+			ins->argc = 1; {
+				ARGV *r = &ins->argv[0];
+				r->size = (first_byte&1)?data32wordsize:1;
+				r->regtype = MX86_RT_NONE; r->scalar = 0; r->memregs = 1;
+				r->memref_base = 0; r->memregsz = addrwordsize;
+				r->memreg[0] = (first_byte & 2) ? MX86_REG_ESI : MX86_REG_EDI;
+			}
+			break;
 #endif
 
 		/* Jcc short */
@@ -491,8 +581,8 @@ decode_next:
 							COVER_4(0xC0):
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
-										if (v.f.l) break;
-										typical_x86_amd_vex_m_rm_i8(MXOP_VPROTB+(opcode&3),vector_size);
+										if (!v.f.l)
+											typical_x86_amd_vex_m_rm_i8(MXOP_VPROTB+(opcode&3),vector_size);
 									}
 								} break;
 							COVER_4(0xCC):
@@ -515,62 +605,32 @@ decode_next:
 							COVER_2(0x82):
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
-										if (v.f.l) break;
-										typical_x86_amd_vex_m_rm(MXOP_VFRCZSS+(opcode&1),vector_size);
+										if (!v.f.l)
+											typical_x86_amd_vex_m_rm(MXOP_VFRCZSS+(opcode&1),vector_size);
 									}
 								} break;
-#  if 0
 							COVER_4(0x90):
 								if (v.f.pp == 0) {
 									if (v.f.l) break;
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1+v.f.w];
-									struct minx86dec_argv *s2 = &ins->argv[2-v.f.w];
-									ins->opcode = MXOP_VPROTB + (opcode & 3);
-									ins->argc = 3;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s2,v.f.v);
-									decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
+									typical_x86_amd_vex_m_rm_v_wswap(MXOP_VPROTB+(opcode&3),vector_size);
 								} break;
-
 							COVER_4(0x94):
 								if (v.f.pp == 0) {
 									if (v.f.l) break;
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1+v.f.w];
-									struct minx86dec_argv *s2 = &ins->argv[2-v.f.w];
-									ins->opcode = MXOP_VPSHLB + (opcode & 3);
-									ins->argc = 3;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s2,v.f.v);
-									decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
+									typical_x86_amd_vex_m_rm_v_wswap(MXOP_VPSHLB+(opcode&3),vector_size);
 								} break;
-
 							COVER_4(0x98):
 								if (v.f.pp == 0) {
 									if (v.f.l) break;
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1+v.f.w];
-									struct minx86dec_argv *s2 = &ins->argv[2-v.f.w];
-									ins->opcode = MXOP_VPSHAB + (opcode & 3);
-									ins->argc = 3;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									set_sse_register(s2,v.f.v);
-									decode_rm_ex(mrm,s1,isaddr32,MX86_RT_SSE);
+									typical_x86_amd_vex_m_rm_v_wswap(MXOP_VPSHAB+(opcode&3),vector_size);
 								} break;
-#endif
 							COVER_4(0xC0):
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
-										if (v.f.l) break;
-										if (opcode == 0xC0) break;
-										typical_x86_amd_vex_m_rm(MXOP_VPHADDBW+(opcode&3)-1,vector_size);
+										if (!v.f.l) {
+											if (opcode != 0xC0)
+												typical_x86_amd_vex_m_rm(MXOP_VPHADDBW+(opcode&3)-1,vector_size);
+										}
 									}
 								} break;
 							COVER_2(0xC6):
@@ -590,31 +650,33 @@ decode_next:
 							COVER_4(0xD0):
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
-										if (v.f.l) break;
-										if (opcode == 0xD0) break;
-										typical_x86_amd_vex_m_rm(MXOP_VPHADDUBW+(opcode&3)-1,vector_size);
+										if (!v.f.l) {
+											if (opcode != 0xD0)
+												typical_x86_amd_vex_m_rm(MXOP_VPHADDUBW+(opcode&3)-1,vector_size);
+										}
 									}
 								} break;
 							COVER_2(0xD6):
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
-										if (v.f.l) break;
-										typical_x86_amd_vex_m_rm(MXOP_VPHADDUWD+(opcode&1),vector_size);
+										if (!v.f.l)
+											typical_x86_amd_vex_m_rm(MXOP_VPHADDUWD+(opcode&1),vector_size);
 									}
 								} break;
 							case 0xDB:
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
-										if (v.f.l) break;
-										typical_x86_amd_vex_m_rm(MXOP_VPHADDUDQ,vector_size);
+										if (!v.f.l)
+											typical_x86_amd_vex_m_rm(MXOP_VPHADDUDQ,vector_size);
 									}
 								} break;
 							COVER_4(0xE0):
 								if (v.f.pp == 0) {
 									if (v.f.v == 0) {
-										if (v.f.l) break;
-										if (opcode == 0xE0) break;
-										typical_x86_amd_vex_m_rm(MXOP_VPHSUBBW+(opcode&3)-1,vector_size);
+										if (!v.f.l) {
+											if (opcode != 0xE0)
+												typical_x86_amd_vex_m_rm(MXOP_VPHSUBBW+(opcode&3)-1,vector_size);
+										}
 									}
 								} break;
 						}
@@ -623,19 +685,14 @@ decode_next:
 #  endif
 			}
 			else {
-#  if 0
-				struct minx86dec_argv *d = &ins->argv[0];
-				union x86_mrm mrm = fetch_modregrm();
+				ARGV *d = &ins->argv[0]; ins->argc = 1;
+				d->size = stackwordsize;
+				INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
 				switch (mrm.f.reg) {
 					case 0:
-						/* FIXME: is size specified or implied? */
 						ins->opcode = MXOP_POP;
-						d->size = data32wordsize;
-						ins->argc = 1;
-						decode_rm(mrm,d,isaddr32);
 						break;
 				}
-#  endif
 			} break;
 
 		/* NOP */
@@ -677,8 +734,7 @@ decode_next:
 			} break;
 #endif
 
-		case 0x9B:
-			/* hold on... check next opcode */
+		case 0x9B: /* FWAIT, or part of a newer opcode */
 			if (cip[0] == 0xD9) {
 				if (cip[1] >= 0xC0) {
 				}
@@ -755,7 +811,11 @@ decode_next:
 				const int which = (first_byte >> 1) & 1;
 				ARGV *areg = &ins->argv[which],*mref = &ins->argv[which^1];
 				areg->size = mref->size = (first_byte & 1) ? datawordsize : 1;
+#ifdef x64_mode
+				set_mem_ref_imm(mref,(uint64_t)((int32_t)fetch_u32()));
+#else
 				set_mem_ref_imm(mref,isaddr32 ? fetch_u32() : fetch_u16());
+#endif
 				set_register(areg,MX86_REG_AX);
 			} break;
 
@@ -784,10 +844,7 @@ decode_next:
 				r->size = (first_byte & 1) ? datawordsize : 1;
 				r->regtype = MX86_RT_NONE;
 				r->segment = first_byte & 2 ? MX86_SEG_ES : seg_can_override(MX86_SEG_DS);
-				r->scalar = 0;
-				r->memregs = 1;
-				r->memref_base = 0;
-				r->memregsz = addrwordsize;
+				r->scalar = 0,r->memregs = 1,r->memref_base = 0,r->memregsz = addrwordsize;
 				r->memreg[0] = (first_byte & 2) ? MX86_REG_EDI : MX86_REG_ESI;
 			} break;
 
@@ -844,30 +901,38 @@ decode_next:
 				} break;
 			} } break;
 
+#if core_level >= 1
+		COVER_2(0xC8):
+			ins->opcode = MXOP_ENTER+(first_byte&1);
+			ins->argc = (first_byte == 0xC8)?2:0;
+			if (ins->argc) { /* ENTER */
+				ARGV *a = &ins->argv[0],*b = &ins->argv[1];
+				a->size = 16; b->size = 8;
+				set_immediate(a,fetch_u16());
+				set_immediate(b,fetch_u8());
+			}
+			break;
+#endif
+
 		COVER_2(0xCA):
 			ins->opcode = MXOP_RETF;
 			ins->argc = 0;
 			if ((first_byte & 1) == 0) {
-				ARGV *imm = &ins->argv[ins->argc++];
-				imm->size = 2;
+				ARGV *imm = &ins->argv[ins->argc++]; imm->size = 2;
 				set_immediate(imm,fetch_u16());
 			} break;
 
 		/* INT 3 */
 		case 0xCC:
 			ins->opcode = MXOP_INT;
-			ins->argc = 1; {
-				ARGV *r = &ins->argv[0];
-				set_immediate(r,3);
-			} break;
+			ins->argc = 1; set_immediate(&ins->argv[0],3);
+			break;
 
 		/* INT N */
 		case 0xCD:
 			ins->opcode = MXOP_INT;
-			ins->argc = 1; {
-				ARGV *r = &ins->argv[0];
-				set_immediate(r,fetch_u8());
-			} break;
+			ins->argc = 1; set_immediate(&ins->argv[0],fetch_u8());
+			break;
 
 #ifndef x64_mode /* not valid in 64-bit mode */
 		/* INTO */
@@ -1046,8 +1111,7 @@ decode_next:
 			ins->argc = 1; {
 				struct minx86dec_argv *mref = &ins->argv[0];
 				mref->size = mref->memregsz = data32wordsize + 2;
-				mref->regtype = MX86_RT_IMM;
-				mref->segment = MX86_SEG_IMM;
+				mref->regtype = MX86_RT_IMM,mref->segment = MX86_SEG_IMM;
 				if (isdata32)	mref->value = fetch_u32();
 				else		mref->value = fetch_u16();
 				mref->segval = fetch_u16();
@@ -1073,9 +1137,8 @@ decode_next:
 			ins->opcode = MXOP_IN;
 			ins->argc = 2; {
 				ARGV *d = &ins->argv[0],*s = &ins->argv[1];
-				d->size = data32wordsize;
+				d->size = data32wordsize,s->size = 2;
 				set_register(d,MX86_REG_AX);
-				s->size = 2;	/* always DX, Intel chips can only address 65536 I/O ports */
 				set_register(s,MX86_REG_DX);
 			} break;
 
@@ -1126,8 +1189,7 @@ decode_next:
 			static int map_f6[8] = {MXOP_TEST,MXOP_UD,MXOP_NOT,MXOP_NEG, MXOP_MUL,MXOP_IMUL,MXOP_DIV,MXOP_IDIV};
 			ins->opcode = map_f6[mrm.f.reg]; ins->argc = 1;
 			if (mrm.f.reg == 0) {
-				ins->argc++;
-				set_immediate(imm,(first_byte & 1) ? imm32sbysize(ins) : fetch_u8());
+				ins->argc++; set_immediate(imm,(first_byte & 1) ? imm32sbysize(ins) : fetch_u8());
 			}
 			break; }
 
@@ -4899,252 +4961,55 @@ decode_next:
 			};
 			} break;
 #endif
-#if core_level >= 1
-		case 0x62:
-			ins->opcode = MXOP_BOUND;
-			ins->argc = 2; {
-				struct minx86dec_argv *ai = &ins->argv[0];
-				struct minx86dec_argv *mp = &ins->argv[1];
-				union x86_mrm mrm = fetch_modregrm();
-				ai->size = data32wordsize;
-				mp->size = data32wordsize * 2;
-				set_register(ai,mrm.f.reg);
-				decode_rm(mrm,mp,isaddr32);
-			}
-			break;
-		COVER_4(0x6C):
-			ins->opcode = MXOP_INS + ((first_byte >> 1) & 1);
-			ins->argc = 1; {
-				struct minx86dec_argv *r = &ins->argv[0];
-				r->size = (first_byte & 1) ? data32wordsize : 1;
-				r->regtype = MX86_RT_NONE;
-				r->scalar = 0;
-				r->memregs = 1;
-				r->memref_base = 0;
-				r->memregsz = addr32wordsize;
-				r->memreg[0] = (first_byte & 2) ? MX86_REG_ESI : MX86_REG_EDI;
-			}
-			break;
-		COVER_2(0xC8):
-			ins->opcode = MXOP_ENTER + (first_byte & 1);
-			ins->argc = first_byte == 0xC8 ? 2 : 0;
-			if (ins->argc) { /* ENTER */
-				struct minx86dec_argv *a = &ins->argv[0];
-				struct minx86dec_argv *b = &ins->argv[1];
-				a->size = 16;
-				b->size = 8;
-				set_immediate(a,fetch_u16());
-				set_immediate(b,fetch_u8());
-			}
-			break;
-		COVER_2(0x60):
-			ins->opcode = MXOP_PUSHA + (first_byte & 1) + (isdata32 ? 2 : 0);
-			ins->argc = 0;
-			break;
-#endif
-#if core_level >= 2
-		case 0x63:
-			ins->opcode = MXOP_ARPL;
-			ins->argc = 2; {
-				struct minx86dec_argv *d = &ins->argv[0];
-				struct minx86dec_argv *s = &ins->argv[1];
-				union x86_mrm mrm = fetch_modregrm();
-				s->size = d->size = 2;
-				set_register(s,mrm.f.reg);
-				decode_rm(mrm,d,isaddr32);
-			}
-			break;
-		case 0x68: /* FIXME: did this version of PUSH appear on the 286? */
-			ins->opcode = MXOP_PUSH;
-			ins->argc = 1; {
-				struct minx86dec_argv *s = &ins->argv[0];
-				s->size = data32wordsize;
-				set_immediate(s,isdata32 ? fetch_u32() : fetch_u16());
-			}
-			break;
-		case 0x6A: /* FIXME: did this version of PUSH appear on the 286? */
-			ins->opcode = MXOP_PUSH;
-			ins->argc = 1; {
-				struct minx86dec_argv *s = &ins->argv[0];
-				s->size = 1;
-				set_immediate(s,fetch_u8());
-			}
-			break;
-#endif
-#if 1 /* TODO: #define for FPU support */
+
+/*---------------------------------- FPU decoding ------------------------------ */
+		COVER_8(0xD8): {
+#define FPU_CODE(fb,sb)	((((fb)&7)<<8)|(sb))
+			const uint16_t fpu_code = ins->fpu_code = ((first_byte & 7) << 8) | (*cip++);
+			switch (fpu_code) {
+				COVER_16ROW(FPU_CODE(0xD8,0x00)):
+				COVER_16ROW(FPU_CODE(0xDC,0x00)): {
+					const unsigned int which = (fpu_code >> 10) && (fpu_code & 0xC0) == 0xC0;
+					ARGV *d = &ins->argv[which],*s = &ins->argv[which^1];
+					if ((fpu_code&0xC0) == 0xC0)
+						set_fpu_register(s,MX86_ST(fpu_code&7));
+					else {
+						s->size = (fpu_code >> 10) ? 8 : 4;
+						cip--; decode_rm_(s,ins,s->size,PLUSR_TRANSFORM);
+					}
+
+					ins->argc = 2;
+					set_fpu_register(d,MX86_ST(0));
+					if (which) {
+						switch ((fpu_code>>3)&7) {
+							case 0x00:	ins->opcode = MXOP_FADD;	break;	/* 0xDC 0xC0 */
+							case 0x01:	ins->opcode = MXOP_FMUL;	break;	/* 0xDC 0xC8 */
+							case 0x04:	ins->opcode = MXOP_FSUB;	break;	/* 0xDC 0xE0 */
+							case 0x05:	ins->opcode = MXOP_FSUBR;	break;	/* 0xDC 0xE8 */
+							case 0x06:	ins->opcode = MXOP_FDIV;	break;	/* 0xDC 0xF0 */
+							case 0x07:	ins->opcode = MXOP_FDIVR;	break;	/* 0xDC 0xF8 */
+						}
+					}
+					else {
+						switch ((fpu_code>>3)&7) {
+							case 0x00:	ins->opcode = MXOP_FADD;	break;	/* 0xD8 0xC0 */
+							case 0x01:	ins->opcode = MXOP_FMUL;	break;	/* 0xD8 0xC8 */
+							case 0x02:	ins->opcode = MXOP_FCOM;	break;	/* 0xD8 0xD0 */
+							case 0x03:	ins->opcode = MXOP_FCOMP;	break;	/* 0xD8 0xD8 */
+							case 0x04:	ins->opcode = MXOP_FSUB;	break;	/* 0xD8 0xE0 */
+							case 0x05:	ins->opcode = MXOP_FSUBR;	break;	/* 0xD8 0xE8 */
+							case 0x06:	ins->opcode = MXOP_FDIV;	break;	/* 0xD8 0xF0 */
+							case 0x07:	ins->opcode = MXOP_FDIVR;	break;	/* 0xD8 0xF8 */
+						}
+					};
+				} break;
+			};
+#undef FPU_CODE
+		} break;
+
+#if 0 /* TODO: #define for FPU support */
 /* ---------------------------------- FPU instructions ---------------------------------- */
 /* TODO: separate out FPU instructions according to whether we are decoding for 286, 386, etc.. */
-		case 0xD8: {
-			/* alright this is where it gets messy: second byte can be opcode OR a mod/reg/rm combination! */
-			const uint8_t second_byte = *cip;
-			if ((second_byte & 0xC0) == 0xC0) {
-				cip++;	/* it was second byte of the opcode, step forward */
-				switch (second_byte) {
-					COVER_8(0xC0): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						set_fpu_register(d,MX86_ST(0));
-						set_fpu_register(s,MX86_ST(second_byte&7));
-						ins->opcode = MXOP_FADD;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xC8): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						set_fpu_register(d,MX86_ST(0));
-						set_fpu_register(s,MX86_ST(second_byte&7));
-						ins->opcode = MXOP_FMUL;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xD0): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						set_fpu_register(d,MX86_ST(0));
-						set_fpu_register(s,MX86_ST(second_byte&7));
-						ins->opcode = MXOP_FCOM;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xD8): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						set_fpu_register(d,MX86_ST(0));
-						set_fpu_register(s,MX86_ST(second_byte&7));
-						ins->opcode = MXOP_FCOMP;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xE0): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						set_fpu_register(d,MX86_ST(0));
-						set_fpu_register(s,MX86_ST(second_byte&7));
-						ins->opcode = MXOP_FSUB;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xE8): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						set_fpu_register(d,MX86_ST(0));
-						set_fpu_register(s,MX86_ST(second_byte&7));
-						ins->opcode = MXOP_FSUBR;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xF0): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						set_fpu_register(d,MX86_ST(0));
-						set_fpu_register(s,MX86_ST(second_byte&7));
-						ins->opcode = MXOP_FDIV;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xF8): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->regtype = s->regtype = MX86_RT_ST;
-						set_fpu_register(d,MX86_ST(0));
-						set_fpu_register(s,MX86_ST(second_byte&7));
-						ins->opcode = MXOP_FDIVR;
-						ins->argc = 2;
-					} break;
-				} break;
-			}
-			else {
-				/* mod/reg/rm */
-				union x86_mrm mrm = fetch_modregrm();
-				switch (mrm.f.reg) {
-					case 0:
-						ins->opcode = MXOP_FADD;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 4;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 1:
-						ins->opcode = MXOP_FMUL;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 4;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 2:
-						ins->opcode = MXOP_FCOM;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 4;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 3:
-						ins->opcode = MXOP_FCOMP;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 4;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 4:
-						ins->opcode = MXOP_FSUB;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 4;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 5:
-						ins->opcode = MXOP_FSUBR;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 4;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 6:
-						ins->opcode = MXOP_FDIV;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 4;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 7:
-						ins->opcode = MXOP_FDIVR;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 4;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-				}
-			}
-			} break;
 		case 0xD9: {
 			const uint8_t second_byte = *cip;
 			if ((second_byte & 0xC0) == 0xC0) {
@@ -5700,155 +5565,6 @@ decode_next:
 							decode_rm(mrm,s,isaddr32);
 						} break;
 
-				}
-			} break; }
-		case 0xDC: {
-			const uint8_t second_byte = *cip;
-			if ((second_byte & 0xC0) == 0xC0) {
-				cip++;	/* it was second byte of the opcode, step forward */
-				switch (second_byte) {
-					COVER_8(0xC0): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						set_fpu_register(d,MX86_ST(second_byte&7));
-						set_fpu_register(s,MX86_ST(0));
-						ins->opcode = MXOP_FADD;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xC8): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						set_fpu_register(d,MX86_ST(second_byte&7));
-						set_fpu_register(s,MX86_ST(0));
-						ins->opcode = MXOP_FMUL;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xE0): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						set_fpu_register(d,MX86_ST(second_byte&7));
-						set_fpu_register(s,MX86_ST(0));
-						ins->opcode = MXOP_FSUBR;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xE8): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						set_fpu_register(d,MX86_ST(second_byte&7));
-						set_fpu_register(s,MX86_ST(0));
-						ins->opcode = MXOP_FSUB;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xF0): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						set_fpu_register(d,MX86_ST(second_byte&7));
-						set_fpu_register(s,MX86_ST(0));
-						ins->opcode = MXOP_FDIVR;
-						ins->argc = 2;
-					} break;
-					COVER_8(0xF8): {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						set_fpu_register(d,MX86_ST(second_byte&7));
-						set_fpu_register(s,MX86_ST(0));
-						ins->opcode = MXOP_FDIV;
-						ins->argc = 2;
-					} break;
-				}
-			}
-			else {
-				/* mod/reg/rm */
-				union x86_mrm mrm = fetch_modregrm();
-				switch (mrm.f.reg) {
-					case 0:
-						ins->opcode = MXOP_FADD;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 8;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 1:
-						ins->opcode = MXOP_FMUL;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 8;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 2:
-						ins->opcode = MXOP_FCOM;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 8;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 3:
-						ins->opcode = MXOP_FCOMP;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 8;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 4:
-						ins->opcode = MXOP_FSUB;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 8;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 5:
-						ins->opcode = MXOP_FSUBR;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 8;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 6:
-						ins->opcode = MXOP_FDIV;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 8;
-							decode_rm(mrm,s,isaddr32);
-						} break;
-					case 7:
-						ins->opcode = MXOP_FDIVR;
-						ins->argc = 2; {
-							struct minx86dec_argv *d = &ins->argv[0];
-							struct minx86dec_argv *s = &ins->argv[1];
-							/* ST(0) */
-							set_fpu_register(d,MX86_ST(0));
-							/* src */
-							s->size = 8;
-							decode_rm(mrm,s,isaddr32);
-						} break;
 				}
 			} break; }
 		case 0xDD: {

@@ -88,7 +88,7 @@ static void minx86dec_memref_print(struct minx86dec_argv *a,char *output) {
 		uint32_t pofs = a->memref_base;
 		char sgn = '+';
 
-		if (pofs & 0x80000000) {
+		if ((pofs & 0x80000000) && a->memregs != 0) {
 			pofs = (uint32_t)(-pofs);
 			sgn = '-';
 		}
@@ -193,7 +193,7 @@ static void minx86dec_memref_print_x64(struct minx86dec_argv_x64 *a,char *output
 		uint64_t pofs = a->memref_base;
 		char sgn = '+';
 
-		if (pofs & 0x8000000000000000ULL) {
+		if ((pofs & 0x8000000000000000ULL) && a->memregs != 0) {
 			pofs = (uint64_t)(-pofs);
 			sgn = '-';
 		}
