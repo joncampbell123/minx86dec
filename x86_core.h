@@ -1327,369 +1327,232 @@ decode_next:
 								}
 								set_sse_register(d,mrm.f.reg);
 							} break;
-#  ifndef x64_mode
+
 							case 0x2C: {
-								struct minx86dec_argv *d = &ins->argv[0];
-								struct minx86dec_argv *s = &ins->argv[1];
-								union x86_mrm mrm = fetch_modregrm();
-								if (ins->rep >= MX86_REPE)
-									ins->opcode = MXOP_CVTTSD2SI + ins->rep - MX86_REPE;
-								else
-									ins->opcode = MXOP_CVTTPS2PI + (dataprefix32 & 1);
-								ins->argc = 2;
-								if (ins->rep >= MX86_REPE) {
-									d->size = 4;
-									d->regtype = MX86_RT_REG;
-								}
-								else {
-									d->size = 8;
-									d->regtype = MX86_RT_MMX;
-								}
-								s->size = 16; /* 128 bit = 16 bytes */
+								ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+								ins->argc = 2; s->size = 16; s->regtype = MX86_RT_SSE;
+								if (ins->rep >= MX86_REPE)	ins->opcode = MXOP_CVTTSD2SI+ins->rep-MX86_REPE;
+								else				ins->opcode = MXOP_CVTTPS2PI+(dataprefix32&1);
+								if (ins->rep >= MX86_REPE)	{ d->size = 4; d->regtype = MX86_RT_REG; }
+								else				{ d->size = 8; d->regtype = MX86_RT_MMX; }
+								INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 								d->reg = mrm.f.reg;
-								s->regtype = MX86_RT_SSE;
-								decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-							break; }
-								
-							case 0x2D:
+							} break;
+
+							case 0x2D: {
+								ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+								s->size = 16; ins->argc = 2; s->regtype = MX86_RT_SSE;
 								if (ins->rep >= MX86_REPE) {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s = &ins->argv[1];
-									union x86_mrm mrm = fetch_modregrm();
-									ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSS2SI : MXOP_CVTSD2SI;
-									ins->argc = 2;
-									d->size = 4;
+									ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSS2SI : MXOP_CVTSD2SI; d->size = 4;
+									INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 									set_register(d,mrm.f.reg);
-									s->size = 16; /* 128 bit = 16 bytes */
-									s->regtype = MX86_RT_SSE;
-									decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 								}
 								else {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s = &ins->argv[1];
-									union x86_mrm mrm = fetch_modregrm();
 									ins->opcode = MXOP_CVTPS2PI + (dataprefix32 & 1);
-									ins->argc = 2;
-									d->size = 8;
+									INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE); d->size = 8;
 									set_mmx_register(d,mrm.f.reg);
-									s->size = 16; /* 128 bit = 16 bytes */
-									s->regtype = MX86_RT_SSE;
-									decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 								}
-							break;
-
-							case 0x2F:
-								if (v.f.l) break; /* forms not supported with L=1 */
-								if (v.f.v != 0) break; /* vvvv != 1111 is undefined */
-								ins->opcode = MXOP_COMISS + (dataprefix32 ? 1 : 0);
-								ins->argc = 2; {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s = &ins->argv[1];
-									union x86_mrm mrm = fetch_modregrm();
-									d->size = s->size = 16; /* 128 bit = 16 bytes */
-									d->reg = mrm.f.reg;
-									decode_rm_ex(mrm,s,isaddr32,d->regtype = MX86_RT_SSE);
 							} break;
 
-							COVER_2(0x54):
-								ins->opcode = dataprefix32 + MXOP_ANDPS + ((second_byte & 1) << 1);
-								ins->argc = 3; {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									union x86_mrm mrm = fetch_modregrm();
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_sse_register(s1,v.f.v);
+							case 0x2F: {
+								if (v.f.v == 0) {
+									if (!v.f.l) {
+										ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+										ins->opcode = MXOP_COMISS+(dataprefix32?1:0);
+										ins->argc = 2; d->size = s->size = 16;
+										INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+										set_sse_register(d,mrm.f.reg);
+									}
+								}
 							} break;
 
-							case 0x58:
-								if (v.f.l && ins->rep != 0) break; /* forms involving ADDSS/ADDSD not supported with L=1 */
-								ins->opcode = (ins->rep >= MX86_REPE ? (2 + ins->rep - MX86_REPE) : dataprefix32) + MXOP_ADDPS;
-								ins->argc = 3; {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									union x86_mrm mrm = fetch_modregrm();
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_sse_register(s1,v.f.v);
+							COVER_2(0x54): {
+								ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
+								ins->opcode = MXOP_ANDPS+dataprefix32+((second_byte&1)<<1);
+								d->size = s1->size = s2->size = vector_size; ins->argc = 3;
+								INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+								set_sse_register(s1,v.f.v); set_sse_register(d,mrm.f.reg);
 							} break;
 
-							case 0x5A:
-								if (ins->rep >= MX86_REPE) {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s = &ins->argv[1];
-									union x86_mrm mrm = fetch_modregrm();
-									ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSS2SD : MXOP_CVTSD2SS;
-									ins->argc = 2;
-									d->size = 16;
-									set_sse_register(d,mrm.f.reg);
-									s->size = 16; /* 128 bit = 16 bytes */
-									decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
+							case 0x58: {
+								if (v.f.l && ins->rep != 0) {
+									/* forms involving ADDSS/ADDSD not supported with L=1 */
 								}
 								else {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s = &ins->argv[1];
-									union x86_mrm mrm = fetch_modregrm();
-									ins->opcode = MXOP_CVTPS2PD + (dataprefix32 & 1);
-									ins->argc = 2;
-									d->size = (dataprefix32&1) == 0 ? vector_size : 16;
-									set_sse_register(d,mrm.f.reg);
-									s->size = (dataprefix32&1) == 1 ? vector_size : 16;
-									decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
+									ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
+									ins->opcode = (ins->rep >= MX86_REPE ? (2+ins->rep-MX86_REPE) : dataprefix32)+MXOP_ADDPS;
+									d->size = s1->size = s2->size = vector_size; ins->argc = 3;
+									INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+									set_sse_register(s1,v.f.v); set_sse_register(d,mrm.f.reg);
 								}
-							break;
+							} break;
+
+							case 0x5A: {
+								ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+								if (ins->rep >= MX86_REPE) {
+									ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSS2SD : MXOP_CVTSD2SS;
+									ins->argc = 2; d->size = 16; s->size = 16;
+								}
+								else {
+									ins->opcode = MXOP_CVTPS2PD + (dataprefix32 & 1);
+									ins->argc = 2; s->size = d->size = (dataprefix32&1) == 0 ? vector_size : 16;
+								}
+								INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+								set_sse_register(d,mrm.f.reg);
+							} break;
 
 							case 0x5B: {
-								struct minx86dec_argv *d = &ins->argv[0];
-								struct minx86dec_argv *s = &ins->argv[1];
-								union x86_mrm mrm = fetch_modregrm();
-								if (ins->rep == MX86_REPNE) {
-									ins->opcode = MXOP_CVTTPS2DQ;
-								}
-								else if (ins->rep == MX86_REPE) {
-									/* not defined */
-									break;
-								}
-								else {
-									ins->opcode = MXOP_CVTDQ2PS + (dataprefix32 & 1);
-								}
-								ins->argc = 2;
-								d->size = vector_size;
+								ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+								ins->argc = 2; d->size = s->size = vector_size;
+								if (ins->rep == MX86_REPNE)	ins->opcode = MXOP_CVTTPS2DQ;
+								else if (ins->rep == MX86_REPE)	break; /* not defined */
+								else				ins->opcode = MXOP_CVTDQ2PS+(dataprefix32&1);
+								INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 								set_sse_register(d,mrm.f.reg);
-								s->size = vector_size;
-								decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
 							} break;
 
-							case 0x5D:
+							case 0x5D: {
 								ins->opcode = (ins->rep >= MX86_REPE) ? (ins->rep + MXOP_MINSD - MX86_REPE) : (MXOP_MINPS - dataprefix32);
-								ins->argc = 3; {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									union x86_mrm mrm = fetch_modregrm();
-									s1->size = s2->size = d->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_sse_register(s1,v.f.v);
+								ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
+								ins->argc = 3; s1->size = s2->size = d->size = vector_size; set_sse_register(s1,v.f.v);
+								INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+								set_sse_register(d,mrm.f.reg);
 							} break;
 
 							case 0x5E: {
-								struct minx86dec_argv *d = &ins->argv[0];
-								struct minx86dec_argv *s1 = &ins->argv[1];
-								struct minx86dec_argv *s2 = &ins->argv[2];
-								union x86_mrm mrm = fetch_modregrm();
-								if (ins->rep >= MX86_REPE)
-									ins->opcode = MXOP_DIVSD + ins->rep - MX86_REPE;
-								else if (dataprefix32)
-									ins->opcode = MXOP_DIVPD;
-								else
-									ins->opcode = MXOP_DIVPS;
-
-								ins->argc = 2;
-								d->size = vector_size;
+								ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
+								ins->argc = 2; d->size = s1->size = s2->size = vector_size; set_sse_register(s1,v.f.v);
+								if (ins->rep >= MX86_REPE)	ins->opcode = MXOP_DIVSD+ins->rep-MX86_REPE;
+								else if (dataprefix32)		ins->opcode = MXOP_DIVPD;
+								else				ins->opcode = MXOP_DIVPS;
+								INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 								set_sse_register(d,mrm.f.reg);
-								s2->size = s1->size = vector_size;
-								decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-								set_sse_register(s1,v.f.v);
 							} break;
 
-							case 0x5F:
-								if (v.f.l && ins->rep != 0) break; /* forms involving ADDSS/ADDSD not supported with L=1 */
-								ins->opcode = (ins->rep >= MX86_REPE) ? (ins->rep + MXOP_MAXSD - MX86_REPE) : (MXOP_MAXPS - dataprefix32);
-								ins->argc = 3; {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									union x86_mrm mrm = fetch_modregrm();
-									s1->size = s2->size = d->size = vector_size;
+							case 0x5F: {
+								if (v.f.l && ins->rep != 0) {
+									/* forms involving ADDSS/ADDSD not supported with L=1 */
+								}
+								else {
+									ins->opcode = (ins->rep >= MX86_REPE) ? (ins->rep + MXOP_MAXSD - MX86_REPE) : (MXOP_MAXPS - dataprefix32);
+									ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
+									ins->argc = 3; s1->size = s2->size = d->size = vector_size; set_sse_register(s1,v.f.v);
+									INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_sse_register(s1,v.f.v);
+								}
 							} break;
 
-							case 0x6E:
-							case 0x7E:
+							case 0x6E: case 0x7E: {
 								if (ins->rep >= MX86_REPE) {
 									if (second_byte == 0x7E && ins->rep == MX86_REPNE) {
-										ins->opcode = MXOP_MOVQ;
-										ins->argc = 2; {
-											struct minx86dec_argv *re = &ins->argv[0];
-											struct minx86dec_argv *rm = &ins->argv[1];
-											union x86_mrm mrm = fetch_modregrm();
-											rm->size = re->size = vector_size;
-											set_sse_register(re,mrm.f.reg);
-											decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
-										}
+										ins->opcode = MXOP_MOVQ; ins->argc = 2;
+										ARGV *re = &ins->argv[0],*rm = &ins->argv[1];
+										rm->size = re->size = vector_size;
+										INS_MRM mrm = decode_rm_ex_(rm,ins,rm->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+										set_sse_register(re,mrm.f.reg);
 									}
 								}
 								else {
-									ins->opcode = MXOP_MOVD;
-									ins->argc = 2; {
-										const unsigned int which = (second_byte >> 4) & 1;
-										struct minx86dec_argv *re = &ins->argv[which];
-										struct minx86dec_argv *rm = &ins->argv[which^1];
-										union x86_mrm mrm = fetch_modregrm();
-										rm->size = 4;
-										if (dataprefix32) {
-											re->size = vector_size;
-											set_sse_register(re,mrm.f.reg);
-											decode_rm(mrm,rm,isaddr32);
-										}
-										else {
-											re->size = 8;
-											set_mmx_register(re,mrm.f.reg);
-											decode_rm(mrm,rm,isaddr32);
-										}
-									}
+									const unsigned int which = (second_byte >> 4) & 1;
+									ARGV *re = &ins->argv[which],*rm = &ins->argv[which^1];
+									ins->opcode = MXOP_MOVD; ins->argc = 2; rm->size = 4;
+									re->size = dataprefix32 ? vector_size : 8;
+									INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM);
+									set_mmx_register(re,mrm.f.reg);
+								}
 							} break;
 
-							case 0x6F:
-							case 0x7F:
+							case 0x6F: case 0x7F: {
 								if (ins->rep == MX86_REPE) {
 								}
 								else {
 									const unsigned int which = (second_byte >> 4) & 1;
-									struct minx86dec_argv *d = &ins->argv[which];
-									struct minx86dec_argv *s = &ins->argv[which^1];
-									union x86_mrm mrm = fetch_modregrm();
+									ARGV *d = &ins->argv[which],*s = &ins->argv[which^1];
+									INS_MRM mrm; ins->argc = 2;
 
-									ins->argc = 2;
 									ins->opcode = (ins->rep >= MX86_REPE) ? MXOP_MOVDQU :
 										(dataprefix32 ? MXOP_MOVDQA : MXOP_MOVQ);
 
 									if (dataprefix32 || ins->rep >= MX86_REPE) {
 										s->size = d->size = vector_size;
+										mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 										set_sse_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 									}
 									else {
 										s->size = d->size = 8;
+										mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_MMX);
 										set_mmx_register(d,mrm.f.reg);
-										decode_rm_ex(mrm,s,isaddr32,MX86_RT_MMX);
 									}
 								}
-							break;
+							} break;
 
-							COVER_2(0x7C):
-								if (dataprefix32) {
-									ins->argc = 3;
-									ins->opcode = (second_byte & 1) ? MXOP_HSUBPD : MXOP_HADDPD;
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									union x86_mrm mrm = fetch_modregrm();
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_sse_register(s1,v.f.v);
-								}
-								else if (ins->rep == MX86_REPE) {
-									ins->argc = 3;
-									ins->opcode = (second_byte & 1) ? MXOP_HSUBPS : MXOP_HADDPS;
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									union x86_mrm mrm = fetch_modregrm();
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_sse_register(s1,v.f.v);
-								}
-							break;
+							COVER_2(0x7C): {
+								ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
+								ins->argc = 3; d->size = s1->size = s2->size = vector_size; set_sse_register(s1,v.f.v);
+								INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE); set_sse_register(d,mrm.f.reg);
+								if (dataprefix32)		ins->opcode = (second_byte & 1) ? MXOP_HSUBPD : MXOP_HADDPD;
+								else if (ins->rep == MX86_REPE)	ins->opcode = (second_byte & 1) ? MXOP_HSUBPS : MXOP_HADDPS;
+							} break;
 
-							case 0xC2:
-								if (v.f.l && ins->rep != 0) break; /* forms involving CMPSS/CMPSD not supported with L=1 */
-								ins->opcode = (ins->rep >= MX86_REPE) ? (MXOP_CMPSD + ins->rep - MX86_REPE) : (MXOP_CMPPS + (dataprefix32 ? 1 : 0));
-								ins->argc = 4; {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									struct minx86dec_argv *i = &ins->argv[3];
-									union x86_mrm mrm = fetch_modregrm();
-									i->size = 8;
-									d->size = s1->size = s2->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_sse_register(s1,v.f.v);
-									set_immediate(i,fetch_u8());
+							case 0xC2: {
+								if (v.f.l && ins->rep != 0) {
+									/* forms involving CMPSS/CMPSD not supported with L=1 */
+								}
+								else {
+									ins->opcode = (ins->rep >= MX86_REPE) ? (MXOP_CMPSD+ins->rep-MX86_REPE) : (MXOP_CMPPS+(dataprefix32?1:0));
+									ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2],*i = &ins->argv[3];
+									ins->argc = 4; i->size = 8; d->size = s1->size = s2->size = vector_size;
+									INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+									set_sse_register(d,mrm.f.reg); set_sse_register(s1,v.f.v); set_immediate(i,fetch_u8());
+								}
 							} break;
 
 							case 0xD0: {
+								ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
+								unsigned char t = dataprefix32 + (ins->rep << 2),m = 0;
+								ins->argc = 3; d->size = s1->size = s2->size = vector_size;
+								switch (t) {
 #   define PAIR(d,r)  ((d) + ((r) << 2))
-								   struct minx86dec_argv *d = &ins->argv[0];
-								   struct minx86dec_argv *s1 = &ins->argv[1];
-								   struct minx86dec_argv *s2 = &ins->argv[2];
-								   unsigned char t = dataprefix32 + (ins->rep << 2);
-								   unsigned char m = 0;
-								   switch (t) {
-									   case PAIR(1,MX86_REP_NONE):
-										   ins->opcode = MXOP_ADDSUBPD;
-										   m = 1;
-										   break;
-									   case PAIR(0,MX86_REPE):
-										   ins->opcode = MXOP_ADDSUBPS;
-										   m = 1;
-										   break;
-								   };
-								   switch (m) {
-									   case 1: { /* ADDSUBPD/S */
-											   union x86_mrm mrm = fetch_modregrm();
-											   ins->argc = 3;
-											   d->size = s1->size = s2->size = vector_size;
-											   set_sse_register(d,mrm.f.reg);
-											   decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-											   set_sse_register(s1,v.f.v);
-										   } break;
-									   }
+									case PAIR(1,MX86_REP_NONE):	ins->opcode = MXOP_ADDSUBPD; m = 1; break;
+									case PAIR(0,MX86_REPE):		ins->opcode = MXOP_ADDSUBPS; m = 1; break;
 #   undef PAIR
+								};
+								switch (m) {
+									case 1: { /* ADDSUBPD/S */
+										INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+										set_sse_register(d,mrm.f.reg); set_sse_register(s1,v.f.v);
+									} break;
+								}
 							} break;
 
-							case 0xD6:
+							case 0xD6: {
 								if (ins->rep >= MX86_REPE) {
-									const unsigned int which = ins->rep - MX86_REPE;
-									struct minx86dec_argv *mm = &ins->argv[which^1];
-									struct minx86dec_argv *xmm = &ins->argv[which];
-									union x86_mrm mrm = fetch_modregrm();
+									const unsigned int which = (ins->rep - MX86_REPE)&1;
+									ARGV *d = &ins->argv[0],*s = &ins->argv[1];
 									ins->opcode = which ? MXOP_MOVQ2DQ : MXOP_MOVDQ2Q;
-									ins->argc = 2;
-									mm->size = 8;
-									xmm->size = 16;
-									set_mmx_register(mm,mrm.f.reg);
-									decode_rm_ex(mrm,xmm,isaddr32,MX86_RT_SSE);
+									ins->argc = 2; d->size = 8; s->size = 16;
+									INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,which ? MX86_RT_MMX : MX86_RT_SSE);
+									if (which)	set_sse_register(d,mrm.f.reg);
+									else		set_mmx_register(d,mrm.f.reg);
 								}
 								else if (dataprefix32) {
-									struct minx86dec_argv *d = &ins->argv[1];
-									struct minx86dec_argv *s = &ins->argv[0];
-									union x86_mrm mrm = fetch_modregrm();
-									ins->opcode = MXOP_MOVQ;
-									ins->argc = 2;
-									d->size = 8;
-									s->size = 16;
+									ARGV *d = &ins->argv[1],*s = &ins->argv[0];
+									ins->opcode = MXOP_MOVQ; ins->argc = 2; d->size = 8; s->size = 16;
+									INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 								}
-							break;
+							} break;
 
-							case 0xF0:
-								ins->opcode = MXOP_LDDQU;
-								ins->argc = 2; {
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s = &ins->argv[1];
-									union x86_mrm mrm = fetch_modregrm();
-									d->size = s->size = vector_size;
-									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
+							case 0xF0: {
+								ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+								ins->opcode = MXOP_LDDQU; ins->argc = 2; d->size = s->size = vector_size;
+								INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+								set_sse_register(d,mrm.f.reg);
 							} break;
 
 							case 0xE6: {
-								struct minx86dec_argv *d = &ins->argv[0];
-								struct minx86dec_argv *s = &ins->argv[1];
-								union x86_mrm mrm = fetch_modregrm();
-								d->size = s->size = vector_size;
+								ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+								ins->argc = 2; d->size = s->size = vector_size;
 								if (ins->rep >= MX86_REPE) {
 									ins->opcode = MXOP_CVTPD2DQ + ins->rep - MX86_REPE;
 									if (ins->rep == MX86_REPE) d->size >>= 1;
@@ -1700,11 +1563,9 @@ decode_next:
 								else
 									break;
 
-								ins->argc = 2;
+								INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 								set_sse_register(d,mrm.f.reg);
-								decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 							} break;
-#endif
 						} break;
 					}
 					case 2: { /* 0x0F 0x38 */
@@ -1715,141 +1576,93 @@ decode_next:
 						 * by these values */
 						const uint8_t third_byte = *cip++;
 						switch (third_byte) {
-#  ifndef x64_mode
 							case 0x18: { 
 								if (dataprefix32) {
 									if (v.f.v == 0) {/* VBROADCASTSS */
-										union x86_mrm mrm = fetch_modregrm();
-										struct minx86dec_argv *d = &ins->argv[0];
-										struct minx86dec_argv *s = &ins->argv[1];
-										ins->opcode = MXOP_BROADCASTSS;
-										d->size = vector_size;
-										s->size = 4;
-										ins->argc = 2;
+										ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+										ins->opcode = MXOP_BROADCASTSS; ins->argc = 2;
+										d->size = vector_size; s->size = 4;
+										INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM);
 										set_sse_register(d,mrm.f.reg);
-										decode_rm(mrm,s,isaddr32);
 									}
 								}
 							} break;
+
 							case 0x19: { 
 								if (dataprefix32) {
 									if (v.f.l) {
 										if (v.f.v == 0) {/* VBROADCASTSD */
-											union x86_mrm mrm = fetch_modregrm();
-											struct minx86dec_argv *d = &ins->argv[0];
-											struct minx86dec_argv *s = &ins->argv[1];
-											ins->opcode = MXOP_BROADCASTSD;
-											d->size = 32;
-											s->size = 8;
-											ins->argc = 2;
+											ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+											ins->opcode = MXOP_BROADCASTSD; ins->argc = 2; d->size = 32;
+											s->size = 8; INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM);
 											set_sse_register(d,mrm.f.reg);
-											decode_rm(mrm,s,isaddr32);
 										}
 									}
 								}
 							} break;
+
 							case 0x1A: { 
 								if (dataprefix32) {
 									if (v.f.l) {
 										if (v.f.v == 0) {/* VBROADCASTF128 */
-											union x86_mrm mrm = fetch_modregrm();
-											struct minx86dec_argv *d = &ins->argv[0];
-											struct minx86dec_argv *s = &ins->argv[1];
-											ins->opcode = MXOP_BROADCASTSD;
-											d->size = 32;
-											s->size = 16;
-											ins->argc = 2;
+											ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+											ins->opcode = MXOP_BROADCASTSD; ins->argc = 2; d->size = 32;
+											s->size = 16; INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM);
 											set_sse_register(d,mrm.f.reg);
-											decode_rm(mrm,s,isaddr32);
 										}
 									}
 								}
 							} break;
+
 							case 0xDB: { /* AES IMC */
 								if (dataprefix32) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s2 = &ins->argv[1];
-									ins->opcode = MXOP_AESIMC;
-									d->size = s2->size = 16;
-									ins->argc = 2;
+									ARGV *d = &ins->argv[0],*s2 = &ins->argv[1];
+									ins->opcode = MXOP_AESIMC; ins->argc = 2; d->size = s2->size = 16;
+									INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
 								}
 							} break;
+
 							COVER_4(0xDC): { /* AES ENC/DEC */
 								if (dataprefix32) {
-									union x86_mrm mrm = fetch_modregrm();
-									struct minx86dec_argv *d = &ins->argv[0];
-									struct minx86dec_argv *s1 = &ins->argv[1];
-									struct minx86dec_argv *s2 = &ins->argv[2];
-									ins->opcode = MXOP_AESENC + (third_byte & 3);
-									d->size = s1->size = s2->size = vector_size;
-									ins->argc = 3;
-									set_sse_register(d,mrm.f.reg);
-									decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-									set_sse_register(s1,v.f.v);
+									ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2]; ins->argc = 3;
+									d->size = s1->size = s2->size = vector_size; ins->opcode = MXOP_AESENC + (third_byte & 3);
+									INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+									set_sse_register(d,mrm.f.reg); set_sse_register(s1,v.f.v);
 								}
 							} break;
-#endif
 						}
 						break;
 					}
 					case 3: { /* 0x0F 0x3A */
 						const uint8_t third_byte = *cip++;
 						switch (third_byte) {
-#  ifndef x64_mode
 							COVER_2(0x0C): {
-								union x86_mrm mrm = fetch_modregrm();
-								struct minx86dec_argv *d = &ins->argv[0];
-								struct minx86dec_argv *s1 = &ins->argv[1];
-								struct minx86dec_argv *s2 = &ins->argv[2];
-								struct minx86dec_argv *i = &ins->argv[3];
-								ins->opcode = MXOP_BLENDPS + (third_byte & 1);
-								ins->argc = 4;
-								d->size = s1->size = s2->size = vector_size;
-								set_sse_register(d,mrm.f.reg);
-								set_sse_register(s1,v.f.v);
-								decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-								i->size = 1;
-								set_immediate(i,fetch_u8());
+								ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2],*i = &ins->argv[3];
+								ins->argc = 4; i->size = 1; d->size = s1->size = s2->size = vector_size;
+								INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+								ins->opcode = MXOP_BLENDPS + (third_byte & 1); set_sse_register(d,mrm.f.reg);
+								set_immediate(i,fetch_u8()); set_sse_register(s1,v.f.v);
 							} break;
 
 							COVER_2(0x40): {
-								union x86_mrm mrm = fetch_modregrm();
-								struct minx86dec_argv *d = &ins->argv[0];
-								struct minx86dec_argv *s1 = &ins->argv[1];
-								struct minx86dec_argv *s2 = &ins->argv[2];
-								struct minx86dec_argv *i = &ins->argv[3];
-								ins->opcode = MXOP_DPPS + (third_byte & 1);
-								ins->argc = 4;
-								d->size = s1->size = s2->size = 16;
-								set_sse_register(d,mrm.f.reg);
-								decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-								i->size = 1;
-								set_immediate(i,fetch_u8());
-								set_sse_register(s1,v.f.v);
+								ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2],*i = &ins->argv[3];
+								ins->argc = 4; i->size = 1; d->size = s1->size = s2->size = 16;
+								INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+								ins->opcode = MXOP_DPPS + (third_byte & 1); set_sse_register(d,mrm.f.reg);
+								set_immediate(i,fetch_u8()); set_sse_register(s1,v.f.v);
 							} break;
 
 							COVER_2(0x48): {
-								union x86_mrm mrm = fetch_modregrm();
-								struct minx86dec_argv *d = &ins->argv[0];
-								struct minx86dec_argv *s1 = &ins->argv[1];
-								struct minx86dec_argv *s2 = &ins->argv[2];
-								struct minx86dec_argv *s3 = &ins->argv[3];
-								struct minx86dec_argv *s4 = &ins->argv[4];
-								unsigned char imm8;
+								ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2],*s3 = &ins->argv[3],*s4 = &ins->argv[4];
+								ins->argc = 5; d->size = s1->size = s2->size = s3->size = vector_size;
 								ins->opcode = MXOP_VPERMIL2PS + (third_byte & 1);
-								ins->argc = 5;
-								d->size = s1->size = s2->size = s3->size = vector_size;
-								set_sse_register(d,mrm.f.reg);
-								set_sse_register(s1,v.f.v);
-								decode_rm_ex(mrm,s2,isaddr32,MX86_RT_SSE);
-								imm8 = fetch_u8();
-								set_sse_register(s3,imm8>>4);
-								set_sse_register(s4,imm8&0xF);
+								INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+								unsigned char imm8 = fetch_u8(); set_sse_register(d,mrm.f.reg); set_sse_register(s1,v.f.v);
+								set_sse_register(s3,imm8>>4); set_immediate(s4,imm8&0xF);
 							} break;
 
+#  ifndef x64_mode
 							COVER_2(0x4A): {
 								union x86_mrm mrm = fetch_modregrm();
 								struct minx86dec_argv *d = &ins->argv[0];
@@ -4477,27 +4290,19 @@ decode_next:
 					break;
 				case 0xD6:
 					if (ins->rep >= MX86_REPE) {
-						const unsigned int which = ins->rep - MX86_REPE;
-						struct minx86dec_argv *mm = &ins->argv[which^1];
-						struct minx86dec_argv *xmm = &ins->argv[which];
-						union x86_mrm mrm = fetch_modregrm();
+						const unsigned int which = (ins->rep - MX86_REPE)&1;
+						ARGV *d = &ins->argv[0],*s = &ins->argv[1];
 						ins->opcode = which ? MXOP_MOVQ2DQ : MXOP_MOVDQ2Q;
-						ins->argc = 2;
-						mm->size = 8;
-						xmm->size = 16;
-						set_mmx_register(mm,mrm.f.reg);
-						decode_rm_ex(mrm,xmm,isaddr32,MX86_RT_SSE);
+						ins->argc = 2; d->size = 8; s->size = 16;
+						INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,which ? MX86_RT_MMX : MX86_RT_SSE);
+						if (which)	set_sse_register(d,mrm.f.reg);
+						else		set_mmx_register(d,mrm.f.reg);
 					}
 					else if (dataprefix32) {
-						struct minx86dec_argv *d = &ins->argv[1];
-						struct minx86dec_argv *s = &ins->argv[0];
-						union x86_mrm mrm = fetch_modregrm();
-						ins->opcode = MXOP_MOVQ;
-						ins->argc = 2;
-						d->size = 8;
-						s->size = 16;
+						ARGV *d = &ins->argv[1],*s = &ins->argv[0];
+						ins->opcode = MXOP_MOVQ; ins->argc = 2; d->size = 8; s->size = 16;
+						INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 						set_sse_register(d,mrm.f.reg);
-						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					}
 					break;
 				case 0xF7: {

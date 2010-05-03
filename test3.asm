@@ -1720,4 +1720,11 @@ bits 16
 	mov	ax,[ss:si]
 ; UMC
 	db 0x64,0xD6			; SALC FS:
+; more
+	movq2dq	xmm1,mm0
+	movdq2q	mm0,xmm1
+	vpermil2ps	xmm0,xmm1,xmm2,xmm3,1
+	vpermil2ps	xmm0,xmm1,[esi],xmm3,1
+	vpermil2pd	xmm0,xmm1,xmm2,xmm3,1
+	vpermil2pd	xmm0,xmm1,[esi],xmm3,1
 
