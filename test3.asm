@@ -5,6 +5,9 @@
 org 0
 
 _start:
+	lds	si,[si]
+	les	di,[si]
+
 	fadd	st0,st1
 	fmul	st0,st1
 	fcom	st0,st1
