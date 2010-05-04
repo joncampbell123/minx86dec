@@ -1,5 +1,14 @@
 ; x86-64 test assembly language
 bits 64
+	mov	cr0,rax
+	mov	rax,cr0
+	mov	cr1,rax
+	mov	rax,cr1
+	mov	dr0,rax
+	mov	rax,dr0
+	mov	dr1,rax
+	mov	rax,dr1
+
 	push		byte 0x12
 	push		word 0x1234
 	push		qword 0x12345678

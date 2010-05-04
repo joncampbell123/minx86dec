@@ -34,6 +34,7 @@
 #  define addr64wordsize	(isaddr32 ? 4 : 8)
 #  define addrwordsize		addr64wordsize
 #  define stackwordsize		(dataprefix32 ? 2 : 8)
+#  define ctrlwordsize		8
 #  define ARGV			struct minx86dec_argv_x64
 #  define INS_MRM		struct x64_mrm
 #else
@@ -43,6 +44,7 @@
 #  define datawordsize		data32wordsize
 #  define addrwordsize		addr32wordsize
 #  define stackwordsize		data32wordsize
+#  define ctrlwordsize		4
 #  define ARGV			struct minx86dec_argv
 #  define INS_MRM		union x86_mrm
 #endif
@@ -1913,7 +1915,15 @@ decode_next:
 					else			set_register(imm,MX86_REG_CL);
 				} break;
 # endif
-# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+# if core_level >= 3
+				COVER_4(0x20): { /* mov control/debug reg (TODO: what exactly should the mod bits be?) */
+					const int which = (second_byte >> 1) & 1; ins->opcode = MXOP_MOV; ins->argc = 2;
+					ARGV *ctrl = &ins->argv[which^1],*reg = &ins->argv[which]; unsigned char imr = fetch_u8();
+					ctrl->size = reg->size = ctrlwordsize; set_register(reg,imr&7);
+					if (second_byte & 1)	set_debug_register(ctrl,(imr>>3)&7);
+					else			set_control_register(ctrl,(imr>>3)&7);
+				} break;
+# elif defined(do_necv20) /* NEC V20/V30 */
 				case 0x20: { /* ADD4S. conflicts with 386 instruction mov reg,CRx */
 					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->segment = MX86_SEG_ES;
 					d->size = s->size = 2; d->memregsz = s->memregsz = 2; ins->opcode = MXOP_ADD4S; ins->argc = 2;
@@ -2049,10 +2059,77 @@ decode_next:
 # endif
 
 # if core_level >= 3
+				case 0xB2: {
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = data32wordsize;
+					s->size = data32wordsize + 2; ins->opcode = MXOP_LSS; ins->argc = 2;
+					INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM);
+					set_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 3
+				case 0xB3: {
+					ins->opcode = MXOP_BTR; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = data32wordsize;
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); set_register(s,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 3
+				case 0xB4: {
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+					ins->opcode = MXOP_LFS; ins->argc = 2; d->size = data32wordsize; s->size = data32wordsize + 2;
+					INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 3 
+				case 0xB5: {
+					ins->opcode = MXOP_LGS; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = data32wordsize; s->size = data32wordsize + 2;
+					INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 3
+				COVER_2(0xB6): {
+					ins->opcode = MXOP_MOVZX; ins->argc = 2;
+					ARGV *re = &ins->argv[0],*rm = &ins->argv[1]; re->size = data32wordsize; rm->size = (second_byte & 1) + 1;
+					INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM); set_register(re,mrm.f.reg);
+				} break;
+# endif
+
+# if core_level >= 3
+				case 0xBA: {
+					int m = -1; ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+					switch (mrm.f.reg) {
+						case 4: ins->opcode = MXOP_BT; m = 0; break;
+						case 5: ins->opcode = MXOP_BTS; m = 0; break;
+						case 6: ins->opcode = MXOP_BTR; m = 0; break;
+						case 7: ins->opcode = MXOP_BTC; m = 0; break;
+					}
+					switch (m) {
+						case 0:	ins->argc = 2; d->size = data32wordsize; set_immediate(s,fetch_u8()); s->size = 1; break;
+					};
+				} break;
+# endif
+# if core_level >= 3
+				case 0xBB: {
+					ins->opcode = MXOP_BTC; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = data32wordsize;
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); set_register(s,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 3
 				COVER_2(0xBC): {
 					ins->opcode = MXOP_BSF + (second_byte & 1); ins->argc = 2;
 					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = data32wordsize;
 					INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
+				} break;
+# endif
+
+# if core_level >= 3
+				COVER_2(0xBE): {
+					ARGV *re = &ins->argv[0],*rm = &ins->argv[1]; ins->opcode = MXOP_MOVSX; ins->argc = 2;
+					re->size = data32wordsize; rm->size = (second_byte & 1) + 1;
+					INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM); set_register(re,mrm.f.reg);
 				} break;
 # endif
 
@@ -2066,116 +2143,6 @@ decode_next:
 #ifndef x64_mode
 
 # if core_level >= 3 /* --------------------- 386 or higher ---------------------- */
-				case 0xB2:
-					ins->opcode = MXOP_LSS;
-					ins->argc = 2; {
-						union x86_mrm mrm = fetch_modregrm();
-						if (mrm.f.mod == 3) break; /* illegal */
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->size = data32wordsize;
-						s->size = data32wordsize + 2;
-						set_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
-					} break;
-				case 0xB3:
-					ins->opcode = MXOP_BTR;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = data32wordsize;
-						set_register(s,mrm.f.reg);
-						decode_rm(mrm,d,isaddr32);
-					} break;
-				case 0xB4:
-					ins->opcode = MXOP_LFS;
-					ins->argc = 2; {
-						union x86_mrm mrm = fetch_modregrm();
-						if (mrm.f.mod == 3) break; /* illegal */
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->size = data32wordsize;
-						s->size = data32wordsize + 2;
-						set_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
-					} break;
-				case 0xB5:
-					ins->opcode = MXOP_LGS;
-					ins->argc = 2; {
-						union x86_mrm mrm = fetch_modregrm();
-						if (mrm.f.mod == 3) break; /* illegal */
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->size = data32wordsize;
-						s->size = data32wordsize + 2;
-						set_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
-					} break;
-				COVER_2(0xB6):
-					ins->opcode = MXOP_MOVZX;
-					ins->argc = 2; {
-						struct minx86dec_argv *re = &ins->argv[0];
-						struct minx86dec_argv *rm = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						re->size = data32wordsize;
-						rm->size = (second_byte & 1) + 1;
-						set_register(re,mrm.f.reg);
-						decode_rm(mrm,rm,isaddr32);
-					} break;
-				case 0xBA: {
-					int m = -1;
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					union x86_mrm mrm = fetch_modregrm();
-					switch (mrm.f.reg) {
-						case 4: ins->opcode = MXOP_BT; m = 0; break;
-						case 5: ins->opcode = MXOP_BTS; m = 0; break;
-						case 6: ins->opcode = MXOP_BTR; m = 0; break;
-						case 7: ins->opcode = MXOP_BTC; m = 0; break;
-					}
-					switch (m) {
-						case 0:	ins->argc = 2;
-							d->size = data32wordsize;
-							decode_rm(mrm,d,isaddr32);
-							set_immediate(s,fetch_u8());
-							s->size = 1;
-							break;
-					};
-					break; }
-				case 0xBB:
-					ins->opcode = MXOP_BTC;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = data32wordsize;
-						set_register(s,mrm.f.reg);
-						decode_rm(mrm,d,isaddr32);
-					} break;
-				COVER_2(0xBE):
-					ins->opcode = MXOP_MOVSX;
-					ins->argc = 2; {
-						struct minx86dec_argv *re = &ins->argv[0];
-						struct minx86dec_argv *rm = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						re->size = data32wordsize;
-						rm->size = (second_byte & 1) + 1;
-						set_register(re,mrm.f.reg);
-						decode_rm(mrm,rm,isaddr32);
-					} break;
-				COVER_4(0x20):
-					ins->opcode = MXOP_MOV;
-					ins->argc = 2; {
-						const int which = (second_byte >> 1) & 1;
-						struct minx86dec_argv *ctrl = &ins->argv[which^1];
-						struct minx86dec_argv *reg = &ins->argv[which];
-						union x86_mrm mrm = fetch_modregrm();
-						ctrl->size = reg->size = 4; /* x86: always 4 bytes */
-						set_register(reg,mrm.f.rm);
-						if (second_byte & 1)	set_debug_register(ctrl,mrm.f.reg);
-						else			set_control_register(ctrl,mrm.f.reg);
-					} break;
 				COVER_4(0x24):
 					if (second_byte & 1) {
 					}

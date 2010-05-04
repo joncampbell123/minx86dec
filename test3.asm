@@ -5,6 +5,15 @@
 org 0
 
 _start:
+	mov	cr0,eax
+	mov	eax,cr0
+	mov	cr1,eax
+	mov	eax,cr1
+	mov	dr0,eax
+	mov	eax,dr0
+	mov	dr1,eax
+	mov	eax,dr1
+
 	lds	si,[si]
 	les	di,[si]
 
