@@ -1765,131 +1765,197 @@ decode_next:
 			break;
 
 /*---------------------------------------------------------------------------------------------------------*/
-#ifndef x64_mode
-
 #if core_level > 0
 		/* extended opcode escape */
 		case 0x0F: {
 			const uint8_t second_byte = *cip++;
 			switch (second_byte) {
-# if (core_level >= 3 && core_level <= 4) && !defined(no_umov)
-				/* Intel 386/486 only, not on Pentium. Cyrix is said to treat this as a double NOOP (which ones? Cyrix 586? Or only pre-586?) */
-				/* notice this opcode is reused later for SSE instructions MOVSS/MOVSD/MOVLPD/MOVPLS */
-				COVER_4(0x10): /* UMOV */
-					ins->opcode = MXOP_UMOV;
-					ins->argc = 2; {
-						union x86_mrm mrm = fetch_modregrm();
-						const int which = (second_byte >> 1) & 1;
-						struct minx86dec_argv *s = &ins->argv[which];
-						struct minx86dec_argv *d = &ins->argv[which^1];
-						d->size = s->size = second_byte & 1 ? data32wordsize : 1;
-						set_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
-					} break;
+# if core_level >= 2
+				case 0x00: { /* LLDT */
+					ARGV *m = &ins->argv[0]; ins->argc = 1; m->size = 2;
+					INS_MRM mrm = decode_rm_(m,ins,m->size,PLUSR_TRANSFORM);
+					switch (mrm.f.reg) {
+						case 0:	ins->opcode = MXOP_SLDT; break;
+						case 1: ins->opcode = MXOP_STR; break;
+						case 2: ins->opcode = MXOP_LLDT; break;
+						case 3: ins->opcode = MXOP_LTR; break;
+						case 4: case 5: ins->opcode = MXOP_VERR + mrm.f.reg - 4; break;
+					}
+				} break;
 # endif
-# if defined(do_necv20) /* NEC V20/V30 */
-				case 0x20: /* ADD4S. conflicts with 386 instruction mov reg,CRx */
-					ins->opcode = MXOP_ADD4S;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->size = s->size = 2;
-						d->memregsz = s->memregsz = 2;
-						d->segment = MX86_SEG_ES;
-						set_mem_ref_reg(s,MX86_REG_SI);
-						set_mem_ref_reg(d,MX86_REG_DI);
-					} break;
-				case 0x22: /* SUB4S */
-					ins->opcode = MXOP_SUB4S;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->size = s->size = 2;
-						d->memregsz = s->memregsz = 2;
-						d->segment = MX86_SEG_ES;
-						set_mem_ref_reg(s,MX86_REG_SI);
-						set_mem_ref_reg(d,MX86_REG_DI);
-					} break;
-				case 0x26: /* CMP4S */
-					ins->opcode = MXOP_CMP4S;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->size = s->size = 2;
-						d->memregsz = s->memregsz = 2;
-						d->segment = MX86_SEG_ES;
-						set_mem_ref_reg(s,MX86_REG_SI);
-						set_mem_ref_reg(d,MX86_REG_DI);
-					} break;
-				case 0xFF: /* BRKEM */
-					ins->opcode = MXOP_BRKEM;
-					ins->argc = 1; {
-						struct minx86dec_argv *r = &ins->argv[0];
-						set_immediate(r,fetch_u8());
-					} break;
-				COVER_2(0x10): /* TEST1 r/m,CL */
-				COVER_2(0x18): /* TEST1 r/m,imm */
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *imm = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
+# if core_level >= 2
+				case 0x01: { /* LGDT. illegal encodings are used for newer instructions */
+					if (0) { } /* this makes the else statement below valid even if the extensions are not compiled */
+#  if core_level >= 6
+					else if (*cip == 0xC8) { ins->opcode = MXOP_MONITOR; ins->argc = 0; cip++; }
+					else if (*cip == 0xC9) { ins->opcode = MXOP_MWAIT; ins->argc = 0; cip++; }
+#   if sse_level >= 1 /* SSE instructions */
+					else if (*cip == 0xD0) { ins->opcode = MXOP_XGETBV; ins->argc = 0; cip++; }
+					else if (*cip == 0xD1) { ins->opcode = MXOP_XSETBV; ins->argc = 0; cip++; }
+#   endif
+					else if (*cip == 0xD8) { ins->opcode = MXOP_VMRUN; ins->argc = 1; cip++;
+						ins->argv[0].size = 4; set_register(&ins->argv[0],MX86_REG_EAX); }
+					else if (*cip == 0xD9) { ins->opcode = MXOP_VMMCALL; ins->argc = 0; cip++; }
+					else if (*cip == 0xDA) { ins->opcode = MXOP_VMLOAD; ins->argc = 1; cip++;
+						ins->argv[0].size = 4; set_register(&ins->argv[0],MX86_REG_EAX); }
+					else if (*cip == 0xDB) { ins->opcode = MXOP_VMSAVE; ins->argc = 0; cip++; }
+					else if (*cip == 0xDC) { ins->opcode = MXOP_STGI; ins->argc = 0; cip++; }
+					else if (*cip == 0xDD) { ins->opcode = MXOP_CLGI; ins->argc = 0; cip++; }
+					else if (*cip == 0xDE) { ins->opcode = MXOP_SKINIT; ins->argc = 1; cip++;
+						ins->argv[0].size = 4; set_register(&ins->argv[0],MX86_REG_EAX); }
+					else if (*cip == 0xDF) { ins->opcode = MXOP_INVLPGA; ins->argc = 2; cip++; ins->argv[0].size = ins->argv[1].size = 4;
+						set_register(&ins->argv[0],MX86_REG_EAX); set_register(&ins->argv[1],MX86_REG_ECX); }
+					else if (*cip == 0xF9) { ins->opcode = MXOP_RDTSCP; ins->argc = 0; cip++; }
+					else if (*cip >= 0xC1 && *cip <= 0xC3) { ins->opcode = MXOP_VMCALL + *cip - 0xC1; ins->argc = 0; cip++; }
+					else if (*cip == 0xC4) { ins->opcode = MXOP_VMXOFF; ins->argc = 0; cip++; }
+#   if defined(x64_mode) || defined(everything)
+					else if (*cip == 0xF8) { ins->opcode = MXOP_SWAPGS; ins->argc = 0; cip++; }
+#   endif
+#  endif
+					else {
+						ARGV *m = &ins->argv[0]; ins->argc = 1;
+						INS_MRM mrm = decode_rm_(m,ins,m->size,PLUSR_TRANSFORM);
 						switch (mrm.f.reg) {
-							case 0:	ins->opcode = MXOP_TEST1; break;
-						};
-						d->size = (second_byte & 1) ? 2 : 1;
-						decode_rm(mrm,d,0);
-						imm->size = 1;
-						if (second_byte & 8) set_immediate(imm,fetch_u8());
-						else set_register(imm,MX86_REG_CL);
-					} break;
-				COVER_2(0x12): /* CLEAR1 r/m,CL conflicts with 386/486 UMOV and SSE MOVHPS */
-				COVER_2(0x1A): /* CLEAR1 r/m,imm */
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *imm = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						switch (mrm.f.reg) {
-							case 0:	ins->opcode = MXOP_CLEAR1; break;
-						};
-						d->size = (second_byte & 1) ? 2 : 1;
-						decode_rm(mrm,d,0);
-						imm->size = 1;
-						if (second_byte & 8) set_immediate(imm,fetch_u8());
-						else set_register(imm,MX86_REG_CL);
-					} break;
-				COVER_2(0x14): /* SET1 r/m,CL */
-				COVER_2(0x1C): /* SET1 r/m,imm */
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *imm = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						switch (mrm.f.reg) {
-							case 0:	ins->opcode = MXOP_SET1; break;
-						};
-						d->size = (second_byte & 1) ? 2 : 1;
-						decode_rm(mrm,d,0);
-						imm->size = 1;
-						if (second_byte & 8) set_immediate(imm,fetch_u8());
-						else set_register(imm,MX86_REG_CL);
-					} break;
-				COVER_2(0x16): /* NOT1 r/m,CL */
-				COVER_2(0x1E): /* NOT1 r/m,imm */
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *imm = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						switch (mrm.f.reg) {
-							case 0:	ins->opcode = MXOP_NOT1; break;
-						};
-						d->size = (second_byte & 1) ? 2 : 1;
-						decode_rm(mrm,d,0);
-						imm->size = 1;
-						if (second_byte & 8) set_immediate(imm,fetch_u8());
-						else set_register(imm,MX86_REG_CL);
-					} break;
+							case 0: case 1: case 2: case 3:
+								if (mrm.f.mod == 3) break; /* illegal encoding */
+								ins->opcode = ((mrm.f.reg & 2) ? MXOP_LGDT : MXOP_SGDT) + (mrm.f.reg & 1);
+								m->size = 6; break;
+							case 4:	ins->opcode = MXOP_SMSW; ins->argc = 1; m->size = 2; break;
+							case 6:	ins->opcode = MXOP_LMSW; m->size = 2; break;
+							case 7:	if (mrm.f.mod == 3) break; /* illegal encoding */
+								ins->opcode = MXOP_INVLPG; m->size = 4;
+								break;
+						}
+					}
+				} break;
+# endif
+# if core_level >= 2
+				case 0x02: { /* LAR */
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = data32wordsize;
+					ins->opcode = MXOP_LAR; ins->argc = 2; INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 2
+				case 0x03: { /* LSL */
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = data32wordsize;
+					ins->opcode = MXOP_LSL; ins->argc = 2; INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level == 2 && !defined(everything) /* secret unknown opcode said to cause 286s to hang, LOADALL alias? */
+				case 0x04: ins->opcode = MXOP_UNKNOWN_286_0F04; ins->argc = 0; break;
+# endif
+# if core_level == 2 || (defined(everything) && core_level > 2 && core_level <= 4)
+				case 0x05: ins->opcode = MXOP_LOADALL_286; ins->argc = 0; break;
+# endif
+# if core_level >= 2
+				case 0x06: ins->opcode = MXOP_CLTS; ins->argc = 0; break;
+# endif
+# if core_level == 3 || (defined(everything) && core_level == 4)
+				case 0x07: ins->opcode = MXOP_LOADALL_386; ins->argc = 0; break;
+# endif
+# if (core_level >= 3 && core_level <= 4) && !defined(no_umov)
+				COVER_4(0x10): { /* UMOV */
+					ins->opcode = MXOP_UMOV; ins->argc = 2; const int which = (second_byte >> 1) & 1;
+					ARGV *s = &ins->argv[which],*d = &ins->argv[which^1];
+					d->size = s->size = second_byte & 1 ? data32wordsize : 1;
+					INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
+				} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+				COVER_2(0x10):   /* TEST1 r/m,CL */
+				COVER_2(0x18): { /* TEST1 r/m,imm */
+					ARGV *d = &ins->argv[0],*imm = &ins->argv[1];
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+					switch (mrm.f.reg) {
+						case 0:	ins->opcode = MXOP_TEST1; break;
+					};
+					d->size = (second_byte & 1) ? 2 : 1; ins->argc = 2; imm->size = 1;
+					if (second_byte & 8)	set_immediate(imm,fetch_u8());
+					else			set_register(imm,MX86_REG_CL);
+				} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+				COVER_2(0x12):   /* CLEAR1 r/m,CL conflicts with 386/486 UMOV and SSE MOVHPS */
+				COVER_2(0x1A): { /* CLEAR1 r/m,imm */
+					ARGV *d = &ins->argv[0],*imm = &ins->argv[1];
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+					switch (mrm.f.reg) {
+						case 0:	ins->opcode = MXOP_CLEAR1; break;
+					};
+					d->size = (second_byte & 1) ? 2 : 1; imm->size = 1; ins->argc = 2;
+					if (second_byte & 8)	set_immediate(imm,fetch_u8());
+					else			set_register(imm,MX86_REG_CL);
+				} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+				COVER_2(0x14):   /* SET1 r/m,CL */
+				COVER_2(0x1C): { /* SET1 r/m,imm */
+					ARGV *d = &ins->argv[0],*imm = &ins->argv[1];
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+					switch (mrm.f.reg) {
+						case 0:	ins->opcode = MXOP_SET1; break;
+					};
+					d->size = (second_byte & 1) ? 2 : 1; imm->size = 1; ins->argc = 2;
+					if (second_byte & 8)	set_immediate(imm,fetch_u8());
+					else			set_register(imm,MX86_REG_CL);
+				} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+				COVER_2(0x16):   /* NOT1 r/m,CL */
+				COVER_2(0x1E): { /* NOT1 r/m,imm */
+					ARGV *d = &ins->argv[0],*imm = &ins->argv[1];
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+					switch (mrm.f.reg) {
+						case 0:	ins->opcode = MXOP_NOT1; break;
+					};
+					d->size = (second_byte & 1) ? 2 : 1; imm->size = 1; ins->argc = 2;
+					if (second_byte & 8)	set_immediate(imm,fetch_u8());
+					else			set_register(imm,MX86_REG_CL);
+				} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+				case 0x20: { /* ADD4S. conflicts with 386 instruction mov reg,CRx */
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->segment = MX86_SEG_ES;
+					d->size = s->size = 2; d->memregsz = s->memregsz = 2; ins->opcode = MXOP_ADD4S; ins->argc = 2;
+					set_mem_ref_reg(s,MX86_REG_SI); set_mem_ref_reg(d,MX86_REG_DI);
+				} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+				case 0x22: { /* SUB4S */
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->segment = MX86_SEG_ES;
+					d->size = s->size = 2; d->memregsz = s->memregsz = 2; ins->opcode = MXOP_SUB4S; ins->argc = 2;
+					set_mem_ref_reg(s,MX86_REG_SI); set_mem_ref_reg(d,MX86_REG_DI);
+				} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+				case 0x26: { /* CMP4S */
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->segment = MX86_SEG_ES;
+					d->size = s->size = 2; d->memregsz = s->memregsz = 2; ins->opcode = MXOP_CMP4S; ins->argc = 2;
+					set_mem_ref_reg(s,MX86_REG_SI); set_mem_ref_reg(d,MX86_REG_DI);
+				} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+				case 0x28: { /* ROL4 */
+					ARGV *d = &ins->argv[0]; INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+					d->size = 1; ins->argc = 1;
+					switch (mrm.f.reg) {
+						case 0:	ins->opcode = MXOP_ROL4; break;
+					};
+				} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+				case 0x2A: { /* ROR4 */
+					ARGV *d = &ins->argv[0]; INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+					d->size = 1; ins->argc = 1;
+					switch (mrm.f.reg) {
+						case 0:	ins->opcode = MXOP_ROR4; break;
+					};
+				} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
 				case 0x31: case 0x39:	/* INS */
 				case 0x33: case 0x3B: { /* EXT */
-					union x86_mrm mrm = fetch_modregrm();
+					union x86_mrm mrm = fetch_modregrm(); /* only in x86 mode, do not convert */
 					if (mrm.f.mod == 3) {
 						struct minx86dec_argv *s = &ins->argv[2]; /* for display only! */
 						struct minx86dec_argv *bit_start_pos = &ins->argv[0];
@@ -1906,332 +1972,100 @@ decode_next:
 						else set_register(bit_length,mrm.f.reg);
 						set_register(bit_start_pos,mrm.f.rm);
 					}
-					} break;
-				case 0x28: /* ROL4 */
-					ins->argc = 1; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						union x86_mrm mrm = fetch_modregrm();
-						switch (mrm.f.reg) {
-							case 0:	ins->opcode = MXOP_ROL4; break;
-						};
-						d->size = 1;
-						decode_rm(mrm,d,0);
-					} break;
-				case 0x2A: /* ROR4 */
-					ins->argc = 1; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						union x86_mrm mrm = fetch_modregrm();
-						switch (mrm.f.reg) {
-							case 0:	ins->opcode = MXOP_ROR4; break;
-						};
-						d->size = 1;
-						decode_rm(mrm,d,0);
-					} break;
+				} break;
 # endif
-# if core_level >= 2 /*------------- 286 or higher -----------------*/
-				case 0x00: { /* LLDT */
-					union x86_mrm mrm = fetch_modregrm();
-					switch (mrm.f.reg) {
-						case 0:	ins->opcode = MXOP_SLDT; break;
-						case 1: ins->opcode = MXOP_STR; break;
-						case 2: ins->opcode = MXOP_LLDT; break;
-						case 3: ins->opcode = MXOP_LTR; break;
-						case 4: case 5: ins->opcode = MXOP_VERR + mrm.f.reg - 4; break;
-					}
 
-					ins->argc = 1; {
-						struct minx86dec_argv *m = &ins->argv[0];
-						m->size = 2;
-						decode_rm(mrm,m,isaddr32);
-					}
-					break; }
-				case 0x01: { /* LGDT */
-					/* yechh... */
-					if (0) { /* this if() statement makes the else statement valid below even when not compiling else..if below us */
-					}
-# if core_level >= 6 /* these bizarre LGDT extensions pertain to Pentium II 686 class processors */
-					else if (*cip == 0xC8) {
-						ins->opcode = MXOP_MONITOR;
-						ins->argc = 0;
-						cip++;
-					}
-					else if (*cip == 0xC9) {
-						ins->opcode = MXOP_MWAIT;
-						ins->argc = 0;
-						cip++;
-					}
-#  if sse_level >= 1 /* SSE instructions */
-					else if (*cip == 0xD0) {
-						/* extended control registers!?!? C'mon intel your damn standard has enough extensions of extensions! */
-						ins->opcode = MXOP_XGETBV;
-						ins->argc = 0;
-						cip++;
-					}
-					else if (*cip == 0xD1) {
-						/* extended control registers!?!? C'mon intel your damn standard has enough extensions of extensions! */
-						ins->opcode = MXOP_XSETBV;
-						ins->argc = 0;
-						cip++;
-					}
-#  endif
-					else if (*cip == 0xD8) {
-						ins->opcode = MXOP_VMRUN;
-						ins->argc = 1;
-						ins->argv[0].size = 4;
-						set_register(&ins->argv[0],MX86_REG_EAX);
-						cip++;
-					}
-					else if (*cip == 0xD9) {
-						ins->opcode = MXOP_VMMCALL;
-						ins->argc = 0;
-						cip++;
-					}
-					else if (*cip == 0xDA) {
-						ins->opcode = MXOP_VMLOAD;
-						ins->argc = 1;
-						ins->argv[0].size = 4;
-						set_register(&ins->argv[0],MX86_REG_EAX);
-						cip++;
-					}
-					else if (*cip == 0xDB) {
-						ins->opcode = MXOP_VMSAVE;
-						ins->argc = 0;
-						cip++;
-					}
-					else if (*cip == 0xDC) {
-						ins->opcode = MXOP_STGI;
-						ins->argc = 0;
-						cip++;
-					}
-					else if (*cip == 0xDD) {
-						ins->opcode = MXOP_CLGI;
-						ins->argc = 0;
-						cip++;
-					}
-					else if (*cip == 0xDE) {
-						ins->opcode = MXOP_SKINIT;
-						ins->argc = 1;
-						ins->argv[0].size = 4;
-						set_register(&ins->argv[0],MX86_REG_EAX);
-						cip++;
-					}
-					else if (*cip == 0xDF) {
-						ins->opcode = MXOP_INVLPGA;
-						ins->argc = 2;
-						ins->argv[0].size = ins->argv[1].size = 4;
-						set_register(&ins->argv[0],MX86_REG_EAX);
-						set_register(&ins->argv[1],MX86_REG_ECX);
-						cip++;
-					}
-					else if (*cip == 0xF9) { /* FIXME: when did this get added to the instruction set? */
-						ins->opcode = MXOP_RDTSCP;
-						ins->argc = 0;
-						cip++;
-					}
-					else if (*cip >= 0xC1 && *cip <= 0xC3) { /* FIXME: when did these VME instructions get added? */
-						ins->opcode = MXOP_VMCALL + *cip - 0xC1;
-						ins->argc = 0;
-						cip++;
-					}
-					else if (*cip == 0xC4) { /* FIXME: when did VME extensions get added? */
-						ins->opcode = MXOP_VMXOFF;
-						ins->argc = 0;
-						cip++;
-					}
-					else if (*cip == 0xF8) { /* we decode for completeness, but this is only valid in x86-64 mode */
-						ins->opcode = MXOP_SWAPGS;
-						ins->argc = 0;
-						cip++;
-					}
-#endif
-					else {
-						union x86_mrm mrm = fetch_modregrm();
-						switch (mrm.f.reg) {
-							case 0: case 1:
-							case 2: case 3:
-								if (mrm.f.mod == 3) break; /* illegal encoding */
-								ins->opcode = ((mrm.f.reg & 2) ? MXOP_LGDT : MXOP_SGDT) + (mrm.f.reg & 1);
-								ins->argc = 1; {
-									struct minx86dec_argv *m = &ins->argv[0];
-									m->size = 6;	/* 16+32 */
-									decode_rm(mrm,m,isaddr32);
-								} break;
-							case 4:
-								ins->opcode = MXOP_SMSW;
-								ins->argc = 1; {
-									struct minx86dec_argv *m = &ins->argv[0];
-									m->size = 2;
-									decode_rm(mrm,m,isaddr32);
-								} break;
-							case 6:
-								ins->opcode = MXOP_LMSW;
-								ins->argc = 1; {
-									struct minx86dec_argv *m = &ins->argv[0];
-									m->size = 2;
-									decode_rm(mrm,m,isaddr32);
-								} break;
-							case 7:
-								if (mrm.f.mod == 3) break; /* illegal encoding */
-								ins->opcode = MXOP_INVLPG;
-								ins->argc = 1; {
-									struct minx86dec_argv *m = &ins->argv[0];
-									m->size = 4;
-									decode_rm(mrm,m,isaddr32);
-								} break;
-						}
-					} break; }
-				case 0x02: /* LAR */
-					ins->opcode = MXOP_LAR;
-					ins->argc = 2; {
-						union x86_mrm mrm = fetch_modregrm();
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->size = s->size = data32wordsize;
-						set_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
-					} break;
-				case 0x03: /* LSL */
-					ins->opcode = MXOP_LSL;
-					ins->argc = 2; {
-						union x86_mrm mrm = fetch_modregrm();
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						d->size = s->size = data32wordsize;
-						set_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
-					} break;
-#  if core_level == 2 && !defined(everything)
-				case 0x04: /* secret unknown opcode said to cause 286s to hang, LOADALL alias? */
-					ins->opcode = MXOP_UNKNOWN_286_0F04;
-					ins->argc = 0;
-					break;
-#  endif
-#  if core_level == 2 || (defined(everything) && core_level > 2 && core_level <= 4)
-				/* EWWWW this is a bit messy....
-				   Once upon a time this was widely known as the LOADALL instruction for the 286.
-				   386 and 486 systems used the invalid opcode exception to fake it, and then
-				   it was forgotten, until re-used to become SYSCALL */
-				case 0x05: /* LOADALL 286 */
-					ins->opcode = MXOP_LOADALL_286;
-					ins->argc = 0;
-					break;
-#  endif
-				case 0x06: /* CLTS */
-					ins->opcode = MXOP_CLTS;
-					ins->argc = 0;
-					break;
+# if core_level >= 3
+				COVER_ROW(0x80): {
+					ins->opcode = MXOP_JO+(second_byte&0xF); ins->argc = 1;
+					ARGV *r = &ins->argv[0]; r->size = addr32wordsize;
+					uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
+					if (isdata32)	set_immediate(r,curp + 4 + ((uint32_t)((int32_t)fetch_u32())));
+					else		set_immediate(r,curp + 2 + ((uint32_t)((int16_t)fetch_u16())));
+				} break;
 # endif
+
+# if core_level >= 3
+				COVER_ROW(0x90): {
+					ins->opcode = MXOP_SETO+(second_byte&0xF); ins->argc = 1;
+					ARGV *r = &ins->argv[0]; r->size = 1;
+					INS_MRM mrm = decode_rm_(r,ins,r->size,PLUSR_TRANSFORM);
+				} break;
+# endif
+
+# if core_level >= 3
+				COVER_2(0xA0): {
+					ins->opcode = MXOP_PUSH + (second_byte & 1); ins->argc = 1;
+					ARGV *r = &ins->argv[0]; set_segment_register(r,MX86_SEG_FS);
+				} break;
+# endif
+
+# if core_level >= 3
+				case 0xA3: {
+					ins->opcode = MXOP_BT; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = data32wordsize;
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); set_register(s,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 3
+				COVER_2(0xA4): COVER_2(0xAC): {
+					ins->opcode = (second_byte & 8) ? MXOP_SHRD : MXOP_SHLD; ins->argc = 3;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1],*imm = &ins->argv[2];
+					imm->size = 1; d->size = s->size = data32wordsize;
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); set_register(s,mrm.f.reg);
+					if (second_byte & 1)	set_register(imm,MX86_REG_CL);
+					else			set_immediate(imm,fetch_u8());
+				} break;
+# endif
+
+# if core_level == 3 && !defined(everything)
+				case 0xA6: {
+					ins->opcode = MXOP_XBTS; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = data32wordsize;
+					INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level == 3 && !defined(everything)
+				case 0xA7: {
+					ins->opcode = MXOP_IBTS; ins->argc = 2;
+					ARGV *d = &ins->argv[1],*s = &ins->argv[0]; d->size = s->size = data32wordsize;
+					INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 3
+				COVER_2(0xA8): {
+					ins->opcode = MXOP_PUSH + (second_byte & 1); ins->argc = 1;
+					ARGV *r = &ins->argv[0]; set_segment_register(r,MX86_SEG_GS);
+				} break;
+# endif
+# if core_level >= 3
+				case 0xAA: ins->opcode = MXOP_RSM; ins->argc = 0; break;
+# endif
+# if core_level >= 3
+				case 0xAB: {
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = data32wordsize; ins->opcode = MXOP_BTS; ins->argc = 2;
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); set_register(s,mrm.f.reg);
+				} break;
+# endif
+
+# if core_level >= 3
+				COVER_2(0xBC): {
+					ins->opcode = MXOP_BSF + (second_byte & 1); ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = data32wordsize;
+					INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
+				} break;
+# endif
+
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+				case 0xFF: { /* BRKEM */
+					ins->opcode = MXOP_BRKEM; ins->argc = 1; 
+					ARGV *r = &ins->argv[0]; set_immediate(r,fetch_u8());
+				} break;
+# endif
+
+#ifndef x64_mode
+
 # if core_level >= 3 /* --------------------- 386 or higher ---------------------- */
-#  if core_level == 3 || (defined(everything) && core_level == 4)
-				/* this opcode suffers the same fate as the 286 version of LOADALL.
-				   it was faked by 486 systems, forgotten around the Pentium era, and then
-				   re-used for the SYSCALL/SYSENTER instruction. */
-				case 0x07: /* LOADALL 386 */
-					ins->opcode = MXOP_LOADALL_386;
-					ins->argc = 0;
-					break;
-#  endif
-#  if core_level == 3 && !defined(everything)
-				case 0xA6:
-					ins->opcode = MXOP_XBTS;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = data32wordsize;
-						set_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
-					} break;
-				case 0xA7:
-					ins->opcode = MXOP_IBTS;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[1];
-						struct minx86dec_argv *s = &ins->argv[0];
-						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = data32wordsize;
-						set_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
-					} break;
-#  endif
-				case 0xAA:
-					ins->opcode = MXOP_RSM;
-					ins->argc = 0;
-					break;
-				COVER_2(0xBC):
-					ins->opcode = MXOP_BSF + (second_byte & 1);
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = data32wordsize;
-						set_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
-					} break;
-				/* Jcc near */
-				COVER_ROW(0x80):
-					ins->opcode = MXOP_JO+(second_byte&0xF);
-					ins->argc = 1; {
-						struct minx86dec_argv *r = &ins->argv[0];
-						uint32_t curp = state->ip_value + (uint32_t)(cip - state->read_ip);
-						if (isdata32)	set_immediate(r,curp + 4 + ((uint32_t)((int32_t)fetch_u32())));
-						else		set_immediate(r,curp + 2 + ((uint32_t)((int16_t)fetch_u16())));
-						r->size = addr32wordsize;
-					} break;
-				/* SETcc */
-				COVER_ROW(0x90):
-					ins->opcode = MXOP_SETO+(second_byte&0xF);
-					ins->argc = 1; {
-						struct minx86dec_argv *r = &ins->argv[0];
-						union x86_mrm mrm = fetch_modregrm();
-						r->size = 1;
-						decode_rm(mrm,r,isaddr32);
-					} break;
-				COVER_2(0xA0):
-					ins->opcode = MXOP_PUSH + (second_byte & 1);
-					ins->argc = 1; {
-						struct minx86dec_argv *r = &ins->argv[0];
-						set_segment_register(r,MX86_SEG_FS);
-					} break;
-				case 0xA3:
-					ins->opcode = MXOP_BT;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = data32wordsize;
-						set_register(s,mrm.f.reg);
-						decode_rm(mrm,d,isaddr32);
-					} break;
-				COVER_2(0xA4): COVER_2(0xAC):
-					ins->opcode = (second_byte & 8) ? MXOP_SHRD : MXOP_SHLD;
-					ins->argc = 3; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						struct minx86dec_argv *imm = &ins->argv[2];
-						union x86_mrm mrm = fetch_modregrm();
-						imm->size = 1;
-						d->size = s->size = data32wordsize;
-						set_register(s,mrm.f.reg);
-						decode_rm(mrm,d,isaddr32);
-						if (second_byte & 1) set_register(imm,MX86_REG_CL);
-						else set_immediate(imm,fetch_u8());
-					} break;
-				COVER_2(0xA8):
-					ins->opcode = MXOP_PUSH + (second_byte & 1);
-					ins->argc = 1; {
-						struct minx86dec_argv *r = &ins->argv[0];
-						set_segment_register(r,MX86_SEG_GS);
-					} break;
-				case 0xAB:
-					ins->opcode = MXOP_BTS;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = data32wordsize;
-						set_register(s,mrm.f.reg);
-						decode_rm(mrm,d,isaddr32);
-					} break;
 				case 0xB2:
 					ins->opcode = MXOP_LSS;
 					ins->argc = 2; {
@@ -4690,9 +4524,9 @@ decode_next:
 # endif
 				default:
 					break;
+#endif
 			};
 			} break;
-#endif
 
 /*---------------------------------- FPU decoding ------------------------------ */
 		COVER_8(0xD8): {
