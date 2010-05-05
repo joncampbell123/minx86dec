@@ -1919,9 +1919,13 @@ decode_next:
 				COVER_4(0x20): { /* mov control/debug reg (TODO: what exactly should the mod bits be?) */
 					const int which = (second_byte >> 1) & 1; ins->opcode = MXOP_MOV; ins->argc = 2;
 					ARGV *ctrl = &ins->argv[which^1],*reg = &ins->argv[which]; unsigned char imr = fetch_u8();
+					unsigned int ridx = (imr>>3)&7;
+#  if defined(x64_mode)
+					ridx |= (ins->rex.f.r << 3);
+#  endif
 					ctrl->size = reg->size = ctrlwordsize; set_register(reg,imr&7);
-					if (second_byte & 1)	set_debug_register(ctrl,(imr>>3)&7);
-					else			set_control_register(ctrl,(imr>>3)&7);
+					if (second_byte & 1)	set_debug_register(ctrl,ridx);
+					else			set_control_register(ctrl,ridx);
 				} break;
 # elif defined(do_necv20) /* NEC V20/V30 */
 				case 0x20: { /* ADD4S. conflicts with 386 instruction mov reg,CRx */
@@ -1935,6 +1939,15 @@ decode_next:
 					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->segment = MX86_SEG_ES;
 					d->size = s->size = 2; d->memregsz = s->memregsz = 2; ins->opcode = MXOP_SUB4S; ins->argc = 2;
 					set_mem_ref_reg(s,MX86_REG_SI); set_mem_ref_reg(d,MX86_REG_DI);
+				} break;
+# endif
+# if core_level >= 3 && !defined(x64_mode)
+				case 0x24: case 0x26: { /* TODO: what about the mod bits? */
+					const int which = (second_byte >> 1) & 1;
+					ins->opcode = MXOP_MOV; ins->argc = 2;
+					ARGV *ctrl = &ins->argv[which^1],*reg = &ins->argv[which];
+					ctrl->size = reg->size = ctrlwordsize; unsigned char mrm = fetch_u8();
+					set_register(reg,mrm&7); set_test_register(ctrl,(mrm>>3)&7);
 				} break;
 # endif
 # if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
@@ -2028,6 +2041,15 @@ decode_next:
 				} break;
 # endif
 
+# if core_level == 4 && !defined(everything)
+				COVER_2(0xA6): { /* the original CMPXCHG */
+					ins->opcode = MXOP_CMPXCHG; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+					d->size = s->size = (second_byte & 1) ? data32wordsize : 1;
+					INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+					set_register(s,mrm.f.reg);
+				} break;
+# endif
 # if core_level == 3 && !defined(everything)
 				case 0xA6: {
 					ins->opcode = MXOP_XBTS; ins->argc = 2;
@@ -2142,35 +2164,6 @@ decode_next:
 
 #ifndef x64_mode
 
-# if core_level >= 3 /* --------------------- 386 or higher ---------------------- */
-				COVER_4(0x24):
-					if (second_byte & 1) {
-					}
-					else {
-						ins->opcode = MXOP_MOV;
-						ins->argc = 2; {
-							const int which = (second_byte >> 1) & 1;
-							struct minx86dec_argv *ctrl = &ins->argv[which^1];
-							struct minx86dec_argv *reg = &ins->argv[which];
-							union x86_mrm mrm = fetch_modregrm();
-							ctrl->size = reg->size = 4; /* x86: always 4 bytes */
-							set_register(reg,mrm.f.rm);
-							set_test_register(ctrl,mrm.f.reg);
-						}
-					} break;
-# endif
-# if core_level == 4
-				COVER_2(0xA6): /* the original CMPXCHG, which conflicts with 386 IBTS, and VIA padlock extensions */
-					ins->opcode = MXOP_CMPXCHG;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						d->size = s->size = (second_byte & 1) ? data32wordsize : 1;
-						set_register(s,mrm.f.reg);
-						decode_rm(mrm,d,isaddr32);
-					} break;
-# endif
 # if core_level >= 4 /* --------------------- 486 or higher ---------------------- */
 				COVER_2(0xB0):
 					ins->opcode = MXOP_CMPXCHG;

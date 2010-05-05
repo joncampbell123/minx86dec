@@ -4,10 +4,21 @@ bits 64
 	mov	rax,cr0
 	mov	cr1,rax
 	mov	rax,cr1
+	mov	cr8,rax
+	mov	rax,cr8
+	mov	cr15,rax
+	mov	rax,cr15
+
 	mov	dr0,rax
 	mov	rax,dr0
 	mov	dr1,rax
 	mov	rax,dr1
+	mov	dr8,rax
+	mov	rax,dr8
+	mov	dr11,rax
+	mov	rax,dr11
+	mov	dr15,rax
+	mov	rax,dr15
 
 	push		byte 0x12
 	push		word 0x1234
