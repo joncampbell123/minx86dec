@@ -2611,6 +2611,23 @@ decode_next:
 					if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
 				} break;
 # endif
+# if core_level >= 5 && sse_level >= 2
+				case 0xD5: {
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = dataprefix32?16:8;
+					ins->opcode = MXOP_PMULLW; ins->argc = 2;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
+					if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
+				case 0xD7: {
+					ins->opcode = MXOP_PMOVMSKB; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = 4; s->size = dataprefix32?16:8;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
+					if (dataprefix32) set_register(d,mrm.f.reg); else set_register(d,mrm.f.reg);
+				} break;
+# endif
 
 # if core_level >= 5 && sse_level >= 2
 				case 0xDB: {
@@ -2625,6 +2642,48 @@ decode_next:
 					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; ins->opcode = MXOP_PADDUSB + (second_byte & 1);
 					ins->argc = 2; d->size = s->size = dataprefix32 ? 16 : 8;
 					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+					if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
+				case 0xDF: {
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = dataprefix32?16:8;
+					ins->opcode = MXOP_PANDN; ins->argc = 2;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
+					if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 5 && sse_level >= 2
+				case 0xE0: {
+					ins->opcode = MXOP_PAVGB; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = dataprefix32?16:8;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
+					if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
+				case 0xE3: {
+					ins->opcode = MXOP_PAVGW; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = dataprefix32?16:8;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
+					if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 5 && sse_level >= 2
+				case 0xE4: {
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = dataprefix32?16:8;
+					ins->opcode = MXOP_PMULHUW; ins->argc = 2;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
+					if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 5 && sse_level >= 2
+				case 0xE5: {
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = dataprefix32?16:8;
+					ins->opcode = MXOP_PMULHW; ins->argc = 2;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
 					if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
 				} break;
 # endif
@@ -2657,6 +2716,15 @@ decode_next:
 				} break;
 # endif
 
+# if core_level >= 5 && sse_level >= 2
+				case 0xF4: {
+					ins->opcode = MXOP_PMULUDQ; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = 4; s->size = dataprefix32?16:8;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
+					if (dataprefix32) set_register(d,mrm.f.reg); else set_register(d,mrm.f.reg);
+				} break;
+# endif
+
 # if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
 				case 0xFF: { /* BRKEM */
 					ins->opcode = MXOP_BRKEM; ins->argc = 1; 
@@ -2665,120 +2733,6 @@ decode_next:
 # endif
 
 #ifndef x64_mode
-
-# if core_level >= 5 && sse_level >= 2
-				case 0xDF: {
-					union x86_mrm mrm = fetch_modregrm();
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					ins->opcode = MXOP_PANDN;
-					ins->argc = 2;
-					d->size = s->size = dataprefix32 ? 16 : 8;
-					if (dataprefix32) set_sse_register(d,mrm.f.reg);
-					else set_mmx_register(d,mrm.f.reg);
-					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-				} break;
-# endif
-
-# if core_level >= 5 && sse_level >= 2
-				case 0xE0: {
-					union x86_mrm mrm = fetch_modregrm();
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					ins->opcode = MXOP_PAVGB;
-					ins->argc = 2;
-					d->size = s->size = dataprefix32 ? 16 : 8;
-					if (dataprefix32) set_sse_register(d,mrm.f.reg);
-					else set_mmx_register(d,mrm.f.reg);
-					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-				} break;
-# endif
-
-# if core_level >= 5 && sse_level >= 2
-				case 0xE3: {
-					union x86_mrm mrm = fetch_modregrm();
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					ins->opcode = MXOP_PAVGW;
-					ins->argc = 2;
-					d->size = s->size = dataprefix32 ? 16 : 8;
-					if (dataprefix32) set_sse_register(d,mrm.f.reg);
-					else set_mmx_register(d,mrm.f.reg);
-					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-				} break;
-# endif
-
-# if core_level >= 5 && sse_level >= 2
-				case 0xE4: {
-					union x86_mrm mrm = fetch_modregrm();
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					ins->opcode = MXOP_PMULHUW;
-					ins->argc = 2;
-					d->size = s->size = dataprefix32 ? 16 : 8;
-					if (dataprefix32) set_sse_register(d,mrm.f.reg);
-					else set_mmx_register(d,mrm.f.reg);
-					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-				} break;
-# endif
-
-# if core_level >= 5 && sse_level >= 2
-				case 0xD5: {
-					union x86_mrm mrm = fetch_modregrm();
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					ins->opcode = MXOP_PMULLW;
-					ins->argc = 2;
-					d->size = s->size = dataprefix32 ? 16 : 8;
-					if (dataprefix32) set_sse_register(d,mrm.f.reg);
-					else set_mmx_register(d,mrm.f.reg);
-					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-				} break;
-# endif
-
-# if core_level >= 5 && sse_level >= 2
-				case 0xE5: {
-					union x86_mrm mrm = fetch_modregrm();
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					ins->opcode = MXOP_PMULHW;
-					ins->argc = 2;
-					d->size = s->size = dataprefix32 ? 16 : 8;
-					if (dataprefix32) set_sse_register(d,mrm.f.reg);
-					else set_mmx_register(d,mrm.f.reg);
-					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-				} break;
-# endif
-
-# if core_level >= 5 && sse_level >= 2
-				case 0xD7: {
-					union x86_mrm mrm = fetch_modregrm();
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					ins->opcode = MXOP_PMOVMSKB;
-					ins->argc = 2;
-					d->size = 4;
-					s->size = dataprefix32 ? 16 : 8;
-					if (dataprefix32) set_register(d,mrm.f.reg);
-					else set_register(d,mrm.f.reg);
-					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-				} break;
-# endif
-
-# if core_level >= 5 && sse_level >= 2
-				case 0xF4: {
-					union x86_mrm mrm = fetch_modregrm();
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					ins->opcode = MXOP_PMULUDQ;
-					ins->argc = 2;
-					d->size = 4;
-					s->size = dataprefix32 ? 16 : 8;
-					if (dataprefix32) set_register(d,mrm.f.reg);
-					else set_register(d,mrm.f.reg);
-					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-				} break;
-# endif
 
 # if core_level >= 5 && sse_level >= 2
 				case 0x71: {
