@@ -2642,8 +2642,7 @@ decode_next:
 
 #ifndef x64_mode
 
-# if core_level >= 5 /* --------------------- pentium or higher ------------------ */
-#  if sse_level >= 2 /* SSE2 */
+# if core_level >= 5 && sse_level >= 2
 				COVER_2(0xEC): {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2655,7 +2654,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xD4: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2667,7 +2668,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xDB: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2679,7 +2682,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xDF: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2691,7 +2696,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xE0: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2703,7 +2710,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xE3: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2715,7 +2724,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xE4: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2727,7 +2738,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xD5: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2739,7 +2752,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xE5: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2751,7 +2766,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xD7: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2764,7 +2781,9 @@ decode_next:
 					else set_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xF4: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2777,7 +2796,9 @@ decode_next:
 					else set_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x71: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2808,7 +2829,9 @@ decode_next:
 							break;
 					}
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x72: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2839,7 +2862,9 @@ decode_next:
 							break;
 					}
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x73: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2882,7 +2907,9 @@ decode_next:
 							break;
 					}
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xE1: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2894,7 +2921,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xE2: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2906,7 +2935,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xF1: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2918,7 +2949,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xF2: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2930,7 +2963,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xF3: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2942,7 +2977,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xD1: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2954,7 +2991,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xD2: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2966,7 +3005,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xD3: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2978,7 +3019,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xD8: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -2990,7 +3033,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xD9: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3002,7 +3047,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x70:
 					if (ins->rep >= MX86_REPE) {
 						union x86_mrm mrm = fetch_modregrm();
@@ -3032,7 +3079,9 @@ decode_next:
 						set_immediate(i,fetch_u8());
 					}
 					break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xE8: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3044,7 +3093,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xE9: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3056,7 +3107,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xF6: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3068,7 +3121,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2 
 				case 0xF8: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3080,7 +3135,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xF9: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3092,7 +3149,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xFA: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3104,7 +3163,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0xFB: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3116,7 +3177,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				COVER_2(0xFC): case 0xFE: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3128,7 +3191,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				COVER_2(0x64): case 0x66: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3140,7 +3205,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x67: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3152,7 +3219,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				COVER_2(0x74): case 0x76: {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3164,7 +3233,9 @@ decode_next:
 					else set_mmx_register(d,mrm.f.reg);
 					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				COVER_2(0x78):
 					if (ins->rep == MX86_REPE) {
 						struct minx86dec_argv *d = &ins->argv[0];
@@ -3219,7 +3290,9 @@ decode_next:
 							decode_rm(mrm,s,isaddr32);
 						}
 					} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				COVER_2(0x10): {
 					const unsigned int which = second_byte & 1;
 					struct minx86dec_argv *re = &ins->argv[which];
@@ -3235,6 +3308,9 @@ decode_next:
 					else
 						ins->opcode = dataprefix32 ? MXOP_MOVUPD : MXOP_MOVUPS;
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				COVER_2(0x12): {
 					const unsigned int which = second_byte & 1;
 					struct minx86dec_argv *d = &ins->argv[which];
@@ -3255,6 +3331,9 @@ decode_next:
 					if (ins->opcode == MXOP_MOVLPS && s->regtype != MX86_RT_NONE)
 						ins->opcode = MXOP_MOVHLPS;
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x18: {
 					struct minx86dec_argv *d = &ins->argv[0];
 					union x86_mrm mrm = fetch_modregrm();
@@ -3267,6 +3346,9 @@ decode_next:
 							ins->opcode = MXOP_PREFETCHT0 + mrm.f.reg - 1; ins->argc = 1;
 							break;
 					} } break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				COVER_2(0x16): {
 					const unsigned int which = second_byte & 1;
 					struct minx86dec_argv *d = &ins->argv[which];
@@ -3282,6 +3364,9 @@ decode_next:
 					if (ins->opcode == MXOP_MOVHPS && s->regtype != MX86_RT_NONE)
 						ins->opcode = MXOP_MOVLHPS;
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2 
 				COVER_2(0x28):
 					ins->opcode = MXOP_MOVAPS - (dataprefix32 & 1);
 					ins->argc = 2; {
@@ -3293,6 +3378,9 @@ decode_next:
 						set_sse_register(re,mrm.f.reg);
 						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x50:
 					ins->opcode = MXOP_MOVMSKPS - (dataprefix32 & 1);
 					ins->argc = 2; {
@@ -3305,6 +3393,9 @@ decode_next:
 						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
 						/* FIXME: Intel docs imply that MXOP_MOVMSKPD applies to the r/m = reg form. what else is here? */
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x51:
 					if (dataprefix32) {
 						ins->opcode = MXOP_SQRTPD;
@@ -3331,6 +3422,9 @@ decode_next:
 						}
 					}
 					break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x56:
 					ins->opcode = MXOP_ORPS + (dataprefix32 & 1);
 					ins->argc = 2; {
@@ -3341,6 +3435,9 @@ decode_next:
 						set_sse_register(reg,mrm.f.reg);
 						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x57:
 					ins->opcode = MXOP_XORPS + (dataprefix32 & 1);
 					ins->argc = 2; {
@@ -3351,6 +3448,9 @@ decode_next:
 						set_sse_register(reg,mrm.f.reg);
 						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x59:
 					ins->argc = 2;
 					ins->opcode = (ins->rep >= MX86_REPE) ?
@@ -3364,6 +3464,9 @@ decode_next:
 						set_sse_register(reg,mrm.f.reg);
 						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x5D:
 					ins->opcode = (ins->rep >= MX86_REPE) ? (ins->rep + MXOP_MINSD - MX86_REPE) : (MXOP_MINPS - dataprefix32);
 					ins->argc = 2; {
@@ -3374,6 +3477,9 @@ decode_next:
 						set_sse_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x5E: {
 					struct minx86dec_argv *d = &ins->argv[0];
 					struct minx86dec_argv *s = &ins->argv[1];
@@ -3391,6 +3497,9 @@ decode_next:
 					s->size = 16; /* 128 bit = 16 bytes */
 					decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x5F:
 					ins->opcode = (ins->rep >= MX86_REPE) ? (ins->rep + MXOP_MAXSD - MX86_REPE) : (MXOP_MAXPS - dataprefix32);
 					ins->argc = 2; {
@@ -3401,7 +3510,9 @@ decode_next:
 						set_sse_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x60:
 					ins->opcode = MXOP_PUNPCKLBW;
 					ins->argc = 2; {
@@ -3413,7 +3524,9 @@ decode_next:
 						else set_mmx_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x61:
 					ins->opcode = MXOP_PUNPCKLWD;
 					ins->argc = 2; {
@@ -3425,7 +3538,9 @@ decode_next:
 						else set_mmx_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x62:
 					ins->opcode = MXOP_PUNPCKLDQ;
 					ins->argc = 2; {
@@ -3437,7 +3552,9 @@ decode_next:
 						else set_mmx_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x63:
 				case 0x6B:
 					ins->opcode = MXOP_PACKSSWB + ((second_byte >> 3)&1);
@@ -3450,7 +3567,9 @@ decode_next:
 						else set_mmx_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x6F:
 				case 0x7F:
 					if (ins->rep == MX86_REPE) {
@@ -3477,7 +3596,9 @@ decode_next:
 						}
 					}
 					break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x68:
 					ins->opcode = MXOP_PUNPCKHBW;
 					ins->argc = 2; {
@@ -3489,7 +3610,9 @@ decode_next:
 						else set_mmx_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x69:
 					ins->opcode = MXOP_PUNPCKHWD;
 					ins->argc = 2; {
@@ -3501,7 +3624,9 @@ decode_next:
 						else set_mmx_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					} break;
+# endif
 
+# if core_level >= 5 && sse_level >= 2
 				case 0x6A:
 					ins->opcode = MXOP_PUNPCKHDQ;
 					ins->argc = 2; {
@@ -3513,8 +3638,10 @@ decode_next:
 						else set_mmx_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					} break;
+# endif
 
-				case 0x6C:
+# if core_level >= 5 && sse_level >= 2
+				case 0x6C: {
 					if (dataprefix32) {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
@@ -3525,9 +3652,11 @@ decode_next:
 						set_sse_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					}
-					break;
+				} break;
+# endif
 
-				case 0x6D:
+# if core_level >= 5 && sse_level >= 2
+				case 0x6D: {
 					if (dataprefix32) {
 						struct minx86dec_argv *d = &ins->argv[0];
 						struct minx86dec_argv *s = &ins->argv[1];
@@ -3538,9 +3667,11 @@ decode_next:
 						set_sse_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
 					}
-					break;
+				} break;
+# endif
 
-				case 0xB8:
+# if core_level >= 5 && sse_level >= 2
+				case 0xB8: {
 					ins->opcode = MXOP_POPCNT;
 					ins->argc = 2; {
 						struct minx86dec_argv *re = &ins->argv[0];
@@ -3549,8 +3680,12 @@ decode_next:
 						re->size = rm->size = data32wordsize;
 						set_register(re,mrm.f.reg);
 						decode_rm(mrm,rm,isaddr32);
-					} break;
-				case 0xC3:
+					}
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
+				case 0xC3: {
 					if (dataprefix32) {
 					}
 					else {
@@ -3563,39 +3698,46 @@ decode_next:
 						set_register(reg,mrm.f.reg);
 						decode_rm(mrm,rm,isaddr32);
 					}
-					break;
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0xC4: {
-						union x86_mrm mrm = fetch_modregrm();
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						struct minx86dec_argv *i = &ins->argv[2];
-						ins->opcode = MXOP_PINSRW;
-						ins->argc = 3;
-						s->size = 4;
-						d->size = dataprefix32 ? 16 : 8;
-						if (dataprefix32) set_sse_register(d,mrm.f.reg);
-						else set_mmx_register(d,mrm.f.reg);
-						decode_rm(mrm,s,isaddr32);
-						i->size = 1;
-						set_immediate(i,fetch_u8());
-					}
-					break;
+					union x86_mrm mrm = fetch_modregrm();
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					struct minx86dec_argv *i = &ins->argv[2];
+					ins->opcode = MXOP_PINSRW;
+					ins->argc = 3;
+					s->size = 4;
+					d->size = dataprefix32 ? 16 : 8;
+					if (dataprefix32) set_sse_register(d,mrm.f.reg);
+					else set_mmx_register(d,mrm.f.reg);
+					decode_rm(mrm,s,isaddr32);
+					i->size = 1;
+					set_immediate(i,fetch_u8());
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0xC5: {
-						union x86_mrm mrm = fetch_modregrm();
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						struct minx86dec_argv *i = &ins->argv[2];
-						ins->opcode = MXOP_PEXTRW;
-						ins->argc = 3;
-						s->size = dataprefix32 ? 16 : 8;
-						d->size = 4;
-						set_register(d,mrm.f.reg);
-						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-						i->size = 1;
-						set_immediate(i,fetch_u8());
-					}
-					break;
-				case 0xC6:
+					union x86_mrm mrm = fetch_modregrm();
+					struct minx86dec_argv *d = &ins->argv[0];
+					struct minx86dec_argv *s = &ins->argv[1];
+					struct minx86dec_argv *i = &ins->argv[2];
+					ins->opcode = MXOP_PEXTRW;
+					ins->argc = 3;
+					s->size = dataprefix32 ? 16 : 8;
+					d->size = 4;
+					set_register(d,mrm.f.reg);
+					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+					i->size = 1;
+					set_immediate(i,fetch_u8());
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
+				case 0xC6: {
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
@@ -3611,8 +3753,11 @@ decode_next:
 						set_sse_register(reg,mrm.f.reg);
 						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
 					}
-					break;
-				case 0x2B:
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
+				case 0x2B: {
 					if (ins->rep >= MX86_REPE) {
 						struct minx86dec_argv *rm = &ins->argv[0];
 						struct minx86dec_argv *reg = &ins->argv[1];
@@ -3633,8 +3778,11 @@ decode_next:
 						set_sse_register(reg,mrm.f.reg);
 						decode_rm_ex(mrm,rm,isaddr32,MX86_RT_SSE);
 					}
-					break;
-				case 0xEB:
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
+				case 0xEB: {
 					if (ins->rep >= MX86_REPE) {
 						/* who wants to bet Intel will add instructions by overloading this one? >:( */
 					}
@@ -3655,9 +3803,11 @@ decode_next:
 							decode_rm_ex(mrm,rm,isaddr32,MX86_RT_MMX);
 						}
 					}
-					break;
+				} break;
+# endif
 
-				case 0xDA:
+# if core_level >= 5 && sse_level >= 2
+				case 0xDA: {
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
@@ -3671,9 +3821,11 @@ decode_next:
 						rm->size = reg->size = dataprefix32 ? 16 : 8;
 						decode_rm_ex(mrm,rm,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					}
-					break;
+				} break;
+# endif
 
-				case 0xDE:
+# if core_level >= 5 && sse_level >= 2
+				case 0xDE: {
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
@@ -3687,9 +3839,11 @@ decode_next:
 						rm->size = reg->size = dataprefix32 ? 16 : 8;
 						decode_rm_ex(mrm,rm,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					}
-					break;
+				} break;
+# endif
 
-				case 0xEA:
+# if core_level >= 5 && sse_level >= 2
+				case 0xEA: {
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
@@ -3703,9 +3857,11 @@ decode_next:
 						rm->size = reg->size = dataprefix32 ? 16 : 8;
 						decode_rm_ex(mrm,rm,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					}
-					break;
+				} break;
+# endif
 
-				case 0xEE:
+# if core_level >= 5 && sse_level >= 2
+				case 0xEE: {
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
@@ -3719,9 +3875,11 @@ decode_next:
 						rm->size = reg->size = dataprefix32 ? 16 : 8;
 						decode_rm_ex(mrm,rm,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					}
-					break;
+				} break;
+# endif
 
-				case 0xF5:
+# if core_level >= 5 && sse_level >= 2
+				case 0xF5: {
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
@@ -3735,9 +3893,11 @@ decode_next:
 						rm->size = reg->size = dataprefix32 ? 16 : 8;
 						decode_rm_ex(mrm,rm,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 					}
-					break;
+				} break;
+# endif
 
-				case 0xE7:
+# if core_level >= 5 && sse_level >= 2
+				case 0xE7: {
 					if (ins->rep >= MX86_REPE) {
 					}
 					else {
@@ -3758,8 +3918,11 @@ decode_next:
 							decode_rm_ex(mrm,rm,isaddr32,MX86_RT_MMX);
 						}
 					}
-					break;
-				case 0xD6:
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
+				case 0xD6: {
 					if (ins->rep >= MX86_REPE) {
 						const unsigned int which = (ins->rep - MX86_REPE)&1;
 						ARGV *d = &ins->argv[0],*s = &ins->argv[1];
@@ -3775,7 +3938,10 @@ decode_next:
 						INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 						set_sse_register(d,mrm.f.reg);
 					}
-					break;
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0xF7: {
 					struct minx86dec_argv *d = &ins->argv[0];
 					struct minx86dec_argv *s = &ins->argv[1];
@@ -3791,7 +3957,10 @@ decode_next:
 						set_mmx_register(d,mrm.f.reg);
 						decode_rm_ex(mrm,s,isaddr32,MX86_RT_MMX);
 					}
-					} break;
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0xE6: {
 					struct minx86dec_argv *d = &ins->argv[0];
 					struct minx86dec_argv *s = &ins->argv[1];
@@ -3808,7 +3977,10 @@ decode_next:
 					set_sse_register(d,mrm.f.reg);
 					s->size = 16; /* 128 bit = 16 bytes */
 					decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-					break; }
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0xAE: {
 					int m = -1;
 					struct minx86dec_argv *d = &ins->argv[0];
@@ -3829,23 +4001,20 @@ decode_next:
 							} break;
 						case 6:	ins->opcode = MXOP_MFENCE; ins->argc = 0; break;
 						case 7: if (mrm.f.mod == 3) {
-							ins->opcode = MXOP_SFENCE; /* hah, get it? CLFLUSH with non-memory ref would not make sense, so let's use it for SFENCE! Pfffh... --J.C. */
+							ins->opcode = MXOP_SFENCE; ins->argc = 0; break;
 							} else {
 							ins->opcode = MXOP_CLFLUSH; m = 0;
 							} break;
 					}
 					switch (m) {
-						case 0:	ins->argc = 1;
-							d->size = data32wordsize;
-							decode_rm(mrm,d,isaddr32);
-							break;
+						case 0:	ins->argc = 1; d->size = data32wordsize; decode_rm(mrm,d,isaddr32); break;
 						case 1: if (mrm.f.mod == 3) break; /* illegal */
-							ins->argc = 1;
-							d->size = 512;
-							decode_rm(mrm,d,isaddr32);
-							break;
-						};
-					} break;
+							ins->argc = 1; d->size = 512; decode_rm(mrm,d,isaddr32); break;
+					};
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x3A: {
 					/* eugh it gets worse */
 					uint8_t third_byte = fetch_u8();
@@ -4042,6 +4211,9 @@ decode_next:
 						} break;
 					};
 					} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
 				case 0x38: {
 					/* eugh yuck */
 					uint8_t third_byte = fetch_u8();
@@ -4235,7 +4407,6 @@ decode_next:
 							break;
 					};
 					} break;
-#  endif
 # endif
 				default:
 					break;
