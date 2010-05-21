@@ -2156,6 +2156,10 @@ decode_next:
 				case 0x35: ins->opcode = MXOP_SYSEXIT; ins->argc = 0; break;
 # endif
 
+# if core_level >= 5 && sse_level >= 2
+				case 0x37: ins->opcode = MXOP_GETSEC; ins->argc = 0; break;
+# endif
+
 # if core_level >= 5 && (defined(pentiumpro) || pentium >= 2)
 				COVER_ROW(0x40): { /* CMOVcc */
 					ins->opcode = MXOP_CMOVO + second_byte - 0x40; ins->argc = 2;
@@ -2244,12 +2248,35 @@ decode_next:
 					INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_MMX);
 					set_mmx_register(s1,mrm.f.reg); set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 				} break;
+# endif
+# if core_level >= 5 && sse_level >= 1
+				case 0x5A: {
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; ins->argc = 2; d->size = s->size = 16;
+					if (ins->rep >= MX86_REPE) ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSS2SD : MXOP_CVTSD2SS;
+					else ins->opcode = MXOP_CVTPS2PD + (dataprefix32 & 1);
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,s->regtype=MX86_RT_SSE);
+					set_sse_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 5 && cyrix_level == 6 && mmx == 1
 				case 0x5A: { /* PMVNZB conflicts with CVTPS2PD */
 					ARGV *dst = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
 					ins->opcode = MXOP_PMVNZB; ins->argc = 3; dst->size = s1->size = s2->size = 8;
 					INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_MMX);
 					set_mmx_register(s1,mrm.f.reg); set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 				} break;
+# endif
+# if core_level >= 5 && sse_level >= 1
+				case 0x5B: {
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; ins->argc = 2; d->size = s->size = 16;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,s->regtype=MX86_RT_SSE);
+					if (ins->rep == MX86_REPNE) ins->opcode = MXOP_CVTTPS2DQ;
+					else if (ins->rep == MX86_REPE) break;
+					else ins->opcode = MXOP_CVTDQ2PS + (dataprefix32 & 1);
+					set_sse_register(d,mrm.f.reg);
+				} break;
+# endif
+# if core_level >= 5 && cyrix_level == 6 && mmx == 1
 				case 0x5B: { /* PMVLZB conflicts with CVTDQ2PS */
 					ARGV *dst = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
 					ins->opcode = MXOP_PMVLZB; ins->argc = 3; dst->size = s1->size = s2->size = 8;
@@ -2281,6 +2308,8 @@ decode_next:
 					INS_MRM mrm = decode_rm_ex_(s2,ins,s2->size,PLUSR_TRANSFORM,MX86_RT_MMX);
 					set_mmx_register(s1,mrm.f.reg); set_mmx_register(dst,cyrix6x86_mmx_implied(mrm.f.reg));
 				} break;
+# endif
+# if core_level >= 5 && cyrix_level == 6 && mmx == 1
 				case 0x5E: { /* PMACHRIW conflicts with DIVPS */
 					ARGV *dst = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
 					ins->opcode = MXOP_PMACHRIW; ins->argc = 3; dst->size = s1->size = s2->size = 8;
@@ -2556,6 +2585,35 @@ decode_next:
 # endif
 
 # if core_level >= 5 && sse_level >= 1
+				case 0xD0: {
+#   define PAIR(d,r)  ((d) + ((r) << 2))
+					unsigned char t = dataprefix32 + (ins->rep << 2); unsigned char m = 0;
+					switch (t) {
+						case PAIR(1,MX86_REP_NONE): ins->opcode = MXOP_ADDSUBPD; m = 1; break;
+						case PAIR(0,MX86_REPE): ins->opcode = MXOP_ADDSUBPS; m = 1; break;
+					};
+					switch (m) {
+						case 1: { /* ADDSUBPD/S */
+							ARGV *d = &ins->argv[0],*s = &ins->argv[1];
+							INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
+							ins->argc = 2; d->size = s->size = 16; set_sse_register(d,mrm.f.reg);
+						} break;
+					}
+#   undef PAIR
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 2
+				COVER_2(0xDC): {
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; ins->opcode = MXOP_PADDUSB + (second_byte & 1);
+					ins->argc = 2; d->size = s->size = dataprefix32 ? 16 : 8;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
+					if (dataprefix32) set_sse_register(d,mrm.f.reg);
+					else set_mmx_register(d,mrm.f.reg);
+				} break;
+# endif
+
+# if core_level >= 5 && sse_level >= 1
 				case 0xEF: {
 					ins->opcode = MXOP_PXOR; ins->argc = 2;
 					ARGV *d = &ins->argv[0],*s = &ins->argv[1];
@@ -2585,96 +2643,7 @@ decode_next:
 #ifndef x64_mode
 
 # if core_level >= 5 /* --------------------- pentium or higher ------------------ */
-#  if sse_level >= 1 /* SSE instructions */
-				case 0x5A:
-					if (ins->rep >= MX86_REPE) {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						ins->opcode = ins->rep == MX86_REPNE ? MXOP_CVTSS2SD : MXOP_CVTSD2SS;
-						ins->argc = 2;
-						d->size = 16;
-						set_sse_register(d,mrm.f.reg);
-						s->size = 16; /* 128 bit = 16 bytes */
-						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
-					}
-					else {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						ins->opcode = MXOP_CVTPS2PD + (dataprefix32 & 1);
-						ins->argc = 2;
-						d->size = 16;
-						set_sse_register(d,mrm.f.reg);
-						s->size = 16; /* 128 bit = 16 bytes */
-						decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
-					}
-					break;
-				case 0x5B: {
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					union x86_mrm mrm = fetch_modregrm();
-					if (ins->rep == MX86_REPNE) {
-						ins->opcode = MXOP_CVTTPS2DQ;
-					}
-					else if (ins->rep == MX86_REPE) {
-						/* not defined */
-						break;
-					}
-					else {
-						ins->opcode = MXOP_CVTDQ2PS + (dataprefix32 & 1);
-					}
-					ins->argc = 2;
-					d->size = 16;
-					set_sse_register(d,mrm.f.reg);
-					s->size = 16; /* 128 bit = 16 bytes */
-					decode_rm_ex(mrm,s,isaddr32,s->regtype = MX86_RT_SSE);
-					break; }
-				case 0xD0: {
-#   define PAIR(d,r)  ((d) + ((r) << 2))
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					unsigned char t = dataprefix32 + (ins->rep << 2);
-					unsigned char m = 0;
-					switch (t) {
-						case PAIR(1,MX86_REP_NONE):
-							ins->opcode = MXOP_ADDSUBPD;
-							m = 1;
-							break;
-						case PAIR(0,MX86_REPE):
-							ins->opcode = MXOP_ADDSUBPS;
-							m = 1;
-							break;
-					};
-					switch (m) {
-						case 1: { /* ADDSUBPD/S */
-							union x86_mrm mrm = fetch_modregrm();
-							ins->argc = 2;
-							d->size = s->size = 16; /* 128 bit = 16 bytes */
-							set_sse_register(d,mrm.f.reg);
-							decode_rm_ex(mrm,s,isaddr32,MX86_RT_SSE);
-							} break;
-					}
-#   undef PAIR
-					break; }
-#  endif
 #  if sse_level >= 2 /* SSE2 */
-				case 0x37:
-					ins->opcode = MXOP_GETSEC;
-					ins->argc = 0;
-					break;
-				COVER_2(0xDC): {
-					union x86_mrm mrm = fetch_modregrm();
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					ins->opcode = MXOP_PADDUSB + (second_byte & 1);
-					ins->argc = 2;
-					d->size = s->size = dataprefix32 ? 16 : 8;
-					if (dataprefix32) set_sse_register(d,mrm.f.reg);
-					else set_mmx_register(d,mrm.f.reg);
-					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-				} break;
-
 				COVER_2(0xEC): {
 					union x86_mrm mrm = fetch_modregrm();
 					struct minx86dec_argv *d = &ins->argv[0];
