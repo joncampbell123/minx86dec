@@ -2640,21 +2640,17 @@ decode_next:
 				} break;
 # endif
 
-#ifndef x64_mode
-
 # if core_level >= 5 && sse_level >= 2
 				COVER_2(0xEC): {
-					union x86_mrm mrm = fetch_modregrm();
-					struct minx86dec_argv *d = &ins->argv[0];
-					struct minx86dec_argv *s = &ins->argv[1];
-					ins->opcode = MXOP_PADDSB + (second_byte & 1);
-					ins->argc = 2;
-					d->size = s->size = dataprefix32 ? 16 : 8;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = dataprefix32?16:8;
+					ins->opcode = MXOP_PADDSB + (second_byte & 1); ins->argc = 2;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
 					if (dataprefix32) set_sse_register(d,mrm.f.reg);
 					else set_mmx_register(d,mrm.f.reg);
-					decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
 				} break;
 # endif
+
+#ifndef x64_mode
 
 # if core_level >= 5 && sse_level >= 2
 				case 0xD4: {
