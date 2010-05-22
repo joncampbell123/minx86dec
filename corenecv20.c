@@ -28,6 +28,7 @@ void minx86dec_decodenecv20(struct minx86dec_state *state,struct minx86dec_instr
 
 	/* invalid opcode. step 1 forward (2 if FPU instruction) */
 	if (ins->opcode == MXOP_UD) {
+		ins->argc = 0;
 		if ((*(state->read_ip) & 0xF8) == 0xD8)
 			ins->end = state->read_ip = (ins->start + 2);
 		else
