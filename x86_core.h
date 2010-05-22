@@ -3169,31 +3169,20 @@ decode_next:
 # endif
 
 # if core_level >= 5 && sse_level >= 2
-				case 0x68:
-					ins->opcode = MXOP_PUNPCKHBW;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						s->size = d->size = dataprefix32 ? 16 : 8;
-						if (dataprefix32) set_sse_register(d,mrm.f.reg);
-						else set_mmx_register(d,mrm.f.reg);
-						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-					} break;
+				case 0x68: {
+					ins->opcode = MXOP_PUNPCKHBW; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; s->size = d->size = dataprefix32?16:8;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
+					if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
+				} break;
 # endif
-
 # if core_level >= 5 && sse_level >= 2
-				case 0x69:
-					ins->opcode = MXOP_PUNPCKHWD;
-					ins->argc = 2; {
-						struct minx86dec_argv *d = &ins->argv[0];
-						struct minx86dec_argv *s = &ins->argv[1];
-						union x86_mrm mrm = fetch_modregrm();
-						s->size = d->size = dataprefix32 ? 16 : 8;
-						if (dataprefix32) set_sse_register(d,mrm.f.reg);
-						else set_mmx_register(d,mrm.f.reg);
-						decode_rm_ex(mrm,s,isaddr32,dataprefix32 ? MX86_RT_SSE : MX86_RT_MMX);
-					} break;
+				case 0x69: {
+					ins->opcode = MXOP_PUNPCKHWD; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; s->size = d->size = dataprefix32?16:8;
+					INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
+					if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
+				} break;
 # endif
 
 # if core_level >= 5 && sse_level >= 2
