@@ -40,7 +40,8 @@ void minx86dec_decodeall_x64(struct minx86dec_state_x64 *state,struct minx86dec_
 	 * enable/disable functions */
 
 	{
-#include "x64_core.h"
+#define x64_mode
+#include "x86_core.h"
 	}
 
 	/* invalid opcode. step 1 forward (2 if FPU instruction) */
