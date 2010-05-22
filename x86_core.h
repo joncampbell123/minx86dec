@@ -2938,7 +2938,7 @@ decode_next:
 # if core_level >= 5 && sse_level >= 2
 				case 0xAE: {
 					int m = -1; ARGV *d = &ins->argv[0]; const uint8_t is_mod3 = ((*cip >> 6) == 3); ins->argc = 0;
-					switch (*cip & 0x07) {
+					switch ((*cip >> 3) & 0x07) {
 						case 0:	ins->opcode = MXOP_FXSAVE;  m = 1; break;
 						case 1:	ins->opcode = MXOP_FXRSTOR; m = 1; break;
 						case 2:	ins->opcode = MXOP_LDMXCSR; m = 0; break;
@@ -3564,6 +3564,18 @@ decode_next:
 							case 0x07:ins->opcode = MXOP_FDIVR; break; /* 0xD8 0xF8 */
 						}
 					};
+				} break;
+				COVER_4ROW(FPU_CODE(0xD9,0x00)): COVER_4ROW(FPU_CODE(0xD9,0x40)): COVER_4ROW(FPU_CODE(0xD9,0x80)): { /* 0xD900...0xD9BF */
+					const unsigned char in = (fpu_code >> 3) & 7; ins->argc = 1; ARGV *d = &ins->argv[0]; cip--;
+					switch (in) {
+						case 0: d->size = 4; ins->opcode = MXOP_FLD;    break;
+						case 2: d->size = 4; ins->opcode = MXOP_FST;    break;
+						case 3: d->size = 4; ins->opcode = MXOP_FSTP;   break;
+						case 4: d->size = 14;ins->opcode = MXOP_FLDENV; break;
+						case 5: d->size = 2; ins->opcode = MXOP_FLDCW;  break;
+						case 6: d->size = 4; ins->opcode = MXOP_FSTENV; break;
+						case 7: d->size = 4; ins->opcode = MXOP_FSTCW;  break;
+					}; decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
 				} break;
 			};
 #undef FPU_CODE

@@ -5,6 +5,30 @@
 org 0
 
 _start:
+	fld	dword [esi]
+	fst	dword [esi]
+	fstp	dword [esi]
+	fldenv	[esi]
+	fldcw	[esi]
+	fnstenv	[esi]
+	fnstcw	[esi]
+
+	fld	dword [esi+4]
+	fst	dword [esi+4]
+	fstp	dword [esi+4]
+	fldenv	[esi+4]
+	fldcw	[esi+4]
+	fnstenv	[esi+4]
+	fnstcw	[esi+4]
+
+	fld	dword [esi+0x444]
+	fst	dword [esi+0x444]
+	fstp	dword [esi+0x444]
+	fldenv	[esi+0x444]
+	fldcw	[esi+0x444]
+	fnstenv	[esi+0x444]
+	fnstcw	[esi+0x444]
+
 	mov	cr0,eax
 	mov	eax,cr0
 	mov	cr1,eax
