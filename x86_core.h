@@ -3252,6 +3252,8 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 						case 7: d->size = 4; ins->opcode = MXOP_FSTCW;  break;
 					}; decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
 				} break;
+				case FPU_CODE(0xD9,0xE1): ins->opcode = MXOP_FABS; break;
+				case FPU_CODE(0xD9,0xF0): ins->opcode = MXOP_F2XM1; break;
 #if fpu_level >= 2 || defined(everything)
 				case FPU_CODE(0xDB,0xE4): ins->opcode = MXOP_FSETPM; break;
 #endif
