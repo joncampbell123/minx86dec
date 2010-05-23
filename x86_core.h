@@ -1306,21 +1306,18 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 		case 0xFD: ins->opcode = MXOP_STD; break;
 		COVER_2(0xFE): {
 			ARGV *where=&ins->argv[0];where->size=where->memregsz=(first_byte&1)?datawordsize:1;ins->argc=1;
-			where->regtype=MX86_RT_NONE; INS_MRM mrm = decode_rm_(where,ins,where->size,PLUSR_TRANSFORM);
+			INS_MRM mrm = decode_rm_(where,ins,where->size,PLUSR_TRANSFORM);
 			switch (mrm.f.reg) {
 				case 0:	ins->opcode = MXOP_INC;	break; case 1: ins->opcode = MXOP_DEC;	break;
-				case 2: case 3: {
-					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
+				case 2: case 3: { if (((mrm.f.reg&1)&&(mrm.f.mod==3))||(first_byte&1)==0) break;
 					ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
 					where->size += (mrm.f.reg & 1) ? 2 : 0;
 				} break;
-				case 4: case 5: {
-					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
+				case 4: case 5: { if (((mrm.f.reg&1)&&(mrm.f.mod==3))||(first_byte&1)==0) break;
 					ins->opcode = MXOP_JMP + (mrm.f.reg & 1);
-					where->size = (mrm.f.reg & 1) ? 2 : 0;
+					where->size += (mrm.f.reg & 1) ? 2 : 0;
 				} break;
 				case 6: case 7: {
-					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
 					ins->opcode = MXOP_PUSH + (mrm.f.reg & 1);
 				} break;
 			}
