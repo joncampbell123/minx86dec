@@ -131,6 +131,12 @@ _start:
 	xlat
 	xor	al,al
 	xor	ax,ax
+;================================= POP CS ====================================
+	db	0x0F		; POP CS
+	db	0x01
+	db	0xC0
+	nop
+	nop
 ;============================ visible pause in decoding ==========================
 	nop
 	nop
@@ -303,7 +309,7 @@ _start:
 	cwde
 	insb
 	insw
-	insb
+	insd
 	iretd
 	jcxz	$
 	jecxz	$

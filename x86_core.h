@@ -1221,15 +1221,13 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			set_immediate(mref,((int32_t)((int8_t)fetch_u8()) + curp + 1) & 0xFFFFFFFFUL);
 #endif
 		} break;
-		COVER_2(0xE4): {
-			ins->opcode = MXOP_IN; ins->argc = 2;
-			ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = datawordsize;
-			set_register(d,MX86_REG_AX); set_immediate(s,fetch_u8());
+		COVER_2(0xE4): { ins->argc=2;
+			ARGV *d=&ins->argv[0],*s=&ins->argv[1]; d->size=(first_byte&1)?datawordsize:1;
+			set_register(d,MX86_REG_AX); set_immediate(s,fetch_u8()); ins->opcode=MXOP_IN;
 		} break;
-		COVER_2(0xE6): {
-			ins->opcode = MXOP_OUT; ins->argc = 2;
-			ARGV *ioport = &ins->argv[0],*reg = &ins->argv[1]; set_immediate(ioport,fetch_u8());
-			reg->size = (first_byte & 1) ? data32wordsize : 1; set_register(reg,MX86_REG_AX);
+		COVER_2(0xE6): { ins->opcode=MXOP_OUT; ins->argc=2;
+			ARGV *ioport=&ins->argv[0],*reg=&ins->argv[1];set_immediate(ioport,fetch_u8());
+			reg->size=(first_byte&1)?data32wordsize:1; set_register(reg,MX86_REG_AX);
 		} break;
 		case 0xE8: {
 			ins->opcode = MXOP_CALL; ins->argc = 1;
@@ -1307,20 +1305,19 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 		case 0xFC: ins->opcode = MXOP_CLD; break;
 		case 0xFD: ins->opcode = MXOP_STD; break;
 		COVER_2(0xFE): {
-			ins->argc = 1;
-			ARGV *where=&ins->argv[0]; where->size=where->memregsz=(first_byte&1)?datawordsize:1;
+			ARGV *where=&ins->argv[0];where->size=where->memregsz=(first_byte&1)?datawordsize:1;ins->argc=1;
 			where->regtype=MX86_RT_NONE; INS_MRM mrm = decode_rm_(where,ins,where->size,PLUSR_TRANSFORM);
 			switch (mrm.f.reg) {
 				case 0:	ins->opcode = MXOP_INC;	break; case 1: ins->opcode = MXOP_DEC;	break;
 				case 2: case 3: {
 					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
 					ins->opcode = MXOP_CALL + (mrm.f.reg & 1);
-					where->size = (where->memregsz += ((mrm.f.reg & 1) ? 2 : 0));
+					where->size += (mrm.f.reg & 1) ? 2 : 0;
 				} break;
 				case 4: case 5: {
 					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
 					ins->opcode = MXOP_JMP + (mrm.f.reg & 1);
-					where->size = (where->memregsz += ((mrm.f.reg & 1) ? 2 : 0));
+					where->size = (mrm.f.reg & 1) ? 2 : 0;
 				} break;
 				case 6: case 7: {
 					if (mrm.f.mod == 3 && (mrm.f.reg&1)) break; /* illegal encoding */
@@ -1377,12 +1374,11 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				else if (*cip == 0xF8) { ins->opcode = MXOP_SWAPGS; cip++; }
 #   endif
 #  endif
-				else if (*cip >= 0xC0) { } /* unknown */
 				else {
 					ARGV *m = &ins->argv[0]; ins->argc = 1;
 					INS_MRM mrm = decode_rm_(m,ins,m->size,PLUSR_TRANSFORM);
 					switch (mrm.f.reg) {
-						case 0: case 1: case 2: case 3: m->size=6;
+						case 0: case 1: case 2: case 3: m->size=6; if (mrm.f.mod==3) break;
 							ins->opcode=((mrm.f.reg&2)?MXOP_LGDT:MXOP_SGDT)+(mrm.f.reg&1); break;
 						case 4:	ins->opcode = MXOP_SMSW; ins->argc = 1; m->size = 2; break;
 						case 6:	ins->opcode = MXOP_LMSW; m->size = 2; break;
@@ -1747,7 +1743,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 # if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
 			case 0x31: case 0x39: case 0x33: case 0x3B: { /* EXT */
 				if ((*cip & 0xC0) == 0xC0) { /* mod==3 */
-					unsigned char reg = (*cip >> 3) & 7,rm = (*cip & 7);
+					unsigned char reg = (*cip >> 3) & 7,rm = (*cip & 7); cip++;
 					ARGV *s = &ins->argv[2],*bit_start_pos = &ins->argv[0],*bit_length = &ins->argv[1];
 					s->size = s->memregsz = 2; set_mem_ref_reg(s,MX86_REG_SI); ins->argc = 3;
 					ins->opcode=(second_byte&2)?MXOP_EXT:MXOP_INS;bit_start_pos->size=bit_length->size=1;
@@ -3259,6 +3255,9 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 						case 7: d->size = 4; ins->opcode = MXOP_FSTCW;  break;
 					}; decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
 				} break;
+#if fpu_level >= 2 || defined(everything)
+				case FPU_CODE(0xDB,0xE4): ins->opcode = MXOP_FSETPM; break;
+#endif
 			};
 #undef FPU_CODE
 		} break;
@@ -3667,11 +3666,6 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					case 0xE3: {	/* 0xDB 0xE3 or 0x9B 0xDB 0xE3 */
 						ins->opcode = MXOP_FINIT;
 					} break;
-#if fpu_level >= 2 || defined(everything)
-					case 0xE4: {
-						ins->opcode = MXOP_FSETPM;
-					} break;
-#endif
 				} break;
 			}
 			else {
