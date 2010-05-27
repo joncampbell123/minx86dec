@@ -540,7 +540,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 		} break;
 #endif
 		case 0x9B: {
-			if ((cip[0]&0xF8) == 0xD8) ins->fwait = 1;
+			if ((cip[0]&0xF8) == 0xD8) { ins->fwait = 1; goto decode_next; }
 			else { ins->opcode = MXOP_FWAIT; }
 		} break;
 		case 0x9C: ins->opcode = isdata32?MXOP_PUSHFD:MXOP_PUSHF; break;
@@ -3192,18 +3192,16 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				ARGV *r = &ins->argv[0]; set_immediate(r,fetch_u8());
 			} break;
 # endif
+		} break; }
+#endif /* core > 0 */
 
-#ifndef x64_mode
-			default:
-				break;
-#endif
-			};
-		} break;
-
+/* FIXME: you need to go through this opcode list and #ifdef off the ones that
+ *        appeared on the 287, 387, 486, Pentium, etc */
 /*---------------------------------- FPU decoding ------------------------------ */
 		COVER_8(0xD8): {
 #define FPU_CODE(fb,sb)	((((fb)&7)<<8)|(sb))
-			const uint16_t fpu_code = ins->fpu_code = ((first_byte & 7) << 8) | (*cip++);
+			const unsigned char fpu_second_byte = *cip++;
+			const uint16_t fpu_code = ins->fpu_code = ((first_byte & 7) << 8) | fpu_second_byte;
 			switch (fpu_code) {
 				COVER_16ROW(FPU_CODE(0xD8,0x00)): COVER_16ROW(FPU_CODE(0xDC,0x00)): { /* 0xD800...0xD8FF, 0xDC00...0xDCFF */
 					const unsigned int which = (fpu_code >> 10) && (fpu_code & 0xC0) == 0xC0;
@@ -3240,7 +3238,8 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 						}
 					};
 				} break;
-				COVER_4ROW(FPU_CODE(0xD9,0x00)): COVER_4ROW(FPU_CODE(0xD9,0x40)): COVER_4ROW(FPU_CODE(0xD9,0x80)): { /* 0xD900...0xD9BF */
+				COVER_4ROW(FPU_CODE(0xD9,0x00)): COVER_4ROW(FPU_CODE(0xD9,0x40)):
+				COVER_4ROW(FPU_CODE(0xD9,0x80)): { /* 0xD900...0xD9BF */
 					const unsigned char in = (fpu_code >> 3) & 7; ins->argc = 1; ARGV *d = &ins->argv[0]; cip--;
 					switch (in) {
 						case 0: d->size = 4; ins->opcode = MXOP_FLD;    break;
@@ -3249,14 +3248,164 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 						case 4: d->size = 14;ins->opcode = MXOP_FLDENV; break;
 						case 5: d->size = 2; ins->opcode = MXOP_FLDCW;  break;
 						case 6: d->size = 4; ins->opcode = MXOP_FSTENV; break;
-						case 7: d->size = 4; ins->opcode = MXOP_FSTCW;  break;
+						case 7: d->size = 2; ins->opcode = MXOP_FSTCW;  break;
 					}; decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
 				} break;
+				COVER_8(FPU_CODE(0xD9,0xC0)): ins->argc = 1; ins->opcode = MXOP_FLD;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xD9,0xC8)): ins->argc = 1; ins->opcode = MXOP_FXCH;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				case FPU_CODE(0xD9,0xD0): ins->opcode = MXOP_FNOP; break;
+
+				case FPU_CODE(0xD9,0xE0): ins->opcode = MXOP_FCHS; break;
 				case FPU_CODE(0xD9,0xE1): ins->opcode = MXOP_FABS; break;
+
+				case FPU_CODE(0xD9,0xE4): ins->opcode = MXOP_FTST; break;
+				case FPU_CODE(0xD9,0xE5): ins->opcode = MXOP_FXAM; break;
+
+				case FPU_CODE(0xD9,0xE8): ins->opcode = MXOP_FLD1; break;
+				case FPU_CODE(0xD9,0xE9): ins->opcode = MXOP_FLDL2T; break;
+				case FPU_CODE(0xD9,0xEA): ins->opcode = MXOP_FLDL2E; break;
+				case FPU_CODE(0xD9,0xEB): ins->opcode = MXOP_FLDPI; break;
+				case FPU_CODE(0xD9,0xEC): ins->opcode = MXOP_FLDLG2; break;
+				case FPU_CODE(0xD9,0xED): ins->opcode = MXOP_FLDLN2; break;
+				case FPU_CODE(0xD9,0xEE): ins->opcode = MXOP_FLDZ; break;
+
 				case FPU_CODE(0xD9,0xF0): ins->opcode = MXOP_F2XM1; break;
+				case FPU_CODE(0xD9,0xF1): ins->opcode = MXOP_FYL2X; break;
+				case FPU_CODE(0xD9,0xF2): ins->opcode = MXOP_FPTAN; break;
+				case FPU_CODE(0xD9,0xF3): ins->opcode = MXOP_FPATAN; break;
+				case FPU_CODE(0xD9,0xF4): ins->opcode = MXOP_FXTRACT; break;
+				case FPU_CODE(0xD9,0xF5): ins->opcode = MXOP_FPREM1; break;
+				case FPU_CODE(0xD9,0xF6): ins->opcode = MXOP_FDECSTP; break;
+				case FPU_CODE(0xD9,0xF7): ins->opcode = MXOP_FINCSTP; break;
+				case FPU_CODE(0xD9,0xF8): ins->opcode = MXOP_FPREM; break;
+				case FPU_CODE(0xD9,0xF9): ins->opcode = MXOP_FYL2XP1; break;
+				case FPU_CODE(0xD9,0xFA): ins->opcode = MXOP_FSQRT; break;
+				case FPU_CODE(0xD9,0xFB): ins->opcode = MXOP_FSINCOS; break;
+				case FPU_CODE(0xD9,0xFC): ins->opcode = MXOP_FRNDINT; break;
+				case FPU_CODE(0xD9,0xFD): ins->opcode = MXOP_FSCALE; break;
+				case FPU_CODE(0xD9,0xFE): ins->opcode = MXOP_FSIN; break;
+				case FPU_CODE(0xD9,0xFF): ins->opcode = MXOP_FCOS; break;
+
+				COVER_4ROW(FPU_CODE(0xDA,0x00)): COVER_4ROW(FPU_CODE(0xDA,0x40)):
+				COVER_4ROW(FPU_CODE(0xDA,0x80)): { ins->argc = 1; ARGV *d = &ins->argv[0]; cip--;
+					switch ((fpu_code>>3)&7) {
+						case 0x00:ins->opcode = MXOP_FIADD;  break; /* 0xD8 0xC0 */
+						case 0x01:ins->opcode = MXOP_FIMUL;  break; /* 0xD8 0xC8 */
+						case 0x02:ins->opcode = MXOP_FICOM;  break; /* 0xD8 0xD0 */
+						case 0x03:ins->opcode = MXOP_FICOMP; break; /* 0xD8 0xD8 */
+						case 0x04:ins->opcode = MXOP_FISUB;  break; /* 0xD8 0xE0 */
+						case 0x05:ins->opcode = MXOP_FISUBR; break; /* 0xD8 0xE8 */
+						case 0x06:ins->opcode = MXOP_FIDIV;  break; /* 0xD8 0xF0 */
+						case 0x07:ins->opcode = MXOP_FIDIVR; break; /* 0xD8 0xF8 */
+					} d->size = 4; decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+				} break;
+
+				COVER_8(FPU_CODE(0xDA,0xC0)): ins->argc = 1; ins->opcode = MXOP_FCMOVB;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDA,0xC8)): ins->argc = 1; ins->opcode = MXOP_FCMOVE;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDA,0xD0)): ins->argc = 1; ins->opcode = MXOP_FCMOVBE;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDA,0xD8)): ins->argc = 1; ins->opcode = MXOP_FCMOVU;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+
+				case FPU_CODE(0xDA,0xE9): ins->opcode = MXOP_FUCOMPP; break;
+
+				COVER_4ROW(FPU_CODE(0xDB,0x00)): { ins->argc = 1; ARGV *d=&ins->argv[0];
+					const unsigned int which = (fpu_code>>3)&7; static unsigned int table[8*2] = {
+						MXOP_FILD,	4,	MXOP_FISTTP,	4,
+						MXOP_FIST,	4,	MXOP_FISTP,	4,
+						MXOP_FBLD,	0,	MXOP_FLD,	10,
+						MXOP_FBSTP,	0,	MXOP_FISTP,	0
+					}; d->size = table[(which*2)+1]; if (d->size == 0) break; cip--;
+					decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); ins->opcode = table[which*2];
+				} break;
+
+				COVER_8(FPU_CODE(0xDB,0xC0)): ins->argc = 1; ins->opcode = MXOP_FCMOVNB;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDB,0xC8)): ins->argc = 1; ins->opcode = MXOP_FCMOVNE;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDB,0xD0)): ins->argc = 1; ins->opcode = MXOP_FCMOVNBE;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDB,0xD8)): ins->argc = 1; ins->opcode = MXOP_FCMOVNU;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+
+				COVER_8(FPU_CODE(0xDB,0xE8)): ins->argc = 1; ins->opcode = MXOP_FUCOMI;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDB,0xF0)): ins->argc = 1; ins->opcode = MXOP_FCOMI;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+
+				case FPU_CODE(0xDB,0xE0): ins->opcode = MXOP_FENI; break;
+				case FPU_CODE(0xDB,0xE1): ins->opcode = MXOP_FDISI; break;
+				case FPU_CODE(0xDB,0xE2): ins->opcode = MXOP_FCLEX; break;
+				case FPU_CODE(0xDB,0xE3): ins->opcode = MXOP_FINIT; break;
 #if fpu_level >= 2 || defined(everything)
 				case FPU_CODE(0xDB,0xE4): ins->opcode = MXOP_FSETPM; break;
 #endif
+				COVER_4ROW(FPU_CODE(0xDD,0x00)): COVER_4ROW(FPU_CODE(0xDD,0x40)):
+				COVER_4ROW(FPU_CODE(0xDD,0x80)): { /* 0xDD00...0xDDBF */
+					const unsigned char in = (fpu_code >> 3) & 7; ins->argc = 1; ARGV *d = &ins->argv[0]; cip--;
+					switch (in) {
+						case 0: d->size = 8; ins->opcode = MXOP_FLD;    break;
+						case 2: d->size = 8; ins->opcode = MXOP_FST;    break;
+						case 3:	d->size = 8; ins->opcode = MXOP_FSTP;   break;
+						case 4:	d->size=108; ins->opcode = MXOP_FRSTOR;	break;
+						case 6:	d->size=108; ins->opcode = MXOP_FSAVE;	break;
+						case 7:	d->size = 2; ins->opcode = MXOP_FSTSW;	break;
+					}; decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+				} break;
+				COVER_8(FPU_CODE(0xDD,0xC0)): ins->opcode=MXOP_FFREE; ins->argc=1;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDD,0xE0)): ins->opcode=MXOP_FUCOM; ins->argc=1;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDD,0xE8)): ins->opcode=MXOP_FUCOMP; ins->argc=1;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+						
+				COVER_4ROW(FPU_CODE(0xDE,0x00)): COVER_4ROW(FPU_CODE(0xDE,0x40)): 
+				COVER_4ROW(FPU_CODE(0xDE,0x80)): { ins->argc = 1; ARGV *d = &ins->argv[0]; cip--;
+					switch ((fpu_code>>3)&7) {
+						case 0x00:ins->opcode = MXOP_FIADD;  break; /* 0xD8 0xC0 */
+						case 0x01:ins->opcode = MXOP_FIMUL;  break; /* 0xD8 0xC8 */
+						case 0x02:ins->opcode = MXOP_FICOM;  break; /* 0xD8 0xD0 */
+						case 0x03:ins->opcode = MXOP_FICOMP; break; /* 0xD8 0xD8 */
+						case 0x04:ins->opcode = MXOP_FISUB;  break; /* 0xD8 0xE0 */
+						case 0x05:ins->opcode = MXOP_FISUBR; break; /* 0xD8 0xE8 */
+						case 0x06:ins->opcode = MXOP_FIDIV;  break; /* 0xD8 0xF0 */
+						case 0x07:ins->opcode = MXOP_FIDIVR; break; /* 0xD8 0xF8 */
+					} d->size = 2; decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
+				} break;
+				COVER_4ROW(FPU_CODE(0xDE,0xC0)): { ins->argc = 2; ARGV *d=&ins->argv[1],*s=&ins->argv[0];
+					set_fpu_register(d,MX86_ST(0)); set_fpu_register(s,fpu_code&7);
+					const unsigned char in = (fpu_code >> 3) & 7; switch (in) {
+						case 0: ins->opcode = MXOP_FADDP; break;
+						case 1: ins->opcode = MXOP_FMULP; break;
+						case 4: ins->opcode = MXOP_FSUBP; break;
+						case 5: ins->opcode = MXOP_FSUBRP;break;
+						case 6: ins->opcode = MXOP_FDIVP; break;
+						case 7: ins->opcode = MXOP_FDIVRP;break;
+						default: d->reg=s->reg;s->reg=0; switch (fpu_second_byte) {
+							case 0xD9: ins->opcode = MXOP_FCOMPP; break;
+						} break;
+					}
+				} break;
+				COVER_4ROW(FPU_CODE(0xDF,0x00)): { ins->argc = 2; ARGV *d=&ins->argv[1];
+					const unsigned int which = (fpu_code>>3)&7; static unsigned int table[8*2] = {
+						MXOP_FILD,	2,	MXOP_FISTTP,	2,
+						MXOP_FIST,	2,	MXOP_FISTP,	2,
+						MXOP_FBLD,	10,	MXOP_FILD,	8,
+						MXOP_FBSTP,	10,	MXOP_FISTP,	8
+					}; d->size = table[(which*2)+1];
+					ARGV *s=&ins->argv[0];set_fpu_register(s,MX86_ST(0));cip--;
+					decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); ins->opcode = table[which*2];
+				} break;
+
+				COVER_8(FPU_CODE(0xDF,0xE8)): ins->argc = 1; ins->opcode = MXOP_FUCOMIP;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDF,0xF0)): ins->argc = 1; ins->opcode = MXOP_FCOMIP;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+
 			};
 #undef FPU_CODE
 		} break;
@@ -4066,8 +4215,6 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				decode_rm(mrm,s,isaddr32);
 			} break; }
 #endif
-
-#endif /* x64_mode */
 
 		default:
 			/* fall through */

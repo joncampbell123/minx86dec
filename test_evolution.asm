@@ -150,9 +150,11 @@ _start:
 ;=================================== 8087 ====================================
 	f2xm1
 	fabs
-	fadd
+	fadd	st0,st2
+	fadd	st2,st0
 	faddp
 	fbld	[si]
+	fbld	[bx+di]
 	fbstp	[si]
 	fchs
 	fclex
@@ -161,26 +163,42 @@ _start:
 	fcompp
 	fdecstp
 	fdisi
-	fdiv	st0
-	fdivp	st0
-	fdivr	st0
-	fdivrp	st0
+	fdiv	st0,st2
+	fdiv	st2,st0
+	fdivp	st2,st0
+	fdivr	st0,st2
+	fdivr	st2,st0
+	fdivrp	st2,st0
 	feni
 	ffree
 	fiadd	word [si]
+	fiadd	dword [si]
 	ficom	word [si]
+	ficom	dword [si]
 	ficomp	word [si]
+	ficomp	dword [si]
 	fidiv	word [si]
+	fidiv	dword [si]
 	fidivr	word [si]
+	fidivr	dword [si]
 	fild	word [si]
+	fild	dword [si]
 	fimul	word [si]
+	fimul	dword [si]
 	fincstp
 	finit
 	fist	word [si]
+	fist	dword [si]
 	fistp	word [si]
+	fistp	dword [si]
 	fisub	word [si]
+	fisub	dword [si]
 	fisubr	word [si]
+	fisubr	dword [si]
 	fld	dword [si]
+	fld	qword [si]
+	fld	tword [si]
+	fld	st5
 	fld1
 	fldcw	word [si]
 	fldenv	[si]
@@ -190,8 +208,8 @@ _start:
 	fldln2
 	fldpi
 	fldz
-	fmul
-	fmulp
+	fmul	st2
+	fmulp	st2
 	fnclex
 	fndisi
 	fneni
@@ -216,14 +234,16 @@ _start:
 	fstenv	[si]
 	fstp	dword [si]
 	fstsw	word [si]
-	fsub
-	fsubp
-	fsubr
-	fsubrp
+	fsub	st2
+	fsubp	st2
+	fsubr	st2
+	fsubrp	st2
 	ftst
 	fwait
+	nop
 	fxam
-	fxch
+	fxch	st0
+	fxch	st2
 	fxtract
 	fyl2x
 	fyl2xp1
@@ -266,6 +286,8 @@ _start:
 	lldt	ax
 	lmsw	ax
 	loadall286
+	nop
+	nop
 	lsl	ax,ax
 	ltr	ax
 	sgdt	[si]
@@ -412,9 +434,15 @@ _start:
 	fcmovb
 	fcmovbe
 	fcmove
+	fcmovu
 	fcmovnb
+	fcmovnbe
+	fcmovne
+	fcmovnu
+
 	fcomi
 	fcomip
 	fucomi
 	fucomip
 
+	fild	qword [si]
