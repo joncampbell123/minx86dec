@@ -27,6 +27,8 @@ int main(int argc,char **argv) {
 	int sz=0;
 	int c;
 
+	setbuf(stdout,NULL);
+
 	if ((fp = fopen(argv[1],"rb")) == NULL) {
 		fprintf(stderr,"Cannot open %s\n",argv[1]);
 		return 1;

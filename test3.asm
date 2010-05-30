@@ -5,6 +5,11 @@
 org 0
 
 _start:
+	db	0x45,0xF7,0x07
+	nop
+	nop
+	nop
+
 	fld	dword [esi]
 	fst	dword [esi]
 	fstp	dword [esi]
