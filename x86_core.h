@@ -3318,7 +3318,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 						MXOP_FILD,	4,	MXOP_FISTTP,	4,
 						MXOP_FIST,	4,	MXOP_FISTP,	4,
 						MXOP_FBLD,	0,	MXOP_FLD,	10,
-						MXOP_FBSTP,	0,	MXOP_FISTP,	0
+						MXOP_FBSTP,	0,	MXOP_FSTP,	10
 					}; d->size = table[(which*2)+1]; if (d->size == 0) break; cip--;
 					decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); ins->opcode = table[which*2];
 				} break;
@@ -3358,11 +3358,14 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				} break;
 				COVER_8(FPU_CODE(0xDD,0xC0)): ins->opcode=MXOP_FFREE; ins->argc=1;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDD,0xD0)): ins->opcode=MXOP_FST; ins->argc=1;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+				COVER_8(FPU_CODE(0xDD,0xD8)): ins->opcode=MXOP_FSTP; ins->argc=1;
+					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 				COVER_8(FPU_CODE(0xDD,0xE0)): ins->opcode=MXOP_FUCOM; ins->argc=1;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 				COVER_8(FPU_CODE(0xDD,0xE8)): ins->opcode=MXOP_FUCOMP; ins->argc=1;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
-						
 				COVER_4ROW(FPU_CODE(0xDE,0x00)): COVER_4ROW(FPU_CODE(0xDE,0x40)): 
 				COVER_4ROW(FPU_CODE(0xDE,0x80)): { ins->argc = 1; ARGV *d = &ins->argv[0]; cip--;
 					switch ((fpu_code>>3)&7) {
@@ -3400,6 +3403,9 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					ARGV *s=&ins->argv[0];set_fpu_register(s,MX86_ST(0));cip--;
 					decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); ins->opcode = table[which*2];
 				} break;
+
+				COVER_8(FPU_CODE(0xDF,0xE0)): ins->argc = 1; ins->opcode = MXOP_FSTSW; ins->argv[0].size = 2;
+					set_register(&ins->argv[0],MX86_REG_AX); break;
 
 				COVER_8(FPU_CODE(0xDF,0xE8)): ins->argc = 1; ins->opcode = MXOP_FUCOMIP;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
