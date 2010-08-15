@@ -49,7 +49,7 @@ enum {
 	MXOP_JLE,		/* JLE */
 	MXOP_JG,		/* JG */
 /* 0x24-0x27 */
-	MXOP_XCHG,		/* XCHG */
+	MXOP_XCHG,		/* XCHG */		/* [de] */
 	MXOP_TEST,		/* TEST */
 	MXOP_LEA,		/* LEA */
 	MXOP_ARPL,		/* ARPL */
