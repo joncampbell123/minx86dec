@@ -300,7 +300,28 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0xFF; o = minx86enc_encode_memreg_far(ofs,o,3);
 			}
 		} break;
+		case MXOP_NOP: /*====================NOP====================*/ *o++ = 0x90; break;
+		case MXOP_XCHG: { /*========================XCHG======================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; }
+			if (word) o = minx86enc_32_overrides_far(a,est,o);
 
+			if (a->regtype == MX86_RT_REG) {
+				if (word && a->reg == MX86_REG_AX)
+					*o++ = 0x90 + b->reg;
+				else if (word && b->reg == MX86_REG_AX)
+					*o++ = 0x90 + a->reg;
+				else {
+					*o++ = 0x86 + word;
+					*o++ = (3 << 6) | (b->reg << 3) | a->reg;
+				}
+			}
+			else { /* xchg r/m, reg */
+				*o++ = 0x86 + word; o = minx86enc_encode_memreg_far(a,o,b->reg);
+			}
+		} break;
 	}
 
 	est->write_ip = o;

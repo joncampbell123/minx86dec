@@ -287,9 +287,6 @@ _start:
 ; JMP <near>
 	call	0x1234
 	call	0x5678
-; JMP <short>
-;	call	short $+1
-;	call	short $+2
 ; JMP <32-bit near>
 	call	dword 0x12345678
 	call	dword 0x89ABCDEF
@@ -327,4 +324,52 @@ _start:
 	call far dword [edi]
 	call far dword [esp]
 	call far dword [ebp]
+; NOPs
+	nop
+	nop
+; XCHG <8-bit>
+	xchg	al,al
+	xchg	al,bl
+	xchg	al,cl
+	xchg	al,dl
+	xchg	al,ah
+	xchg	al,bh
+	xchg	al,ch
+	xchg	al,dh
+; XCHG ax,<16-bit>
+	xchg	ax,ax
+	xchg	ax,bx
+	xchg	ax,cx
+	xchg	ax,dx
+	xchg	ax,si
+	xchg	ax,di
+	xchg	ax,sp
+	xchg	ax,bp
+; XCHG <16-bit>
+	xchg	bx,ax
+	xchg	cx,bx
+	xchg	dx,cx
+	xchg	si,dx
+	xchg	di,si
+	xchg	sp,di
+	xchg	bp,sp
+	xchg	ax,bp
+; XCHG <8-bit w/ mem>
+	xchg	[si],al
+	xchg	[si],bl
+	xchg	[si],cl
+	xchg	[si],dl
+	xchg	[si],ah
+	xchg	[si],bh
+	xchg	[si],ch
+	xchg	[si],dh
+; XCHG <16-bit w/ mem>
+	xchg	[si],ax
+	xchg	[si],bx
+	xchg	[si],cx
+	xchg	[si],dx
+	xchg	[si],si
+	xchg	[si],di
+	xchg	[si],sp
+	xchg	[si],bp
 

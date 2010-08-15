@@ -7,7 +7,7 @@ enum {
 	MXOP_UD=0,		/* undefined opcode. signal INT 6 */
 	MXOP_UD_NOP,		/* undefined opcode, but nothing that would cause INT 6 */
 	MXOP_NOP,		/* NOP aka XCHG AX,AX */
-	MXOP_PUSH,		/* PUSH */
+	MXOP_PUSH,		/* PUSH */		/* [de] */
 /* 0x04-0x07 */
 	MXOP_POP,		/* POP */
 	MXOP_MOV,		/* MOV */
@@ -94,8 +94,8 @@ enum {
 	MXOP_AAM,		/* AAM */
 	MXOP_AAD,		/* AAD */
 /* 0x48-0x4B */
-	MXOP_CALL,		/* CALL */
-	MXOP_CALL_FAR,		/* CALL [far] */
+	MXOP_CALL,		/* CALL */		/* [de] */
+	MXOP_CALL_FAR,		/* CALL [far] */	/* [de] */
 	MXOP_ADDPS,		/* ADDPS */
 	MXOP_ADDPD,		/* ADDPD */
 /* 0x4C-0x4F */
@@ -340,8 +340,8 @@ enum {
 	MXOP_IRETD,
 /* 0x10C-0x10F */
 	MXOP_JCXZ,
-	MXOP_JMP,
-	MXOP_JMP_FAR,
+	MXOP_JMP,					/* [de] */
+	MXOP_JMP_FAR,					/* [de] */
 	MXOP_LAHF,
 /* 0x110-0x113 */
 	MXOP_LFENCE,
