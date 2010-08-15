@@ -121,4 +121,47 @@ _start:
 	jmp	[esi*2+ebx+8]
 	jmp	[edi*2+ebx+9]
 	jmp	[ebp*2+ebx+10]
+; JMP <near>
+	jmp	0x1234
+	jmp	0x5678
+; JMP <short>
+	jmp	short $+1
+	jmp	short $+2
+; JMP <32-bit near>
+	jmp	dword 0x12345678
+	jmp	dword 0x89ABCDEF
+; JMP <far immediate>
+	jmp	0x1234:0x5678
+; jmp <32-bit far immediate>
+	jmp	0x1234:dword 0x89ABCDEF
+; JMP <far [addr]>
+	jmp far	[bx]
+	jmp far	[si]
+	jmp far	[bp]
+	jmp far	[bx+si]
+	jmp far	[bx+di]
+; JMP <far [32-bit addr]>
+	jmp far	[eax]
+	jmp far	[ebx]
+	jmp far	[ecx]
+	jmp far	[edx]
+	jmp far	[esi]
+	jmp far [edi]
+	jmp far [esp]
+	jmp far [ebp]
+; JMP <32-bit far [addr]>
+	jmp far dword [bx]
+	jmp far dword [si]
+	jmp far dword [bp]
+	jmp far dword [bx+si]
+	jmp far dword [bx+di]
+; JMP <32-bit far 32-bit addr>
+	jmp far dword [eax]
+	jmp far dword [ebx]
+	jmp far dword [ecx]
+	jmp far dword [edx]
+	jmp far dword [esi]
+	jmp far dword [edi]
+	jmp far dword [esp]
+	jmp far dword [ebp]
 

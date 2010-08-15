@@ -171,7 +171,7 @@ static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86
 				}
 			}
 			else {
-				if (sib.f.base != 5) {
+				if (sib.f.base != 5 || mrm.f.mod != 0) {
 					a->memregs = 2;
 					a->scalar = sib.f.scale;
 					a->memreg[0] = sib.f.index;
@@ -233,6 +233,7 @@ static inline uint32_t plusr_transform(struct minx86dec_instruction *s,uint32_t 
 	return reg;
 }
 
+/* FIXME: This is unused? */
 static inline void decode_rm(union x86_mrm mrm,struct minx86dec_argv *a,const int addr32) {
 	if (mrm.f.mod == 3) {
 		a->regtype = MX86_RT_REG;
