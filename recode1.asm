@@ -408,4 +408,58 @@ _start:
 	xchg	[esi],edi
 	xchg	[esi],ebp
 	xchg	[esi],esp
+; MOV reg,reg
+	mov	al,al
+	mov	al,ah
+	mov	al,bl
+	mov	al,bh
+	mov	al,cl
+	mov	al,ch
+	mov	al,dl
+	mov	al,dh
+; MOV reg,reg (other than AL)
+	mov	bl,al
+	mov	bh,ah
+	mov	cl,bl
+	mov	ch,bh
+	mov	dl,cl
+	mov	dh,ch
+	mov	al,dl
+	mov	ah,dh
+; MOV reg,reg
+	mov	ax,ax
+	mov	ax,bx
+	mov	ax,cx
+	mov	ax,dx
+	mov	ax,si
+	mov	ax,di
+	mov	ax,bp
+	mov	ax,sp
+; MOV reg,reg
+	mov	cx,ax
+	mov	dx,bx
+	mov	si,cx
+	mov	di,dx
+	mov	sp,si
+	mov	bp,di
+	mov	ax,bp
+	mov	bx,sp
+; MOV reg,reg
+	mov	eax,eax
+	mov	eax,ebx
+	mov	eax,ecx
+	mov	eax,edx
+	mov	eax,esi
+	mov	eax,edi
+	mov	eax,ebp
+	mov	eax,esp
+; MOV reg,reg
+	mov	ecx,eax
+	mov	edx,ebx
+	mov	esi,ecx
+	mov	edi,edx
+	mov	esp,esi
+	mov	ebp,edi
+	mov	eax,ebp
+	mov	ebx,esp
 

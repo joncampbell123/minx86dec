@@ -291,6 +291,17 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0x86 + word; o = minx86enc_encode_memreg_far(a,o,b->reg);
 			}
 		} break;
+		case MXOP_MOV: { /*====================MOV=====================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			/* it doesn't matter if it's reg-reg, reg-r/m, r/m-reg, etc
+			 * instruction encoding covers them all */
+			if (word) o = minx86enc_32_overrides(a,est,o);
+
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				*o++ = 0x88+word; *o++ = (3<<6) | (b->reg<<3) | (a->reg);
+			}
+		} break;
 	}
 
 	est->write_ip = o;

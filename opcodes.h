@@ -6,8 +6,8 @@ enum {
 /* 0x00-0x03 */
 	MXOP_UD=0,		/* undefined opcode. signal INT 6 */
 	MXOP_UD_NOP,		/* undefined opcode, but nothing that would cause INT 6 */
-	MXOP_NOP,		/* NOP aka XCHG AX,AX */
-	MXOP_PUSH,		/* PUSH */		/* [de] */
+	MXOP_NOP,		/* NOP aka XCHG AX,AX *//* [de] */
+	MXOP_PUSH,		/* PUSH */
 /* 0x04-0x07 */
 	MXOP_POP,		/* POP */
 	MXOP_MOV,		/* MOV */
