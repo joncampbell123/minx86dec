@@ -490,4 +490,10 @@ _start:
 	mov	edi,5
 	mov	esp,6
 	mov	ebp,7
+; MOV r/m,imm (byte)
+	mov	byte [si],1
+	mov	byte [di],2
+	mov	byte [bx],3
+	mov	byte [bx+si],4
+	mov	byte [bx+di],5
 
