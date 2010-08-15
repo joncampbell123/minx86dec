@@ -20,4 +20,29 @@ _start:
 	jmp	edi
 	jmp	ebp
 	jmp	esp
+; JMP [addr] 16-bit single-memref
+	jmp	[bx]
+	jmp	[bp]
+	jmp	[si]
+	jmp	[di]
+; JMP [addr] 16-bit single-memref with offset
+	jmp	[bx+3]
+	jmp	[bp+4]
+	jmp	[si+5]
+	jmp	[di+6]
+; JMP [addr] 16-bit single-memref with large offset
+	jmp	[bx+0x1111]
+	jmp	[bp+0x2222]
+	jmp	[si+0x3333]
+	jmp	[di+0x4444]
+; JMP [addr] 16-bit single-memref with negative offset
+	jmp	[bx-3]
+	jmp	[bp-4]
+	jmp	[si-5]
+	jmp	[di-6]
+; JMP [addr] 16-bit single-memref with large negative offset
+	jmp	[bx-0x1111]
+	jmp	[bp-0x2222]
+	jmp	[si-0x3333]
+	jmp	[di-0x4444]
 
