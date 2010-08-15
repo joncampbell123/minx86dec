@@ -165,3 +165,166 @@ _start:
 	jmp far dword [esp]
 	jmp far dword [ebp]
 
+; JMP [reg] 16-bit
+	call	ax
+	call	bx
+	call	cx
+	call	dx
+	call	si
+	call	di
+	call	bp
+	call	sp
+; JMP [reg] 32-bit
+	call	eax
+	call	ebx
+	call	ecx
+	call	edx
+	call	esi
+	call	edi
+	call	ebp
+	call	esp
+; JMP [addr] 16-bit single-memref
+	call	[bx]
+	call	[bp]
+	call	[si]
+	call	[di]
+; JMP [addr] 16-bit single-memref with offset
+	call	[bx+3]
+	call	[bp+4]
+	call	[si+5]
+	call	[di+6]
+; JMP [addr] 16-bit single-memref with large offset
+	call	[bx+0x1111]
+	call	[bp+0x2222]
+	call	[si+0x3333]
+	call	[di+0x4444]
+; JMP [addr] 16-bit single-memref with negative offset
+	call	[bx-3]
+	call	[bp-4]
+	call	[si-5]
+	call	[di-6]
+; JMP [addr] 16-bit single-memref with large negative offset
+	call	[bx-0x1111]
+	call	[bp-0x2222]
+	call	[si-0x3333]
+	call	[di-0x4444]
+; JMP [addr] 16-bit double-memref
+	call	[bx+si]
+	call	[bx+di]
+	call	[bp+si]
+	call	[bp+di]
+; JMP [addr] 16-bit double-memref and offset
+	call	[bx+si+3]
+	call	[bx+di+4]
+	call	[bp+si+5]
+	call	[bp+di+6]
+; JMP [addr] 16-bit double-memref and large offset
+	call	[bx+si+0x1111]
+	call	[bx+di+0x2222]
+	call	[bp+si+0x3333]
+	call	[bp+di+0x4444]
+; JMP [addr] 32-bit single-memref
+	call	[eax]
+	call	[ebx]
+	call	[ecx]
+	call	[edx]
+	call	[esi]
+	call	[edi]
+	call	[esp]
+	call	[ebp]
+; JMP [addr] 32-bit single-memref with offset
+	call	[eax+3]
+	call	[ebx+4]
+	call	[ecx+5]
+	call	[edx+6]
+	call	[esi+7]
+	call	[edi+8]
+	call	[esp+9]
+	call	[ebp+10]
+; JMP [addr] 32-bit single-memref with large offset
+	call	[eax+0x11111111]
+	call	[ebx+0x22222222]
+	call	[ecx+0x33333333]
+	call	[edx+0x44444444]
+	call	[esi+0x55555555]
+	call	[edi+0x66666666]
+	call	[esp+0x77777777]
+	call	[ebp+0x88888888]
+; JMP [addr] 32-bit double-memref
+	call	[eax+eax]
+	call	[ebx+eax]
+	call	[ecx+eax]
+	call	[edx+eax]
+	call	[esi+eax]
+	call	[edi+eax]
+	call	[esp+eax]
+	call	[ebp+eax]
+; JMP [addr] 32-bit double-memref
+	call	[eax+ebx]
+	call	[ebx+ebx]
+	call	[ecx+ebx]
+	call	[edx+ebx]
+	call	[esi+ebx]
+	call	[edi+ebx]
+	call	[esp+ebx]
+	call	[ebp+ebx]
+; JMP [addr] 32-bit double-memref and scalar
+	call	[eax*2+ebx]
+	call	[ebx*2+ebx]
+	call	[ecx*2+ebx]
+	call	[edx*2+ebx]
+	call	[esi*2+ebx]
+	call	[edi*2+ebx]
+	call	[ebp*2+ebx]
+; JMP [addr] 32-bit double-memref and scalar
+	call	[eax*2+ebx+4]
+	call	[ebx*2+ebx+5]
+	call	[ecx*2+ebx+6]
+	call	[edx*2+ebx+7]
+	call	[esi*2+ebx+8]
+	call	[edi*2+ebx+9]
+	call	[ebp*2+ebx+10]
+; JMP <near>
+	call	0x1234
+	call	0x5678
+; JMP <short>
+;	call	short $+1
+;	call	short $+2
+; JMP <32-bit near>
+	call	dword 0x12345678
+	call	dword 0x89ABCDEF
+; JMP <far immediate>
+	call	0x1234:0x5678
+; call <32-bit far immediate>
+	call	0x1234:dword 0x89ABCDEF
+; JMP <far [addr]>
+	call far	[bx]
+	call far	[si]
+	call far	[bp]
+	call far	[bx+si]
+	call far	[bx+di]
+; JMP <far [32-bit addr]>
+	call far	[eax]
+	call far	[ebx]
+	call far	[ecx]
+	call far	[edx]
+	call far	[esi]
+	call far [edi]
+	call far [esp]
+	call far [ebp]
+; JMP <32-bit far [addr]>
+	call far dword [bx]
+	call far dword [si]
+	call far dword [bp]
+	call far dword [bx+si]
+	call far dword [bx+di]
+; JMP <32-bit far 32-bit addr>
+	call far dword [eax]
+	call far dword [ebx]
+	call far dword [ecx]
+	call far dword [edx]
+	call far dword [esi]
+	call far dword [edi]
+	call far dword [esp]
+	call far dword [ebp]
+

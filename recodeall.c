@@ -259,6 +259,48 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0xFF; o = minx86enc_encode_memreg_far(ofs,o,5);
 			}
 		} break;
+		case MXOP_CALL: { /*====================NEAR CALL===================*/
+			struct minx86dec_argv *a = &ins->argv[0];
+			if (a->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o);
+				*o++ = 0xFF; *o++ = (3<<6) | (2<<3) | a->reg;	/* mod=3 reg=6 rm=reg */
+			}
+			else if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_32_overrides(a,est,o);
+				*o++ = 0xFF; o = minx86enc_encode_memreg(a,o,2);
+			}
+			else if (a->regtype == MX86_RT_IMM) { /* hope you set est->ip_value! encoding is RELATIVE! */
+				int32_t delta = (int32_t)(a->value - est->ip_value),extra = (int32_t)(o - est->started_here);
+				/* no such thing as single-byte CALL. */
+				/* if the encoding is for 32-bit mode, OR the delta is too large for 16-bit mode: */
+				if (est->addr32 || !((delta-(5+extra)) >= -0x8000 && (delta-(5+extra)) < 0x8000))
+					{ if (!est->addr32) { *o++ = 0x66; extra++; }; *o++ = 0xE8; *((uint32_t*)o) = (uint32_t)(delta-(5+extra)); o += 4; }
+				else
+					{ *o++ = 0xE8; *((uint16_t*)o) = (uint16_t)(delta-(3+extra)); o += 2; }
+			}
+		} break;
+		case MXOP_CALL_FAR: { /*=====================FAR CALL====================*/
+			struct minx86dec_argv *ofs=&ins->argv[0];
+			if (ofs->regtype == MX86_RT_IMM) { /* easy: seg:off values are absolute */
+				if (est->addr32 || (ofs->value & 0xFFFF0000)) {
+					if (!est->addr32) *o++ = 0x66;
+					*o++ = 0x9A;
+					*((uint32_t*)o) = (uint32_t)ofs->value; o += 4;
+				}
+				else {
+					*o++ = 0x9A;
+					*((uint16_t*)o) = (uint16_t)ofs->value; o += 2;
+				}
+
+				/* segment */
+				*((uint16_t*)o) = (uint16_t)ofs->segval; o += 2;
+			}
+			else if (ofs->regtype == MX86_RT_NONE) {
+				o = minx86enc_32_overrides_far(ofs,est,o);
+				*o++ = 0xFF; o = minx86enc_encode_memreg_far(ofs,o,3);
+			}
+		} break;
+
 	}
 
 	est->write_ip = o;
