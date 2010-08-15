@@ -332,6 +332,7 @@ int main(int argc,char **argv) {
 	struct minx86enc_state est;
 	struct minx86dec_state st;
 	minx86_read_ptr_t iptr;
+	unsigned char mark = 1;
 	char arg_c[101];
 	FILE *fp;
 	int sz=0;
@@ -375,12 +376,20 @@ int main(int argc,char **argv) {
 		est.ip_value = st.ip_value;
 		minx86enc_encodeall(&est,&i);
 		{
+			minx86_read_ptr_t x = (minx86_read_ptr_t)est.started_here;
+			while (x < est.write_ip && (*x == 0x66 || *x == 0x67)) x++;
+			if (x < est.write_ip) {
+				if (*x == 0x90) /* a NOP is a NOP is a NOP */
+					mark = 0;
+			}
+		}
+		{
 			unsigned char mismatch = 0;
 			minx86_write_ptr_t p = est.started_here;
 			minx86_read_ptr_t r = i.start;
 			while (p != est.write_ip) {
 				printf("%02X",*p);
-				if (*r != *p) printf(".");
+				if (mark && *r != *p) printf(".");
 				else printf(" ");
 				r++; p++;
 			}
