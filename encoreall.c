@@ -11,19 +11,19 @@
  * if 16-bit mode and the arg provided is 32 bits wide, OR
  * if 32-bit mode and the arg provided is 16 bits wide */
 static inline minx86_write_ptr_t minx86enc_32_overrides(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o,unsigned int wordsize) {
-	if (a->memregs != 0 && ((a->memregsz>>2)^(est->addr32?1:0))) *o++ = 0x67;
+	if ((a->memregsz>>2)^(est->addr32?1:0)) *o++ = 0x67;
 	if (wordsize && ((a->size>>2)^(est->data32?1:0))) *o++ = 0x66;
 	return o;
 }
 
 static inline minx86_write_ptr_t minx86enc_32_overrides_far(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o,unsigned int wordsize) {
-	if (a->memregs != 0 && ((a->memregsz>>2)^(est->addr32?1:0))) *o++ = 0x67;
+	if ((a->memregsz>>2)^(est->addr32?1:0)) *o++ = 0x67;
 	if (wordsize && (((a->size==6)?1:0)^(est->data32?1:0))) *o++ = 0x66;
 	return o;
 }
 
 minx86_write_ptr_t minx86enc_encode_memreg_far(struct minx86dec_argv *a,minx86_write_ptr_t o,unsigned int regval) {
-	int mod = 0,sib = -1;
+	int mod = 0,sib = -1,memref = 0;
 
 	if (a->memref_base != 0) {
 		if (	(a->memregsz == 4 && (int32_t)a->memref_base >= -0x80 && (int32_t)a->memref_base < 0x80) ||
@@ -84,10 +84,21 @@ minx86_write_ptr_t minx86enc_encode_memreg_far(struct minx86dec_argv *a,minx86_w
 			*o++ = c | (regval << 3) | (mod<<6);
 		}
 	}
+	else if (a->memregs == 0) {
+		/* direct memory reference */
+		mod = 0;
+		memref = 1;
+		if (a->memregsz == 4) {/* 32-bit */
+			*o++ = 5 | (regval << 3) | (mod<<6);
+		}
+		else {
+			*o++ = 6 | (regval << 3) | (mod<<6);
+		}
+	}
 
 	if (mod == 1)
 		*o++ = (uint8_t)(a->memref_base);
-	else if (mod == 2) {
+	else if (mod == 2 || (mod == 0 && memref)) {
 		if (a->memregsz == 4) {
 			*((uint32_t*)o) = (uint32_t)(a->memref_base);
 			o += 4;
@@ -102,7 +113,7 @@ minx86_write_ptr_t minx86enc_encode_memreg_far(struct minx86dec_argv *a,minx86_w
 }
 
 minx86_write_ptr_t minx86enc_encode_memreg(struct minx86dec_argv *a,minx86_write_ptr_t o,unsigned int regval) {
-	int mod = 0,sib = -1;
+	int mod = 0,sib = -1,memref = 0;
 
 	if (a->memref_base != 0) {
 		if (	(a->memregsz == 4 && (int32_t)a->memref_base >= -0x80 && (int32_t)a->memref_base < 0x80) ||
@@ -163,10 +174,21 @@ minx86_write_ptr_t minx86enc_encode_memreg(struct minx86dec_argv *a,minx86_write
 			*o++ = c | (regval << 3) | (mod<<6);
 		}
 	}
+	else if (a->memregs == 0) {
+		/* direct memory reference */
+		mod = 0;
+		memref = 1;
+		if (a->memregsz == 4) {/* 32-bit */
+			*o++ = 5 | (regval << 3) | (mod<<6);
+		}
+		else {
+			*o++ = 6 | (regval << 3) | (mod<<6);
+		}
+	}
 
 	if (mod == 1)
 		*o++ = (uint8_t)(a->memref_base);
-	else if (mod == 2) {
+	else if (mod == 2 || (mod == 0 && memref)) {
 		if (a->memregsz == 4) {
 			*((uint32_t*)o) = (uint32_t)(a->memref_base);
 			o += 4;
@@ -327,6 +349,26 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 				else {
 					*o++ = (uint8_t)(b->value);
+				}
+			}
+			else if (a->regtype == MX86_RT_NONE && a->memregs == 0 && b->regtype == MX86_RT_REG && b->reg == MX86_REG_AX) {
+				/* aka: MOV [memaddr],A */
+				*o++ = 0xA2 + word;
+				if (a->memregsz == 4) {
+					*((uint32_t*)o) = (uint32_t)(a->memref_base); o += 4;
+				}
+				else {
+					*((uint16_t*)o) = (uint16_t)(a->memref_base); o += 2;
+				}
+			}
+			else if (b->regtype == MX86_RT_NONE && b->memregs == 0 && a->regtype == MX86_RT_REG && a->reg == MX86_REG_AX) {
+				/* aka: MOV A,[memaddr] */
+				*o++ = 0xA0 + word;
+				if (b->memregsz == 4) {
+					*((uint32_t*)o) = (uint32_t)(b->memref_base); o += 4;
+				}
+				else {
+					*((uint16_t*)o) = (uint16_t)(b->memref_base); o += 2;
 				}
 			}
 		} break;

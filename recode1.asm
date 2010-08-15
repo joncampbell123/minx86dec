@@ -164,6 +164,11 @@ _start:
 	jmp far dword [edi]
 	jmp far dword [esp]
 	jmp far dword [ebp]
+; JMP <addr>
+	jmp	word [0x1234]
+	jmp	[dword 0x12345678]
+	jmp far	word [0x1234]
+	jmp far	[dword 0x12345678]
 
 ; JMP [reg] 16-bit
 	call	ax
@@ -324,6 +329,12 @@ _start:
 	call far dword [edi]
 	call far dword [esp]
 	call far dword [ebp]
+; JMP <addr>
+	call	word [0x1234]
+	call	[dword 0x12345678]
+	call far word [0x1234]
+	call far [dword 0x12345678]
+
 ; NOPs
 	nop
 	nop
@@ -538,4 +549,18 @@ _start:
 	mov	dword [edx],4
 	mov	dword [esi],5
 	mov	dword [edi],5
+; MOV AX <=> [mem addr]
+	mov	al,[0x1234]
+	mov	ax,[0x1234]
+	mov	eax,[0x1234]
+	mov	[0x1234],al
+	mov	[0x1234],ax
+	mov	[0x1234],eax
+; MOV AX <=> [mem addr 32]
+	mov	al,[dword 0x12345678]
+	mov	ax,[dword 0x12345678]
+	mov	eax,[dword 0x12345678]
+	mov	[dword 0x12345678],al
+	mov	[dword 0x12345678],ax
+	mov	[dword 0x12345678],eax
 
