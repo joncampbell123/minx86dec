@@ -363,6 +363,15 @@ _start:
 	xchg	[si],bh
 	xchg	[si],ch
 	xchg	[si],dh
+; XCHG <8-bit w/ mem>
+	xchg	[esi],al
+	xchg	[esi],bl
+	xchg	[esi],cl
+	xchg	[esi],dl
+	xchg	[esi],ah
+	xchg	[esi],bh
+	xchg	[esi],ch
+	xchg	[esi],dh
 ; XCHG <16-bit w/ mem>
 	xchg	[si],ax
 	xchg	[si],bx
@@ -503,4 +512,30 @@ _start:
 	mov	byte [edx],4
 	mov	byte [esi],5
 	mov	byte [edi],5
+; MOV r/m,imm (word)
+	mov	word [si],1
+	mov	word [di],2
+	mov	word [bx],3
+	mov	word [bx+si],4
+	mov	word [bx+di],5
+; MOV r/m,imm (word 32-bit)
+	mov	word [eax],1
+	mov	word [ebx],2
+	mov	word [ecx],3
+	mov	word [edx],4
+	mov	word [esi],5
+	mov	word [edi],5
+; MOV r/m,imm (dword)
+	mov	dword [si],1
+	mov	dword [di],2
+	mov	dword [bx],3
+	mov	dword [bx+si],4
+	mov	dword [bx+di],5
+; MOV r/m,imm (dword 32-bit)
+	mov	dword [eax],1
+	mov	dword [ebx],2
+	mov	dword [ecx],3
+	mov	dword [edx],4
+	mov	dword [esi],5
+	mov	dword [edi],5
 
