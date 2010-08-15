@@ -318,12 +318,13 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			unsigned char word = (a->size >= 2) ? 1 : 0;
 			/* it doesn't matter if it's reg-reg, reg-r/m, r/m-reg, etc
 			 * instruction encoding covers them all */
-			o = minx86enc_32_overrides(a,est,o,word);
 
 			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0x88+word; *o++ = (3<<6) | (b->reg<<3) | (a->reg);
 			}
 			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_IMM) {
+				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0xB0+(word<<3)+a->reg;
 				if (word) {
 					if (a->size == 4) {
@@ -338,6 +339,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 			}
 			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_IMM) {
+				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0xC6 + word; o = minx86enc_encode_memreg(a,o,0);
 				if (word) {
 					if (a->size == 4) {
@@ -353,6 +355,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			}
 			else if (a->regtype == MX86_RT_NONE && a->memregs == 0 && b->regtype == MX86_RT_REG && b->reg == MX86_REG_AX) {
 				/* aka: MOV [memaddr],A */
+				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0xA2 + word;
 				if (a->memregsz == 4) {
 					*((uint32_t*)o) = (uint32_t)(a->memref_base); o += 4;
@@ -363,6 +366,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			}
 			else if (b->regtype == MX86_RT_NONE && b->memregs == 0 && a->regtype == MX86_RT_REG && a->reg == MX86_REG_AX) {
 				/* aka: MOV A,[memaddr] */
+				o = minx86enc_32_overrides(b,est,o,word);
 				*o++ = 0xA0 + word;
 				if (b->memregsz == 4) {
 					*((uint32_t*)o) = (uint32_t)(b->memref_base); o += 4;
@@ -372,9 +376,11 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 			}
 			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0x88 + word; o = minx86enc_encode_memreg(a,o,b->reg);
 			}
 			else if (b->regtype == MX86_RT_NONE && a->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(b,est,o,word);
 				*o++ = 0x8A + word; o = minx86enc_encode_memreg(b,o,a->reg);
 			}
 		} break;

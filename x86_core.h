@@ -391,11 +391,11 @@ decode_next:
 		COVER_2(0x86): {
 			ARGV *rm=&ins->argv[0],*reg=&ins->argv[1]; rm->size=reg->size=(first_byte&1)?datawordsize:1;
 			INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM); set_register(reg,mrm.f.reg);
-			ins->opcode = MXOP_XCHG; ins->argc = 2;
+			ins->opcode = MXOP_XCHG; ins->argc = 2; rm->memregsz=addrwordsize;
 		} break;
 		COVER_4(0x88): {
 			const int which=(first_byte>>1)&1; ARGV *rm=&ins->argv[which],*reg=&ins->argv[which^1];
-			rm->size=reg->size=(first_byte&1)?datawordsize:1; ins->opcode=MXOP_MOV; ins->argc=2;
+			rm->size=reg->size=(first_byte&1)?datawordsize:1;ins->opcode=MXOP_MOV;ins->argc=2;rm->memregsz=addrwordsize;
 			INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM); set_register(reg,mrm.f.reg);
 		} break;
 		case 0x8C: case 0x8E: { /* mov r/m, seg reg */
@@ -552,7 +552,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 #endif
 		COVER_4(0xA0): {
 			ins->opcode = MXOP_MOV; ins->argc = 2; const int which = (first_byte>>1)&1;
-			ARGV *areg=&ins->argv[which],*mref=&ins->argv[which^1]; mref->memregsz=addr32wordsize;
+			ARGV *areg=&ins->argv[which],*mref=&ins->argv[which^1]; mref->memregsz=addrwordsize;
 			areg->size=mref->size=(first_byte&1)?datawordsize:1; set_register(areg,MX86_REG_AX);
 #ifdef x64_mode
 			set_mem_ref_imm(mref,(uint64_t)((int32_t)fetch_u32()));
@@ -1306,8 +1306,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 		case 0xFC: ins->opcode = MXOP_CLD; break;
 		case 0xFD: ins->opcode = MXOP_STD; break;
 		COVER_2(0xFE): {
-			ARGV *where=&ins->argv[0];where->size=(first_byte&1)?datawordsize:1;
-			where->memregsz=(first_byte&1)?addrwordsize:1; ins->argc=1;
+			ARGV *where=&ins->argv[0];where->size=(first_byte&1)?datawordsize:1;where->memregsz=addrwordsize;ins->argc=1;
 			INS_MRM mrm = decode_rm_(where,ins,where->size,PLUSR_TRANSFORM);
 			switch (mrm.f.reg) {
 				case 0:	ins->opcode = MXOP_INC;	break; case 1: ins->opcode = MXOP_DEC;	break;
