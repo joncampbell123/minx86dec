@@ -428,6 +428,12 @@ _start:
 	xchg	[esi],edi
 	xchg	[esi],ebp
 	xchg	[esi],esp
+; JMP <addr>
+	xchg	[0x1234],ax
+	xchg	[dword 0x12345678],ax
+	xchg	[0x1234],eax
+	xchg	[dword 0x12345678],eax
+
 ; MOV reg,reg
 	mov	al,al
 	mov	al,ah
@@ -563,4 +569,13 @@ _start:
 	mov	[dword 0x12345678],al
 	mov	[dword 0x12345678],ax
 	mov	[dword 0x12345678],eax
+; MOV reg,reg
+	mov	[eax],eax
+	mov	[ebx],ebx
+	mov	[edx],ecx
+	mov	[esi],edx
+	mov	[edi],esi
+	mov	[ebp],edi
+	mov	[esi],ebp
+	mov	[ecx],esp
 

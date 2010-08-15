@@ -371,6 +371,10 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 					*((uint16_t*)o) = (uint16_t)(b->memref_base); o += 2;
 				}
 			}
+			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				*o++ = 0x88 + word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+
 		} break;
 	}
 
