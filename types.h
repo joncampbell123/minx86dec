@@ -42,6 +42,7 @@
 
 /* GCC does not in any way support FAR pointers */
 typedef uint8_t *minx86_read_ptr_t;
+typedef uint8_t *minx86_write_ptr_t;
 
 /* other data types we use: mainly for optimized access */
 #  if defined(__amd64__)
@@ -89,20 +90,24 @@ typedef signed char int8_t;
 #    define ENABLE_64BIT
 #    include <windows.h>
      typedef uint8_t *minx86_read_ptr_t; /* no FAR pointers */
+     typedef uint8_t *minx86_write_ptr_t; /* no FAR pointers */
 #  elif defined(_WIN32)
    /* 32-bit Windows */
 #    define _MSC_SIZE 32
 #    define ENABLE_64BIT
 #    include <windows.h>
      typedef uint8_t *minx86_read_ptr_t; /* no FAR pointers */
+     typedef uint8_t *minx86_write_ptr_t; /* no FAR pointers */
 #  elif defined(_WINDOWS)
    /* then it must be 16-bit windows */
 #    define _MSC_SIZE 16
      typedef uint8_t far *minx86_read_ptr_t; /* 16:16 FAR pointers */
+     typedef uint8_t far *minx86_write_ptr_t; /* 16:16 FAR pointers */
 #  elif defined(_DOS)
    /* ooh goody, 16-bit DOS! */
 #    define _MSC_SIZE 16
      typedef uint8_t far *minx86_read_ptr_t; /* 16:16 FAR pointers */
+     typedef uint8_t far *minx86_write_ptr_t; /* 16:16 FAR pointers */
 #  else
 #    error Microsoft C++ detected but not target platform
 #  endif

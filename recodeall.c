@@ -7,6 +7,21 @@
 #include <stdio.h>
 
 uint8_t buffer[16384];
+uint8_t encoded[16384];
+
+/* instruction encoding */
+struct minx86enc_state {
+	uint32_t		ip_value;	/* IP instruction pointer value */
+	minx86_write_ptr_t	started_here;	/* after encoding: where the first byte was */
+	minx86_write_ptr_t	write_ip;	/* decoding reads from here */
+	minx86_write_ptr_t	fence;
+	uint8_t			data32:1;	/* 386+ 32-bit opcode data operand decoding */
+	uint8_t			addr32:1;	/* 386+ 32-bit opcode address operand decoding */
+};
+
+static void minx86enc_init_state(struct minx86enc_state *st) {
+	memset(st,0,sizeof(*st));
+}
 
 static void minx86dec_init_state(struct minx86dec_state *st) {
 	memset(st,0,sizeof(*st));
@@ -18,7 +33,31 @@ static void minx86dec_set_buffer(struct minx86dec_state *st,uint8_t *buf,int sz)
 	st->read_ip = buf;
 }
 
+static void minx86enc_set_buffer(struct minx86enc_state *st,uint8_t *buf,int sz) {
+	st->fence = buf + sz;
+	st->write_ip = buf;
+}
+
+void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instruction *ins) {
+	minx86_write_ptr_t o = est->write_ip;
+	est->started_here = o;
+
+	switch (ins->opcode) {
+		case MXOP_JMP: {
+			struct minx86dec_argv *a = &ins->argv[0];
+			if (a->regtype == MX86_RT_REG) {
+				if ((a->size>>1)^(ins->data32)) *o++ = 0x66; /* 32-bit op + 16-bit mode/16-bit op + 32-bit mode: need data override */
+				*o++ = 0xFF;
+				*o++ = (3<<6) | (4<<3) | a->reg;	/* mod=3 reg=4 rm=reg */
+			}
+		} break;
+	}
+
+	est->write_ip = o;
+}
+
 int main(int argc,char **argv) {
+	struct minx86enc_state est;
 	struct minx86dec_state st;
 	minx86_read_ptr_t iptr;
 	char arg_c[101];
@@ -39,6 +78,8 @@ int main(int argc,char **argv) {
 
 	minx86dec_init_state(&st);
 	minx86dec_set_buffer(&st,buffer,sz);
+	minx86enc_init_state(&est);
+	minx86enc_set_buffer(&est,encoded,sizeof(encoded));
 
 	while (st.read_ip < st.fence) {
 		struct minx86dec_instruction i;
@@ -56,6 +97,16 @@ int main(int argc,char **argv) {
 			if (++c < i.argc) printf(",");
 		}
 		if (i.lock) printf("  ; LOCK#");
+		printf("\n");
+
+		printf("      -> ");
+		minx86enc_encodeall(&est,&i);
+		{
+			minx86_write_ptr_t p = est.started_here;
+			while (p != est.write_ip) {
+				printf("%02X ",*p++);
+			}
+		}
 		printf("\n");
 	}
 
