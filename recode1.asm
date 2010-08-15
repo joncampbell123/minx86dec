@@ -372,4 +372,40 @@ _start:
 	xchg	[si],di
 	xchg	[si],sp
 	xchg	[si],bp
+; XCHG eax,<32-bit>
+	xchg	eax,eax
+	xchg	eax,ebx
+	xchg	eax,ecx
+	xchg	eax,edx
+	xchg	eax,esi
+	xchg	eax,edi
+	xchg	eax,esp
+	xchg	eax,ebp
+; XCHG <32-bit>
+	xchg	ebx,eax
+	xchg	ecx,ebx
+	xchg	edx,ecx
+	xchg	esi,edx
+	xchg	edi,esi
+	xchg	esp,edi
+	xchg	ebp,esp
+	xchg	eax,ebp
+; XCHG <32-bit w/ mem>
+	xchg	[si],eax
+	xchg	[si],ebx
+	xchg	[si],ecx
+	xchg	[si],edx
+	xchg	[si],esi
+	xchg	[si],edi
+	xchg	[si],ebp
+	xchg	[si],esp
+; XCHG <32-bit w/ 32-bit mem>
+	xchg	[esi],eax
+	xchg	[esi],ebx
+	xchg	[esi],ecx
+	xchg	[esi],edx
+	xchg	[esi],esi
+	xchg	[esi],edi
+	xchg	[esi],ebp
+	xchg	[esi],esp
 
