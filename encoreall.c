@@ -374,7 +374,9 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
 				*o++ = 0x88 + word; o = minx86enc_encode_memreg(a,o,b->reg);
 			}
-
+			else if (b->regtype == MX86_RT_NONE && a->regtype == MX86_RT_REG) {
+				*o++ = 0x8A + word; o = minx86enc_encode_memreg(b,o,a->reg);
+			}
 		} break;
 	}
 

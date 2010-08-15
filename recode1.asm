@@ -578,4 +578,31 @@ _start:
 	mov	[ebp],edi
 	mov	[esi],ebp
 	mov	[ecx],esp
+; MOV reg,reg
+	mov	eax,[edx]
+	mov	ebx,[eax]
+	mov	ecx,[ebx]
+	mov	edx,[ecx]
+	mov	esi,[edx]
+	mov	edi,[eax]
+	mov	ebp,[ebx]
+	mov	esp,[ecx]
+; MOV reg,reg
+	mov	[si],ax
+	mov	[si],bx
+	mov	[si],cx
+	mov	[si],dx
+	mov	[si],si
+	mov	[si],di
+	mov	[si],bp
+	mov	[si],sp
+; MOV reg,reg
+	mov	ax,[si]
+	mov	bx,[si]
+	mov	cx,[si]
+	mov	dx,[si]
+	mov	si,[si]
+	mov	di,[si]
+	mov	bp,[si]
+	mov	sp,[si]
 

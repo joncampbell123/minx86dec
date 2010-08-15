@@ -34,7 +34,6 @@ int main(int argc,char **argv) {
 	struct minx86enc_state est;
 	struct minx86dec_state st;
 	minx86_read_ptr_t iptr;
-	unsigned char mark = 1;
 	char arg_c[101];
 	FILE *fp;
 	int sz=0;
@@ -57,6 +56,7 @@ int main(int argc,char **argv) {
 	minx86enc_set_buffer(&est,encoded,sizeof(encoded));
 
 	while (st.read_ip < st.fence) {
+		unsigned char mark = 1;
 		struct minx86dec_instruction i;
 		st.ip_value = (uint32_t)(st.read_ip - buffer); rst = st;
 		minx86dec_decodeall(&st,&i);
