@@ -10,15 +10,15 @@
 /* code will call this to generate the appropriate 386 data override prefix.
  * if 16-bit mode and the arg provided is 32 bits wide, OR
  * if 32-bit mode and the arg provided is 16 bits wide */
-static inline minx86_write_ptr_t minx86enc_32_overrides(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o) {
-	if (a->memregs != 0 && ((a->memregsz>>2)^(est->addr32))) *o++ = 0x67;
-	if ((a->size>>2)^(est->data32)) *o++ = 0x66;
+static inline minx86_write_ptr_t minx86enc_32_overrides(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o,unsigned int wordsize) {
+	if (a->memregs != 0 && ((a->memregsz>>2)^(est->addr32?1:0))) *o++ = 0x67;
+	if (wordsize && ((a->size>>2)^(est->data32?1:0))) *o++ = 0x66;
 	return o;
 }
 
-static inline minx86_write_ptr_t minx86enc_32_overrides_far(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o) {
-	if (a->memregs != 0 && ((a->memregsz>>2)^(est->addr32))) *o++ = 0x67;
-	if (((a->size==6)?1:0)^(est->data32)) *o++ = 0x66;
+static inline minx86_write_ptr_t minx86enc_32_overrides_far(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o,unsigned int wordsize) {
+	if (a->memregs != 0 && ((a->memregsz>>2)^(est->addr32?1:0))) *o++ = 0x67;
+	if (wordsize && (((a->size==6)?1:0)^(est->data32?1:0))) *o++ = 0x66;
 	return o;
 }
 
@@ -188,18 +188,18 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_JMP: { /*====================NEAR JMP===================*/
 			struct minx86dec_argv *a = &ins->argv[0];
 			if (a->regtype == MX86_RT_REG) {
-				o = minx86enc_32_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0xFF; *o++ = (3<<6) | (4<<3) | a->reg;	/* mod=3 reg=4 rm=reg */
 			}
 			else if (a->regtype == MX86_RT_NONE) {
-				o = minx86enc_32_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0xFF; o = minx86enc_encode_memreg(a,o,4);
 			}
 			else if (a->regtype == MX86_RT_IMM) { /* hope you set est->ip_value! encoding is RELATIVE! */
 				int32_t delta = (int32_t)(a->value - est->ip_value),extra = (int32_t)(o - est->started_here);
 				/* if it's small enough, encode as single-byte JMP */
 				if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
-					{ o = minx86enc_32_overrides(a,est,o); *o++ = 0xEB; *o++ = (uint8_t)(delta-(2+extra)); }
+					{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0xEB; *o++ = (uint8_t)(delta-(2+extra)); }
 				/* if the encoding is for 32-bit mode, OR the delta is too large for 16-bit mode: */
 				else if (est->addr32 || !((delta-(5+extra)) >= -0x8000 && (delta-(5+extra)) < 0x8000))
 					{ if (!est->addr32) { *o++ = 0x66; extra++; }; *o++ = 0xE9; *((uint32_t*)o) = (uint32_t)(delta-(5+extra)); o += 4; }
@@ -224,18 +224,18 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*((uint16_t*)o) = (uint16_t)ofs->segval; o += 2;
 			}
 			else if (ofs->regtype == MX86_RT_NONE) {
-				o = minx86enc_32_overrides_far(ofs,est,o);
+				o = minx86enc_32_overrides_far(ofs,est,o,1);
 				*o++ = 0xFF; o = minx86enc_encode_memreg_far(ofs,o,5);
 			}
 		} break;
 		case MXOP_CALL: { /*====================NEAR CALL===================*/
 			struct minx86dec_argv *a = &ins->argv[0];
 			if (a->regtype == MX86_RT_REG) {
-				o = minx86enc_32_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0xFF; *o++ = (3<<6) | (2<<3) | a->reg;	/* mod=3 reg=6 rm=reg */
 			}
 			else if (a->regtype == MX86_RT_NONE) {
-				o = minx86enc_32_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0xFF; o = minx86enc_encode_memreg(a,o,2);
 			}
 			else if (a->regtype == MX86_RT_IMM) { /* hope you set est->ip_value! encoding is RELATIVE! */
@@ -265,7 +265,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*((uint16_t*)o) = (uint16_t)ofs->segval; o += 2;
 			}
 			else if (ofs->regtype == MX86_RT_NONE) {
-				o = minx86enc_32_overrides_far(ofs,est,o);
+				o = minx86enc_32_overrides_far(ofs,est,o,1);
 				*o++ = 0xFF; o = minx86enc_encode_memreg_far(ofs,o,3);
 			}
 		} break;
@@ -275,7 +275,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			unsigned char word = (a->size >= 2) ? 1 : 0;
 			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
 			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; }
-			if (word) o = minx86enc_32_overrides(a,est,o);
+			o = minx86enc_32_overrides(a,est,o,word);
 
 			if (a->regtype == MX86_RT_REG) {
 				if (word && a->reg == MX86_REG_AX)
@@ -296,13 +296,27 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			unsigned char word = (a->size >= 2) ? 1 : 0;
 			/* it doesn't matter if it's reg-reg, reg-r/m, r/m-reg, etc
 			 * instruction encoding covers them all */
-			if (word) o = minx86enc_32_overrides(a,est,o);
+			o = minx86enc_32_overrides(a,est,o,word);
 
 			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
 				*o++ = 0x88+word; *o++ = (3<<6) | (b->reg<<3) | (a->reg);
 			}
 			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_IMM) {
 				*o++ = 0xB0+(word<<3)+a->reg;
+				if (word) {
+					if (a->size == 4) {
+						*((uint32_t*)o) = (uint32_t)(b->value); o += 4;
+					}
+					else {
+						*((uint16_t*)o) = (uint16_t)(b->value); o += 2;
+					}
+				}
+				else {
+					*o++ = (uint8_t)(b->value);
+				}
+			}
+			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_IMM) {
+				*o++ = 0xC6 + word; o = minx86enc_encode_memreg(a,o,0);
 				if (word) {
 					if (a->size == 4) {
 						*((uint32_t*)o) = (uint32_t)(b->value); o += 4;

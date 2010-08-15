@@ -496,4 +496,11 @@ _start:
 	mov	byte [bx],3
 	mov	byte [bx+si],4
 	mov	byte [bx+di],5
+; MOV r/m,imm (byte 32-bit)
+	mov	byte [eax],1
+	mov	byte [ebx],2
+	mov	byte [ecx],3
+	mov	byte [edx],4
+	mov	byte [esi],5
+	mov	byte [edi],5
 
