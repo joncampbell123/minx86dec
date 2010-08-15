@@ -301,6 +301,20 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
 				*o++ = 0x88+word; *o++ = (3<<6) | (b->reg<<3) | (a->reg);
 			}
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_IMM) {
+				*o++ = 0xB0+(word<<3)+a->reg;
+				if (word) {
+					if (a->size == 4) {
+						*((uint32_t*)o) = (uint32_t)(b->value); o += 4;
+					}
+					else {
+						*((uint16_t*)o) = (uint16_t)(b->value); o += 2;
+					}
+				}
+				else {
+					*o++ = (uint8_t)(b->value);
+				}
+			}
 		} break;
 	}
 

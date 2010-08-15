@@ -462,4 +462,32 @@ _start:
 	mov	ebp,edi
 	mov	eax,ebp
 	mov	ebx,esp
+; MOV reg,imm (byte)
+	mov	al,0
+	mov	al,1
+	mov	al,0xCC
+	mov	ah,1
+	mov	bl,2
+	mov	cl,3
+	mov	ch,4
+	mov	dl,5
+	mov	dh,6
+; MOV reg,imm (word)
+	mov	ax,0
+	mov	bx,1
+	mov	cx,2
+	mov	dx,3
+	mov	si,4
+	mov	di,5
+	mov	sp,6
+	mov	bp,7
+; MOV reg,imm (dword)
+	mov	eax,0
+	mov	ebx,1
+	mov	ecx,2
+	mov	edx,3
+	mov	esi,4
+	mov	edi,5
+	mov	esp,6
+	mov	ebp,7
 
