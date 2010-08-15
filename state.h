@@ -193,5 +193,15 @@ struct minx86dec_instruction_x64 {
 	uint8_t				fwait:1;	/* FWAIT prefix */
 };
 
+/* instruction encoding */
+struct minx86enc_state {
+	uint32_t		ip_value;	/* IP instruction pointer value */
+	minx86_write_ptr_t	started_here;	/* after encoding: where the first byte was */
+	minx86_write_ptr_t	write_ip;	/* decoding reads from here */
+	minx86_write_ptr_t	fence;
+	uint8_t			data32:1;	/* 386+ 32-bit encoding */
+	uint8_t			addr32:1;	/* 386+ 32-bit encoding */
+};
+
 #endif
 
