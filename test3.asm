@@ -5,6 +5,10 @@
 org 0
 
 _start:
+; FIXME: This does NOT decode correctly at the moment
+	jmp	[ebp+eax]
+
+; this once crashed the decoder
 	db	0x45,0xF7,0x07
 	nop
 	nop

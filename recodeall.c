@@ -43,12 +43,12 @@ static void minx86enc_set_buffer(struct minx86enc_state *st,uint8_t *buf,int sz)
  * if 32-bit mode and the arg provided is 16 bits wide */
 static inline minx86_write_ptr_t minx86enc_32_overrides(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o) {
 	if ((a->size>>2)^(est->data32)) *o++ = 0x66;
-	if ((a->memregsz>>2)^(est->addr32)) *o++ = 0x67;
+	if (a->memregs != 0 && ((a->memregsz>>2)^(est->addr32))) *o++ = 0x67;
 	return o;
 }
 
-int minx86enc_match_memreg(struct minx86dec_argv *a) {
-	int ret = -1,mod = 0;
+minx86_write_ptr_t minx86enc_encode_memreg(struct minx86dec_argv *a,minx86_write_ptr_t o,unsigned int regval) {
+	int mod = 0,sib = -1;
 
 	if (a->memref_base != 0) {
 		if (	(a->memregsz == 4 && (int32_t)a->memref_base >= -0x80 && (int32_t)a->memref_base < 0x80) ||
@@ -60,40 +60,66 @@ int minx86enc_match_memreg(struct minx86dec_argv *a) {
 
 	if (a->memregs == 1) {
 		if (a->memregsz == 4) {/* 32-bit */
+			if (mod == 0) {
+				if (a->memreg[0] == 5)
+					mod = 1;	/* [EBP] -> [EBP+0] */
+			}
+			*o++ = (mod << 6) | (regval << 3) | a->memreg[0];
+			{
+				if (a->memreg[0] == 4) {
+					/* the code for [ESP] is used instead for
+					 * encoding the SIB so we must encode the SIB byte
+					 * to properly make [ESP] reference */
+					*o++ = (a->scalar << 6) | (4 << 3) | MX86_REG_ESP; /* scale=s/index=none/base=ESP */
+				}
+			}
 		}
 		else {/* 16-bit */
 			switch (a->memreg[0]) {
-				case MX86_REG_SI:	return 4 | (mod<<6);
-				case MX86_REG_DI:	return 5 | (mod<<6);
+				case MX86_REG_SI:	*o++ = 4 | (regval << 3) | (mod<<6); break;
+				case MX86_REG_DI:	*o++ = 5 | (regval << 3) | (mod<<6); break;
 				case MX86_REG_BP: {
 					if (mod == 0) mod = 1;	/* No such [BP] must encode as [BP+0] */
-					return 6 | (mod<<6); }
-				case MX86_REG_BX:	return 7 | (mod<<6);
+					*o++ = 6 | (regval << 3) | (mod<<6); } break;
+				case MX86_REG_BX:	*o++ = 7 | (regval << 3) | (mod<<6); break;
 			}
 		}
 	}
 	else if (a->memregs == 2) {
 		if (a->memregsz == 4) {/* 32-bit */
+			*o++ = (mod << 6) | (regval << 3) | 4;	/* SIB */
+			*o++ = (a->scalar << 6) | (a->memreg[0] << 3) | a->memreg[1]; /* scale=s/index=none/base=ESP */
 		}
 		else {/* 16-bit */
+			uint8_t c = 0;
+
 			/* BX or BP */
 			switch (a->memreg[0]) {
-				case MX86_REG_BX:	ret = 0; break;
-				case MX86_REG_BP:	ret = 2; break;
-				default:		return -1;
+				case MX86_REG_BP:	c = 2; break;
 			}
 			/* second one may be SI or DI */
 			switch (a->memreg[1]) {
-				case MX86_REG_SI:	break;
-				case MX86_REG_DI:	ret |= 1; break;
-				default:		return -1;
+				case MX86_REG_DI:	c |= 1; break;
 			}
 
-			ret |= (mod<<6);
+			*o++ = c | (regval << 3) | (mod<<6);
 		}
 	}
 
-	return ret;
+	if (mod == 1)
+		*o++ = (uint8_t)(a->memref_base);
+	else if (mod == 2) {
+		if (a->memregsz == 4) {
+			*((uint32_t*)o) = (uint32_t)(a->memref_base);
+			o += 4;
+		}
+		else {
+			*((uint16_t*)o) = (uint16_t)(a->memref_base);
+			o += 2;
+		}
+	}
+
+	return o;
 }
 
 void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instruction *ins) {
@@ -109,17 +135,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = (3<<6) | (4<<3) | a->reg;	/* mod=3 reg=4 rm=reg */
 			}
 			else if (a->regtype == MX86_RT_NONE) {
-				int match = minx86enc_match_memreg(a);
-				if (match >= 0) {
-					*o++ = 0xFF;
-					*o++ = (4<<3) | match;		/* the match value includes "MOD" bits */
-					switch (match>>6) { /* encode according to mod bits */
-						case 1:	*o++ = (uint8_t)(a->memref_base); break;
-						case 2:	if (a->memregsz == 4)	{ *((uint32_t*)o) = (uint32_t)(a->memref_base);       o += 4; }
-							else			{ *((uint16_t*)o) = (uint16_t)(a->memref_base);       o += 2; };
-							break;
-					}
-				}
+				*o++ = 0xFF;
+				o = minx86enc_encode_memreg(a,o,4);
 			}
 		} break;
 	}
