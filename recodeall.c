@@ -42,14 +42,14 @@ static void minx86enc_set_buffer(struct minx86enc_state *st,uint8_t *buf,int sz)
  * if 16-bit mode and the arg provided is 32 bits wide, OR
  * if 32-bit mode and the arg provided is 16 bits wide */
 static inline minx86_write_ptr_t minx86enc_32_overrides(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o) {
-	if ((a->size>>2)^(est->data32)) *o++ = 0x66;
 	if (a->memregs != 0 && ((a->memregsz>>2)^(est->addr32))) *o++ = 0x67;
+	if ((a->size>>2)^(est->data32)) *o++ = 0x66;
 	return o;
 }
 
 static inline minx86_write_ptr_t minx86enc_32_overrides_far(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o) {
-	if (((a->size==6)?1:0)^(est->data32)) *o++ = 0x66;
 	if (a->memregs != 0 && ((a->memregsz>>2)^(est->addr32))) *o++ = 0x67;
+	if (((a->size==6)?1:0)^(est->data32)) *o++ = 0x66;
 	return o;
 }
 
@@ -173,7 +173,7 @@ minx86_write_ptr_t minx86enc_encode_memreg(struct minx86dec_argv *a,minx86_write
 	else if (a->memregs == 2) {
 		if (a->memregsz == 4) {/* 32-bit */
 			if (mod == 0) {
-				if (a->memreg[0] == 5 || a->memreg[1] == 5)
+				if (a->memreg[1] == 5)
 					mod = 1;	/* [EBP] -> [EBP+0] */
 			}
 			*o++ = (mod << 6) | (regval << 3) | 4;	/* SIB */
@@ -233,7 +233,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 					{ o = minx86enc_32_overrides(a,est,o); *o++ = 0xEB; *o++ = (uint8_t)(delta-(2+extra)); }
 				/* if the encoding is for 32-bit mode, OR the delta is too large for 16-bit mode: */
 				else if (est->addr32 || !((delta-(5+extra)) >= -0x8000 && (delta-(5+extra)) < 0x8000))
-					{ if (!est->addr32) *o++ = 0x67; *o++ = 0xE9; *((uint32_t*)o) = (uint32_t)(delta-(5+extra)); o += 4; }
+					{ if (!est->addr32) { *o++ = 0x66; extra++; }; *o++ = 0xE9; *((uint32_t*)o) = (uint32_t)(delta-(5+extra)); o += 4; }
 				else
 					{ *o++ = 0xE9; *((uint16_t*)o) = (uint16_t)(delta-(3+extra)); o += 2; }
 			}
@@ -265,6 +265,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 }
 
 int main(int argc,char **argv) {
+	struct minx86dec_state rst;
 	struct minx86enc_state est;
 	struct minx86dec_state st;
 	minx86_read_ptr_t iptr;
@@ -291,7 +292,7 @@ int main(int argc,char **argv) {
 
 	while (st.read_ip < st.fence) {
 		struct minx86dec_instruction i;
-		st.ip_value = (uint32_t)(st.read_ip - buffer);
+		st.ip_value = (uint32_t)(st.read_ip - buffer); rst = st;
 		minx86dec_decodeall(&st,&i);
 		printf("0x%04X  ",(unsigned int)(i.start - buffer));
 		for (c=0,iptr=i.start;iptr != i.end;c++)
@@ -313,8 +314,32 @@ int main(int argc,char **argv) {
 		{
 			unsigned char mismatch = 0;
 			minx86_write_ptr_t p = est.started_here;
-			while (p != est.write_ip) printf("%02X ",*p++);
+			minx86_read_ptr_t r = i.start;
+			while (p != est.write_ip) {
+				printf("%02X",*p);
+				if (*r != *p) printf(".");
+				else printf(" ");
+				r++; p++;
+			}
 		}
+		printf("\n");
+
+		rst.read_ip = est.started_here;
+		rst.fence = encoded + sizeof(encoded);
+		rst.prefetch_fence = encoded + sizeof(encoded) - 16;
+		minx86dec_decodeall(&rst,&i);
+		printf("    ->> ");
+		for (c=0,iptr=i.start;iptr != i.end;c++)
+			printf("%02X ",*iptr++);
+		for (;c < 8;c++)
+			printf("   ");
+		printf("%-8s ",opcode_string[i.opcode]);
+		for (c=0;c < i.argc;) {
+			minx86dec_regprint(&i.argv[c],arg_c);
+			printf("%s",arg_c);
+			if (++c < i.argc) printf(",");
+		}
+		if (i.lock) printf("  ; LOCK#");
 		printf("\n");
 	}
 
