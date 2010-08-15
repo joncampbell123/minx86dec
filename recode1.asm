@@ -45,4 +45,14 @@ _start:
 	jmp	[bp-0x2222]
 	jmp	[si-0x3333]
 	jmp	[di-0x4444]
+; JMP [addr] 16-bit double-memref
+	jmp	[bx+si]
+	jmp	[bx+di]
+	jmp	[bp+si]
+	jmp	[bp+di]
+; JMP [addr] 16-bit double-memref and offset
+	jmp	[bx+si+3]
+	jmp	[bx+di+4]
+	jmp	[bp+si+5]
+	jmp	[bp+di+6]
 

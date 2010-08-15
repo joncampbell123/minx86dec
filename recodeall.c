@@ -72,6 +72,26 @@ int minx86enc_match_memreg(struct minx86dec_argv *a) {
 			}
 		}
 	}
+	else if (a->memregs == 2) {
+		if (a->memregsz == 4) {/* 32-bit */
+		}
+		else {/* 16-bit */
+			/* BX or BP */
+			switch (a->memreg[0]) {
+				case MX86_REG_BX:	ret = 0; break;
+				case MX86_REG_BP:	ret = 2; break;
+				default:		return -1;
+			}
+			/* second one may be SI or DI */
+			switch (a->memreg[1]) {
+				case MX86_REG_SI:	break;
+				case MX86_REG_DI:	ret |= 1; break;
+				default:		return -1;
+			}
+
+			ret |= (mod<<6);
+		}
+	}
 
 	return ret;
 }
