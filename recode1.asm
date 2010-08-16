@@ -822,4 +822,21 @@ _start:
 	pop	word [edi]
 ;	pop	word [ebp]		; FIXME: this doesn't decode properly
 	pop	word [esp]
+; push/pop mem word
+	push	dword [eax]
+	push	dword [ebx]
+	push	dword [ecx]
+	push	dword [edx]
+	push	dword [esi]
+	push	dword [edi]
+	push	dword [ebp]
+	push	dword [esp]
+	pop	dword [eax]
+	pop	dword [ebx]
+	pop	dword [ecx]
+	pop	dword [edx]
+	pop	dword [esi]
+	pop	dword [edi]
+;	pop	dword [ebp]		; FIXME: this doesn't decode properly
+	pop	dword [esp]
 
