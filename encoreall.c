@@ -460,6 +460,22 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0x0F; *o++ = 0x24; *o++ = (3 << 6) | (b->reg << 3) | a->reg;
 			}
 		} break;
+		case MXOP_PUSH: { /*====================PUSH=====================*/
+			struct minx86dec_argv *a=&ins->argv[0];
+
+			if (a->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x50+a->reg;
+			}
+		} break;
+		case MXOP_POP: { /*====================POP=====================*/
+			struct minx86dec_argv *a=&ins->argv[0];
+
+			if (a->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x58+a->reg;
+			}
+		} break;
 	}
 
 	est->write_ip = o;

@@ -737,4 +737,38 @@ _start:
 	mov	tr2,eax
 	mov	ebx,tr3
 	mov	tr3,ebx
+; push/pop
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	bp
+	push	sp
+	pop	ax
+	pop	bx
+	pop	cx
+	pop	dx
+	pop	si
+	pop	di
+	pop	bp
+	pop	sp
+; push/pop
+	push	eax
+	push	ebx
+	push	ecx
+	push	edx
+	push	esi
+	push	edi
+	push	ebp
+	push	esp
+	pop	eax
+	pop	ebx
+	pop	ecx
+	pop	edx
+	pop	esi
+	pop	edi
+	pop	ebp
+	pop	esp
 
