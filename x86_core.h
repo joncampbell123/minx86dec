@@ -361,6 +361,7 @@ decode_next:
 			r->regtype = MX86_RT_NONE; r->scalar = 0; r->memregs = 1;
 			r->memref_base = 0; r->memregsz = addrwordsize;
 			r->memreg[0] = (first_byte & 2) ? MX86_REG_ESI : MX86_REG_EDI;
+			r->segment = first_byte & 2 ? (ins->segment >= 0 ? ins->segment : MX86_SEG_DS) : MX86_SEG_ES;
 		} break;
 #endif
 		COVER_ROW(0x70): {
