@@ -487,6 +487,16 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 					*o++ = 0x6A; *o++ = (uint8_t)(a->value);
 				}
 			}
+			else if (a->regtype == MX86_RT_SREG) {
+				switch (a->reg) {
+					case MX86_SEG_CS:	*o++ = 0x0E;	break;
+					case MX86_SEG_DS:	*o++ = 0x1E;	break;
+					case MX86_SEG_ES:	*o++ = 0x06;	break;
+					case MX86_SEG_FS:	*o++ = 0x0F; *o++ = 0xA0; break;
+					case MX86_SEG_GS:	*o++ = 0x0F; *o++ = 0xA8; break;
+					case MX86_SEG_SS:	*o++ = 0x16;	break;
+				}
+			}
 		} break;
 		case MXOP_POP: { /*====================POP=====================*/
 			struct minx86dec_argv *a=&ins->argv[0];
@@ -499,6 +509,16 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				o = minx86enc_seg_overrides(a,est,o);
 				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0x8F; o = minx86enc_encode_memreg(a,o,0);
+			}
+			else if (a->regtype == MX86_RT_SREG) {
+				switch (a->reg) {
+					case MX86_SEG_CS:	*o++ = 0x0F;	break;
+					case MX86_SEG_DS:	*o++ = 0x1F;	break;
+					case MX86_SEG_ES:	*o++ = 0x07;	break;
+					case MX86_SEG_FS:	*o++ = 0x0F; *o++ = 0xA1; break;
+					case MX86_SEG_GS:	*o++ = 0x0F; *o++ = 0xA9; break;
+					case MX86_SEG_SS:	*o++ = 0x17;	break;
+				}
 			}
 		} break;
 	}

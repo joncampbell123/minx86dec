@@ -858,4 +858,16 @@ _start:
 	push	dword 22222222
 	push	dword 33333333
 	push	dword 44444444
+; push/pop segment
+	push	cs
+	push	ds
+	push	es
+	push	fs
+	push	gs
+	push	ss
+	pop	ds
+	pop	es
+	pop	fs
+	pop	gs
+	pop	ss
 
