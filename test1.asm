@@ -2,6 +2,16 @@
 org 0
 
 _start:
+; test implied SS register
+	mov	[si],ax
+	mov	[di],bx
+	mov	[bp],dx
+	mov	[bx],si
+; test explicit segment override
+	mov	[cs:si],ax
+	mov	[ds:di],bx
+	mov	[es:bp],dx
+	mov	[ss:bx],si
 
 ; 486 decoder crash test
 	db	0xFF,0xE5,0x00,0x00

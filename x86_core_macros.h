@@ -154,6 +154,7 @@ static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86
 			if (mrm.f.rm == 5) {
 				a->memregs = 0;
 				a->memref_base = fetch_u32();
+				a->segment = (s->segment >= 0 ? s->segment : MX86_SEG_DS);
 				return mrm;
 			}
 		}
@@ -186,10 +187,18 @@ static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86
 
 			if (sib.f.base == 5 && mrm.f.mod == 0)
 				a->memref_base = (uint64_t)((int32_t)fetch_u32());
+
+			if (s->segment >= 0)
+				a->segment = s->segment;
+			else if ((a->memregs >= 1 && a->memreg[0] == MX86_REG_BP) || (a->memregs >= 2 && a->memreg[1] == MX86_REG_BP))
+				a->segment = MX86_SEG_SS;
+			else
+				a->segment = MX86_SEG_DS;
 		}
 		else {
 			a->memregs = 1;
 			a->memreg[0] = mrm.f.rm;
+			a->segment = (s->segment >= 0 ? s->segment : (a->memreg[0] == MX86_REG_BP ? MX86_SEG_SS : MX86_SEG_DS));
 		}
 
 		if (mrm.f.mod == 2)
@@ -206,6 +215,7 @@ static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86
 		if (mrm.f.mod == 0) {
 			if (mrm.f.rm == 6) {
 				a->memregs = 0;
+				a->segment = (s->segment >= 0 ? s->segment : MX86_SEG_DS);
 				a->memref_base = fetch_u16();
 				return mrm;
 			}
@@ -219,6 +229,7 @@ static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86
 		a->memregs = 2 - (mrm.f.rm >> 2);
 		a->memreg[0] = rm_addr16_mapping[mrm.f.rm];
 		a->memreg[1] = MX86_REG_SI + (mrm.f.rm & 1);
+		a->segment = (s->segment >= 0 ? s->segment : (a->memreg[0] == MX86_REG_BP ? MX86_SEG_SS : MX86_SEG_DS));
 	}
 
 	return mrm;
@@ -233,8 +244,56 @@ static inline uint32_t plusr_transform(struct minx86dec_instruction *s,uint32_t 
 	return reg;
 }
 
+static inline void string_instruction(int opcode,struct minx86dec_instruction *ins,unsigned int sz,unsigned int addrsz,int segment) {
+	ins->opcode = opcode;
+	ins->argc = 2; {
+		struct minx86dec_argv *d = &ins->argv[0];
+		struct minx86dec_argv *s = &ins->argv[1];
+		d->size = s->size = sz;
+		d->memregsz = s->memregsz = addrsz;
+		s->segment = segment;
+		d->segment = MX86_SEG_ES;
+		set_mem_ref_reg(s,MX86_REG_ESI);
+		set_mem_ref_reg(d,MX86_REG_EDI);
+	}
+}
+
+static inline unsigned int cyrix6x86_mmx_implied(unsigned int reg) {
+	return reg ^ 1;	/* mm0 -> mm1, mm1 -> mm0, etc */
+}
+
+/* read immediate, 64-bit if 64-bit enabled */
+static inline uint32_t imm64bysize(struct minx86dec_instruction *s) {
+	if (s->data32) return (uint32_t)fetch_u32();
+	return (uint32_t)fetch_u16();
+}
+
+/* read immediate, 32-bit sign-extended if 64-bit enabled */
+static inline uint32_t imm32sbysize(struct minx86dec_instruction *s) {
+	if (s->data32) return (uint32_t)fetch_u32();
+	return (uint32_t)fetch_u16();
+}
+
+/* read immediate, 32-bit zero-extended if 64-bit enabled */
+static inline uint32_t imm32zbysize(struct minx86dec_instruction *s) {
+	if (s->data32) return (uint32_t)fetch_u32();
+	return (uint32_t)fetch_u16();
+}
+
+static inline uint32_t data32_64_signextend(int is64,uint32_t x) {
+	return (uint32_t)x;
+}
+
+static inline uint64_t data32_64_zeroextend(int is64,uint32_t x) {
+	return (uint32_t)x;
+}
+
+/* warning: intended for use in x86_core.h */
+#define string_instruction_typical(opcode) string_instruction(opcode,ins,(first_byte & 1) ? data32wordsize : 1,addr32wordsize,ins->segment >= 0 ? ins->segment : MX86_SEG_DS)
+
+#if 0
 /* FIXME: This is unused? */
-static inline void decode_rm(union x86_mrm mrm,struct minx86dec_argv *a,const int addr32) {
+static inline void __attribute__((deprecated)) decode_rm(union x86_mrm mrm,struct minx86dec_argv *a,const int addr32) {
 	if (mrm.f.mod == 3) {
 		a->regtype = MX86_RT_REG;
 		a->reg = mrm.f.rm;
@@ -315,8 +374,10 @@ static inline void decode_rm(union x86_mrm mrm,struct minx86dec_argv *a,const in
 		a->memreg[1] = MX86_REG_SI + (mrm.f.rm & 1);
 	}
 }
+#endif
 
-static inline void decode_rm_ex(union x86_mrm mrm,struct minx86dec_argv *a,const int addr32,const int typ) {
+#if 0
+static inline void __attribute__((deprecated)) decode_rm_ex(union x86_mrm mrm,struct minx86dec_argv *a,struct minx86dec_instruction *s,const int addr32,const int typ) {
 	if (mrm.f.mod == 3) {
 		a->regtype = typ;
 		a->reg = mrm.f.rm;
@@ -333,6 +394,7 @@ static inline void decode_rm_ex(union x86_mrm mrm,struct minx86dec_argv *a,const
 			if (mrm.f.rm == 5) {
 				a->memregs = 0;
 				a->memref_base = fetch_u32();
+				a->segment = (s->segment >= 0 ? s->segment : MX86_SEG_DS);
 				return;
 			}
 		}
@@ -350,10 +412,18 @@ static inline void decode_rm_ex(union x86_mrm mrm,struct minx86dec_argv *a,const
 				a->memreg[0] = sib.f.index;
 				a->memreg[1] = sib.f.base;
 			}
+
+			if (s->segment >= 0)
+				a->segment = s->segment;
+			else if ((a->memregs >= 1 && a->memreg[0] == MX86_REG_BP) || (a->memregs >= 2 && a->memreg[1] == MX86_REG_BP))
+				a->segment = MX86_SEG_SS;
+			else
+				a->segment = MX86_SEG_DS;
 		}
 		else {
 			a->memregs = 1;
 			a->memreg[0] = mrm.f.rm;
+			a->segment = (s->segment >= 0 ? s->segment : (a->memreg[0] == MX86_REG_BP ? MX86_SEG_SS : MX86_SEG_DS));
 		}
 
 		if (mrm.f.mod == 2)
@@ -380,53 +450,8 @@ static inline void decode_rm_ex(union x86_mrm mrm,struct minx86dec_argv *a,const
 		a->memregs = 2 - (mrm.f.rm >> 2);
 		a->memreg[0] = rm_addr16_mapping[mrm.f.rm];
 		a->memreg[1] = MX86_REG_SI + (mrm.f.rm & 1);
+		a->segment = (s->segment >= 0 ? s->segment : (a->memreg[0] == MX86_REG_BP ? MX86_SEG_SS : MX86_SEG_DS));
 	}
 }
-
-static inline void string_instruction(int opcode,struct minx86dec_instruction *ins,unsigned int sz,unsigned int addrsz,int segment) {
-	ins->opcode = opcode;
-	ins->argc = 2; {
-		struct minx86dec_argv *d = &ins->argv[0];
-		struct minx86dec_argv *s = &ins->argv[1];
-		d->size = s->size = sz;
-		d->memregsz = s->memregsz = addrsz;
-		s->segment = segment;
-		d->segment = MX86_SEG_ES;
-		set_mem_ref_reg(s,MX86_REG_ESI);
-		set_mem_ref_reg(d,MX86_REG_EDI);
-	}
-}
-
-static inline unsigned int cyrix6x86_mmx_implied(unsigned int reg) {
-	return reg ^ 1;	/* mm0 -> mm1, mm1 -> mm0, etc */
-}
-
-/* read immediate, 64-bit if 64-bit enabled */
-static inline uint32_t imm64bysize(struct minx86dec_instruction *s) {
-	if (s->data32) return (uint32_t)fetch_u32();
-	return (uint32_t)fetch_u16();
-}
-
-/* read immediate, 32-bit sign-extended if 64-bit enabled */
-static inline uint32_t imm32sbysize(struct minx86dec_instruction *s) {
-	if (s->data32) return (uint32_t)fetch_u32();
-	return (uint32_t)fetch_u16();
-}
-
-/* read immediate, 32-bit zero-extended if 64-bit enabled */
-static inline uint32_t imm32zbysize(struct minx86dec_instruction *s) {
-	if (s->data32) return (uint32_t)fetch_u32();
-	return (uint32_t)fetch_u16();
-}
-
-static inline uint32_t data32_64_signextend(int is64,uint32_t x) {
-	return (uint32_t)x;
-}
-
-static inline uint64_t data32_64_zeroextend(int is64,uint32_t x) {
-	return (uint32_t)x;
-}
-
-/* warning: intended for use in x86_core.h */
-#define string_instruction_typical(opcode) string_instruction(opcode,ins,(first_byte & 1) ? data32wordsize : 1,addr32wordsize,seg_can_override(MX86_SEG_DS))
+#endif
 

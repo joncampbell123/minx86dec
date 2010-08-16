@@ -273,5 +273,5 @@ static inline void string_instruction(int opcode,struct minx86dec_instruction_x6
 }
 
 /* warning: intended for use in x86_core.h */
-#define string_instruction_typical(opcode) string_instruction(opcode,ins,(first_byte & 1) ? datawordsize : 1,addrwordsize,seg_can_override(MX86_SEG_DS))
+#define string_instruction_typical(opcode) string_instruction(opcode,ins,(first_byte & 1) ? datawordsize : 1,addrwordsize,ins->segment >= 0 ? ins->segment : MX86_SEG_DS)
 

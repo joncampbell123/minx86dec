@@ -606,3 +606,63 @@ _start:
 	mov	bp,[si]
 	mov	sp,[si]
 
+; XCHG <8-bit>
+	lock	xchg	al,al
+	lock	xchg	al,bl
+	lock	xchg	al,cl
+	lock	xchg	al,dl
+	lock	xchg	al,ah
+	lock	xchg	al,bh
+	lock	xchg	al,ch
+	lock	xchg	al,dh
+; XCHG ax,<16-bit>
+	lock	xchg	ax,ax
+	lock	xchg	ax,bx
+	lock	xchg	ax,cx
+	lock	xchg	ax,dx
+	lock	xchg	ax,si
+	lock	xchg	ax,di
+	lock	xchg	ax,sp
+	lock	xchg	ax,bp
+
+	mov	[es:si],ax
+	mov	[es:si],bx
+	mov	[es:si],cx
+	mov	[es:si],dx
+	mov	[es:si],si
+	mov	[es:si],di
+	mov	[es:si],bp
+	mov	[es:si],sp
+
+	mov	[es:esi],ax
+	mov	[es:esi],bx
+	mov	[es:esi],cx
+	mov	[es:esi],dx
+	mov	[es:esi],si
+	mov	[es:esi],di
+	mov	[es:esi],bp
+	mov	[es:esi],sp
+
+	mov	[es:esi],eax
+	mov	[es:esi],ebx
+	mov	[es:esi],ecx
+	mov	[es:esi],edx
+	mov	[es:esi],esi
+	mov	[es:esi],edi
+	mov	[es:esi],ebp
+	mov	[es:esi],esp
+
+	mov	[0x1234],al
+	mov	[0x1234],ax
+	mov	[0x1234],eax
+	mov	[dword 0x12345678],al
+	mov	[dword 0x12345678],ax
+	mov	[dword 0x12345678],eax
+
+	mov	al,[0x1234]
+	mov	ax,[0x1234]
+	mov	eax,[0x1234]
+	mov	al,[dword 0x12345678]
+	mov	ax,[dword 0x12345678]
+	mov	eax,[dword 0x12345678]
+

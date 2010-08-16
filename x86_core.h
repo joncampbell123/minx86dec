@@ -24,7 +24,6 @@
 #define data32wordsize (isdata32 ? 4 : 2)
 #define addr32wordsize (isaddr32 ? 4 : 2)
 #define data64wordsize (isdata64 ? 8 : data32wordsize)
-#define seg_can_override(x) (ins->segment >= 0 ? ins->segment : (x))
 
 #ifdef x64_mode
 #  define native_int_t		uint64_t
@@ -237,7 +236,7 @@
 
 ins->fwait = 0; ins->lock = 0; ins->argc = 0;
 ins->argv[0].memregs = ins->argv[1].memregs = ins->argv[2].memregs = ins->argv[3].memregs = ins->argv[4].memregs = 0;
-ins->argv[0].segment = ins->argv[1].segment = ins->argv[2].segment = ins->argv[3].segment = ins->argv[4].segment = MX86_SEG_DS;
+//ins->argv[0].segment = ins->argv[1].segment = ins->argv[2].segment = ins->argv[3].segment = ins->argv[4].segment = MX86_SEG_DS;
 #if defined(vex_level)
 ins->vex.raw = 0;
 #endif
@@ -254,7 +253,7 @@ decode_next:
 		COVER_2(0x14):	/* ADC */	COVER_2(0x1C):	/* SBB */
 		COVER_2(0x24):	/* AND */	COVER_2(0x2C):	/* SUB */
 		COVER_2(0x34):	/* XOR */	COVER_2(0x3C):	/* CMP */ {
-			ins->opcode = MXOP_ADD+(first_byte>>3); ins->argc = 2;
+			ins->opcode = MXOP_ADD+(first_byte>>3); ins->argc = 2; /* NO MEM REF */
 			ARGV *imm=&ins->argv[1],*reg=&ins->argv[0]; imm->size = reg->size = (first_byte&1)?datawordsize:1;
 			set_immediate(imm,(first_byte&1)?imm32sbysize(ins):fetch_u8()); set_register(reg,MX86_REG_AX);
 		} break;
@@ -267,7 +266,6 @@ decode_next:
 			ARGV *rm=&ins->argv[which],*reg=&ins->argv[which^1];rm->size=reg->size=(first_byte&1)?datawordsize:1;
 			INS_MRM mrm = decode_rm_(rm,ins,reg->size,PLUSR_TRANSFORM);
 			set_register(reg,plusr_transform(ins,reg->size,mrm.f.reg));
-			rm->segment = seg_can_override(MX86_SEG_DS);
 		} break;
 #ifndef x64_mode /* not valid in 64-bit mode */
 # if core_level == 0
@@ -554,6 +552,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			ins->opcode = MXOP_MOV; ins->argc = 2; const int which = (first_byte>>1)&1;
 			ARGV *areg=&ins->argv[which],*mref=&ins->argv[which^1]; mref->memregsz=addrwordsize;
 			areg->size=mref->size=(first_byte&1)?datawordsize:1; set_register(areg,MX86_REG_AX);
+			mref->segment = (ins->segment >= 0 ? ins->segment : MX86_SEG_DS);
 #ifdef x64_mode
 			set_mem_ref_imm(mref,(uint64_t)((int32_t)fetch_u32()));
 #else
@@ -570,7 +569,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 		COVER_4(0xAA): COVER_2(0xAE): {
 			ins->opcode=MXOP_STOS+((first_byte-0xAA)>>1); ins->argc=1;
 			ARGV *r=&ins->argv[0]; r->size=(first_byte&1)?datawordsize:1; r->regtype=MX86_RT_NONE;
-			r->segment = first_byte & 2 ? MX86_SEG_ES : seg_can_override(MX86_SEG_DS);
+			r->segment = first_byte & 2 ? MX86_SEG_ES : (ins->segment >= 0 ? ins->segment : MX86_SEG_DS);
 			r->scalar = 0,r->memregs = 1,r->memref_base = 0,r->memregsz = addrwordsize;
 			r->memreg[0] = (first_byte & 2) ? MX86_REG_EDI : MX86_REG_ESI;
 		} break;

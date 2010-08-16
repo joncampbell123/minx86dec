@@ -22,6 +22,39 @@ static inline minx86_write_ptr_t minx86enc_32_overrides_far(struct minx86dec_arg
 	return o;
 }
 
+minx86_write_ptr_t minx86enc_seg_overrides(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o) {
+	int need_ds = 0,i;
+
+	if (a->memregs != 0) {
+		/* if any reference is made to EBP/ESP then assume you need DS to encode DS ref */
+		for (i=0;i < a->memregs;i++) {
+			if (a->memreg[i] == MX86_REG_SP || a->memreg[i] == MX86_REG_BP)
+				need_ds = 1;
+		}
+	}
+
+	if (a->segment == MX86_SEG_DS) {
+		if (need_ds) *o++ = 0x3E;	/* DS: */
+	}
+	else if (a->segment == MX86_SEG_SS) {
+		if (!need_ds) *o++ = 0x36;	/* SS: */
+	}
+	else if (a->segment == MX86_SEG_ES) {
+		*o++ = 0x26;
+	}
+	else if (a->segment == MX86_SEG_CS) {
+		*o++ = 0x2E;
+	}
+	else if (a->segment == MX86_SEG_FS) {
+		*o++ = 0x64;
+	}
+	else if (a->segment == MX86_SEG_GS) {
+		*o++ = 0x65;
+	}
+
+	return o;
+}
+
 minx86_write_ptr_t minx86enc_encode_memreg_far(struct minx86dec_argv *a,minx86_write_ptr_t o,unsigned int regval) {
 	int mod = 0,sib = -1,memref = 0;
 
@@ -297,6 +330,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			unsigned char word = (a->size >= 2) ? 1 : 0;
 			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
 			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; }
+			if (ins->lock) *o++ = 0xF0;
 			o = minx86enc_32_overrides(a,est,o,word);
 
 			if (a->regtype == MX86_RT_REG) {
@@ -339,6 +373,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 			}
 			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_IMM) {
+				o = minx86enc_seg_overrides(a,est,o);
 				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0xC6 + word; o = minx86enc_encode_memreg(a,o,0);
 				if (word) {
@@ -355,6 +390,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			}
 			else if (a->regtype == MX86_RT_NONE && a->memregs == 0 && b->regtype == MX86_RT_REG && b->reg == MX86_REG_AX) {
 				/* aka: MOV [memaddr],A */
+				o = minx86enc_seg_overrides(a,est,o);
 				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0xA2 + word;
 				if (a->memregsz == 4) {
@@ -366,6 +402,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			}
 			else if (b->regtype == MX86_RT_NONE && b->memregs == 0 && a->regtype == MX86_RT_REG && a->reg == MX86_REG_AX) {
 				/* aka: MOV A,[memaddr] */
+				o = minx86enc_seg_overrides(b,est,o);
 				o = minx86enc_32_overrides(b,est,o,word);
 				*o++ = 0xA0 + word;
 				if (b->memregsz == 4) {
@@ -376,10 +413,12 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 			}
 			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o);
 				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0x88 + word; o = minx86enc_encode_memreg(a,o,b->reg);
 			}
 			else if (b->regtype == MX86_RT_NONE && a->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(b,est,o);
 				o = minx86enc_32_overrides(b,est,o,word);
 				*o++ = 0x8A + word; o = minx86enc_encode_memreg(b,o,a->reg);
 			}
