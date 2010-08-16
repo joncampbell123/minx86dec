@@ -1621,6 +1621,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			case 0x20: { /* ADD4S. conflicts with 386 instruction mov reg,CRx */
 				ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->segment = MX86_SEG_ES;
 				d->size = s->size = 2; d->memregsz = s->memregsz = 2; ins->opcode = MXOP_ADD4S; ins->argc = 2;
+				s->segment = ins->segment >= 0 ? ins->segment : MX86_SEG_DS;
 				set_mem_ref_reg(s,MX86_REG_SI); set_mem_ref_reg(d,MX86_REG_DI);
 			} break;
 # endif
@@ -1628,6 +1629,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			case 0x22: { /* SUB4S */
 				ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->segment = MX86_SEG_ES;
 				d->size = s->size = 2; d->memregsz = s->memregsz = 2; ins->opcode = MXOP_SUB4S; ins->argc = 2;
+				s->segment = ins->segment >= 0 ? ins->segment : MX86_SEG_DS;
 				set_mem_ref_reg(s,MX86_REG_SI); set_mem_ref_reg(d,MX86_REG_DI);
 			} break;
 # endif
@@ -1644,6 +1646,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			case 0x26: { /* CMP4S */
 				ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->segment = MX86_SEG_ES;
 				d->size = s->size = 2; d->memregsz = s->memregsz = 2; ins->opcode = MXOP_CMP4S; ins->argc = 2;
+				s->segment = first_byte & 2 ? (ins->segment >= 0 ? ins->segment : MX86_SEG_DS) : MX86_SEG_ES;
 				set_mem_ref_reg(s,MX86_REG_SI); set_mem_ref_reg(d,MX86_REG_DI);
 			} break;
 # endif
@@ -1744,6 +1747,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					unsigned char reg = (*cip >> 3) & 7,rm = (*cip & 7); cip++;
 					ARGV *s = &ins->argv[2],*bit_start_pos = &ins->argv[0],*bit_length = &ins->argv[1];
 					s->size = s->memregsz = 2; set_mem_ref_reg(s,MX86_REG_SI); ins->argc = 3;
+					s->segment = ins->segment >= 0 ? ins->segment : MX86_SEG_DS;
 					ins->opcode=(second_byte&2)?MXOP_EXT:MXOP_INS;bit_start_pos->size=bit_length->size=1;
 					bit_start_pos->memregsz = bit_length->memregsz = 1; set_register(bit_start_pos,rm);
 					if (second_byte & 8) set_immediate(bit_length,fetch_u8());
