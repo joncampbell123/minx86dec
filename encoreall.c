@@ -442,30 +442,23 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			}
 			/* control regs: apparently there is no valid encoding for mov cr0,r/m or such */
 			else if (a->regtype == MX86_RT_CR && b->regtype == MX86_RT_REG) {
-				/* 0x66 not needed in 16-bit mode, EAX is always the target */
 				*o++ = 0x0F; *o++ = 0x22; *o++ = (3 << 6) | (a->reg << 3) | b->reg;
 			}
 			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_CR) {
-				/* 0x66 not needed in 16-bit mode, EAX is always the target */
 				*o++ = 0x0F; *o++ = 0x20; *o++ = (3 << 6) | (b->reg << 3) | a->reg;
 			}
 			else if (a->regtype == MX86_RT_DR && b->regtype == MX86_RT_REG) {
-				/* 0x66 not needed in 16-bit mode, EAX is always the target */
 				*o++ = 0x0F; *o++ = 0x23; *o++ = (3 << 6) | (a->reg << 3) | b->reg;
 			}
 			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_DR) {
-				/* 0x66 not needed in 16-bit mode, EAX is always the target */
 				*o++ = 0x0F; *o++ = 0x21; *o++ = (3 << 6) | (b->reg << 3) | a->reg;
 			}
 			else if (a->regtype == MX86_RT_TR && b->regtype == MX86_RT_REG) {
-				/* 0x66 not needed in 16-bit mode, EAX is always the target */
 				*o++ = 0x0F; *o++ = 0x26; *o++ = (3 << 6) | (a->reg << 3) | b->reg;
 			}
 			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_TR) {
-				/* 0x66 not needed in 16-bit mode, EAX is always the target */
 				*o++ = 0x0F; *o++ = 0x24; *o++ = (3 << 6) | (b->reg << 3) | a->reg;
 			}
-
 		} break;
 	}
 
