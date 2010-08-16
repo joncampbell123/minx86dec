@@ -771,4 +771,55 @@ _start:
 	pop	edi
 	pop	ebp
 	pop	esp
+; push/pop mem word
+	push	word [si]
+	push	word [di]
+	push	word [bx]
+	push	word [bp]
+	push	word [bx+si]
+	push	word [bx+di]
+	push	word [bp+si]
+	push	word [bp+di]
+	pop	word [si]
+	pop	word [di]
+	pop	word [bx]
+;	pop	word [bp]		; FIXME: this doesn't decode properly
+	pop	word [bx+si]
+	pop	word [bx+di]
+	pop	word [bp+si]
+	pop	word [bp+di]
+; push/pop mem word
+	push	dword [si]
+	push	dword [di]
+	push	dword [bx]
+	push	dword [bp]
+	push	dword [bx+si]
+	push	dword [bx+di]
+	push	dword [bp+si]
+	push	dword [bp+di]
+	pop	dword [si]
+	pop	dword [di]
+	pop	dword [bx]
+;	pop	dword [bp]		; FIXME: this doesn't decode properly
+	pop	dword [bx+si]
+	pop	dword [bx+di]
+	pop	dword [bp+si]
+	pop	dword [bp+di]
+; push/pop mem word
+	push	word [eax]
+	push	word [ebx]
+	push	word [ecx]
+	push	word [edx]
+	push	word [esi]
+	push	word [edi]
+	push	word [ebp]
+	push	word [esp]
+	pop	word [eax]
+	pop	word [ebx]
+	pop	word [ecx]
+	pop	word [edx]
+	pop	word [esi]
+	pop	word [edi]
+;	pop	word [ebp]		; FIXME: this doesn't decode properly
+	pop	word [esp]
 

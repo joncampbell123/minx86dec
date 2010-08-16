@@ -467,6 +467,11 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0x50+a->reg;
 			}
+			else if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0xFF; o = minx86enc_encode_memreg(a,o,6);
+			}
 		} break;
 		case MXOP_POP: { /*====================POP=====================*/
 			struct minx86dec_argv *a=&ins->argv[0];
@@ -474,6 +479,11 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			if (a->regtype == MX86_RT_REG) {
 				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0x58+a->reg;
+			}
+			else if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x8F; o = minx86enc_encode_memreg(a,o,0);
 			}
 		} break;
 	}
