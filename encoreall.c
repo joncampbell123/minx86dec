@@ -472,6 +472,21 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0xFF; o = minx86enc_encode_memreg(a,o,6);
 			}
+			else if (a->regtype == MX86_RT_IMM) {
+				if (a->value & 0xFFFF0000UL) { /* need 32-bit encoding */
+					if (!est->data32) *o++ = 0x66;
+					*o++ = 0x68;
+					*((uint32_t*)o) = (uint32_t)(a->value); o += 4;
+				}
+				else if (a->value & 0xFFFFFF00UL) { /* need 16-bit encoding */
+					if (est->data32) *o++ = 0x66;
+					*o++ = 0x68;
+					*((uint16_t*)o) = (uint16_t)(a->value); o += 2;
+				}
+				else {
+					*o++ = 0x6A; *o++ = (uint8_t)(a->value);
+				}
+			}
 		} break;
 		case MXOP_POP: { /*====================POP=====================*/
 			struct minx86dec_argv *a=&ins->argv[0];

@@ -839,4 +839,23 @@ _start:
 	pop	dword [edi]
 ;	pop	dword [ebp]		; FIXME: this doesn't decode properly
 	pop	dword [esp]
+; push imm (8-bit)
+	push	byte 1
+	push	byte 2
+	push	byte 3
+	push	byte 4
+	push	byte -1
+	push	byte -2
+	push	byte -3
+	push	byte -4
+; push imm (16-bit)
+	push	word 1111
+	push	word 2222
+	push	word 3333
+	push	word 4444
+; push imm (32-bit)
+	push	dword 11111111
+	push	dword 22222222
+	push	dword 33333333
+	push	dword 44444444
 
