@@ -190,7 +190,8 @@ static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86
 
 			if (s->segment >= 0)
 				a->segment = s->segment;
-			else if ((a->memregs >= 1 && a->memreg[0] == MX86_REG_BP) || (a->memregs >= 2 && a->memreg[1] == MX86_REG_BP))
+			else if ((a->memregs >= 1 && (a->memreg[0] == MX86_REG_BP || a->memreg[0] == MX86_REG_SP)) ||
+				(a->memregs >= 2 && (a->memreg[1] == MX86_REG_BP || a->memreg[1] == MX86_REG_SP)))
 				a->segment = MX86_SEG_SS;
 			else
 				a->segment = MX86_SEG_DS;
@@ -198,7 +199,8 @@ static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86
 		else {
 			a->memregs = 1;
 			a->memreg[0] = mrm.f.rm;
-			a->segment = (s->segment >= 0 ? s->segment : (a->memreg[0] == MX86_REG_BP ? MX86_SEG_SS : MX86_SEG_DS));
+			a->segment = (s->segment >= 0 ? s->segment :
+				((a->memreg[0] == MX86_REG_BP || a->memreg[0] == MX86_REG_SP) ? MX86_SEG_SS : MX86_SEG_DS));
 		}
 
 		if (mrm.f.mod == 2)
@@ -229,7 +231,8 @@ static inline union x86_mrm decode_rm_x86(struct minx86dec_argv *a,struct minx86
 		a->memregs = 2 - (mrm.f.rm >> 2);
 		a->memreg[0] = rm_addr16_mapping[mrm.f.rm];
 		a->memreg[1] = MX86_REG_SI + (mrm.f.rm & 1);
-		a->segment = (s->segment >= 0 ? s->segment : (a->memreg[0] == MX86_REG_BP ? MX86_SEG_SS : MX86_SEG_DS));
+		a->segment = (s->segment >= 0 ? s->segment :
+			((a->memreg[0] == MX86_REG_BP || a->memreg[0] == MX86_REG_SP) ? MX86_SEG_SS : MX86_SEG_DS));
 	}
 
 	return mrm;
