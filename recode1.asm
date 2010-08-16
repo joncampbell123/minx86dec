@@ -713,4 +713,28 @@ _start:
 	mov	cs,[eax*4+ebx+4]
 	mov	[es:edi*8+ecx-18],ds
 	mov	ds,[es:edi*8+ecx-18]
+; ... control registers <reg-reg>
+	mov	eax,cr0
+	mov	cr0,eax
+	mov	ebx,cr0
+	mov	cr0,ebx
+	mov	eax,cr1
+	mov	cr1,eax
+	mov	ebx,cr2
+	mov	cr2,ebx
+	mov	eax,dr0
+	mov	dr0,eax
+	mov	ebx,dr1
+	mov	dr1,ebx
+	mov	eax,dr2
+	mov	dr2,eax
+	mov	ebx,dr3
+	mov	dr3,ebx
+	mov	tr0,eax
+	mov	ebx,tr1
+	mov	tr1,ebx
+	mov	eax,tr2
+	mov	tr2,eax
+	mov	ebx,tr3
+	mov	tr3,ebx
 
