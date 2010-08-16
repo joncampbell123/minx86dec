@@ -675,4 +675,42 @@ _start:
 	mov	ss,ax
 	mov	ax,es
 	mov	es,ax
+; ... mem refs
+	mov	[si],cs
+	mov	cs,[si]
+	mov	[di],ds
+	mov	ds,[di]
+	mov	[bx],es
+	mov	es,[bx]
+	mov	[bp],ss
+	mov	ss,[bp]
+	mov	[bp+di],ds
+	mov	ds,[bp+di]
+; ... mem refs and overrides
+	mov	[si],cs		; the recoder will NOT generate the DS: prefix because it's not needed
+	mov	cs,[si]
+	mov	[es:di],ds
+	mov	ds,[es:di]
+	mov	[ss:bx],es
+	mov	es,[ss:bx]
+	mov	[cs:bp],ss
+	mov	ss,[cs:bp]
+	mov	[ds:bp+di],ds
+	mov	ds,[ds:bp+di]
+; ... mem refs and overrides
+	mov	[esi],cs		; the recoder will NOT generate the DS: prefix because it's not needed
+	mov	cs,[esi]
+	mov	[es:edi],ds
+	mov	ds,[es:edi]
+	mov	[ss:ebx],es
+	mov	es,[ss:ebx]
+	mov	[cs:ebp],ss
+	mov	ss,[cs:ebp]
+	mov	[ds:esp],ds
+	mov	ds,[ds:esp]
+; ... mem refs and overrides
+	mov	[eax*4+ebx+4],cs		; the recoder will NOT generate the DS: prefix because it's not needed
+	mov	cs,[eax*4+ebx+4]
+	mov	[es:edi*8+ecx-18],ds
+	mov	ds,[es:edi*8+ecx-18]
 

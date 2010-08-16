@@ -426,9 +426,19 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				o = minx86enc_32_overrides(b,est,o,1);
 				*o++ = 0x8E; *o++ = (3 << 6) | (a->reg << 3) | b->reg;
 			}
+			else if (a->regtype == MX86_RT_SREG && b->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(b,est,o);
+				o = minx86enc_32_overrides(b,est,o,1);
+				*o++ = 0x8E; o = minx86enc_encode_memreg(b,o,a->reg);
+			}
 			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_SREG) {
 				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0x8C; *o++ = (3 << 6) | (b->reg << 3) | a->reg;
+			}
+			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_SREG) {
+				o = minx86enc_seg_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x8C; o = minx86enc_encode_memreg(a,o,b->reg);
 			}
 		} break;
 	}
