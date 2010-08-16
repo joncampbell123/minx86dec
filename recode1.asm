@@ -666,3 +666,13 @@ _start:
 	mov	ax,[dword 0x12345678]
 	mov	eax,[dword 0x12345678]
 
+; MOV with segment registers
+	mov	ax,cs
+	mov	cs,ax
+	mov	ax,ds
+	mov	ds,ax
+	mov	ax,ss
+	mov	ss,ax
+	mov	ax,es
+	mov	es,ax
+

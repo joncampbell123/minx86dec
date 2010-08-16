@@ -11,13 +11,13 @@
  * if 16-bit mode and the arg provided is 32 bits wide, OR
  * if 32-bit mode and the arg provided is 16 bits wide */
 static inline minx86_write_ptr_t minx86enc_32_overrides(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o,unsigned int wordsize) {
-	if ((a->memregsz>>2)^(est->addr32?1:0)) *o++ = 0x67;
+	if (a->regtype == MX86_RT_NONE && (a->memregsz>>2)^(est->addr32?1:0)) *o++ = 0x67;
 	if (wordsize && ((a->size>>2)^(est->data32?1:0))) *o++ = 0x66;
 	return o;
 }
 
 static inline minx86_write_ptr_t minx86enc_32_overrides_far(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o,unsigned int wordsize) {
-	if ((a->memregsz>>2)^(est->addr32?1:0)) *o++ = 0x67;
+	if (a->regtype == MX86_RT_NONE && (a->memregsz>>2)^(est->addr32?1:0)) *o++ = 0x67;
 	if (wordsize && (((a->size==6)?1:0)^(est->data32?1:0))) *o++ = 0x66;
 	return o;
 }
@@ -421,6 +421,14 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				o = minx86enc_seg_overrides(b,est,o);
 				o = minx86enc_32_overrides(b,est,o,word);
 				*o++ = 0x8A + word; o = minx86enc_encode_memreg(b,o,a->reg);
+			}
+			else if (a->regtype == MX86_RT_SREG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(b,est,o,1);
+				*o++ = 0x8E; *o++ = (3 << 6) | (a->reg << 3) | b->reg;
+			}
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_SREG) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x8C; *o++ = (3 << 6) | (b->reg << 3) | a->reg;
 			}
 		} break;
 	}
