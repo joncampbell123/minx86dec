@@ -10,7 +10,7 @@ enum {
 	MXOP_PUSH,		/* PUSH */
 /* 0x04-0x07 */
 	MXOP_POP,		/* POP */
-	MXOP_MOV,		/* MOV */
+	MXOP_MOV,		/* MOV */		/* [de] */
 	MXOP_ADD,		/* ADD */
 	MXOP_OR,		/* OR */
 /* 0x08-0x0B */
