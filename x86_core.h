@@ -1606,7 +1606,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			} break;
 # endif
 # if core_level >= 3
-			COVER_4(0x20): { /* mov control/debug reg (TODO: what exactly should the mod bits be?) */
+			COVER_4(0x20): { /* mov control/debug reg (mod == 3, apparently mod != 3 is illegal) */
 				const int which = (second_byte >> 1) & 1; ins->opcode = MXOP_MOV; ins->argc = 2;
 				ARGV *ctrl = &ins->argv[which^1],*reg = &ins->argv[which]; unsigned char imr = fetch_u8();
 				unsigned int ridx = (imr>>3)&7;
@@ -1634,7 +1634,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			} break;
 # endif
 # if core_level >= 3 && !defined(x64_mode)
-			case 0x24: case 0x26: { /* TODO: what about the mod bits? */
+			case 0x24: case 0x26: { /* (mod == 3, apparently mod != 3 is illegal) */
 				const int which = (second_byte >> 1) & 1;
 				ins->opcode = MXOP_MOV; ins->argc = 2;
 				ARGV *ctrl = &ins->argv[which^1],*reg = &ins->argv[which];
