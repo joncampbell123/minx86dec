@@ -3,6 +3,7 @@
 		mov	ax,cs
 		mov	ds,ax
 		mov	es,ax
+		mov	ss,ax
 
 ; Open file for reporting==================================
 		mov	ah,0x3C		; create file
@@ -13,9 +14,13 @@
 		mov	ax,4C01h
 		int	21h
 open_ok:	mov	[reportfd],ax
-; Announce begin of test===================================
+
+; Announce the test========================================
 		mov	si,s_begintest
 		call	puts
+
+; Test=====================================================
+		call	test8086_imp_seg
 
 ; EXIT=====================================================
 exit:		mov	bx,[reportfd]
@@ -66,8 +71,13 @@ putsl:		lodsb
 		pop	si
 		ret
 
+%include	"8086/imp_seg.inc"		; test8086_imp_seg
+
 ; data=====================================================
 reportfile	db	'test8086.log',0
 reportfd	dw	0
 s_begintest	db	'Test8086: 8086 emulation compat tests',13,10,0
+s_pass		db	'PASS',0
+s_fail		db	'FAIL',0
+s_crlf		db	13,10,0
 
