@@ -27,7 +27,7 @@ void minx86dec_decode8086(struct minx86dec_state *state,struct minx86dec_instruc
 #include "x86_core.h"
 	}
 
-	/* it is said the 8088 simply treats invalid opcodes as two-byte NO-OP */
+	/* the 8088 simply treats invalid opcodes as two-byte NO-OPs */
 	if (ins->opcode == MXOP_UD_NOP) {
 		ins->argc = 0;
 		ins->end = state->read_ip = (ins->start + 2);
