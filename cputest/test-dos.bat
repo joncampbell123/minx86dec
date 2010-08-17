@@ -1,2 +1,3 @@
 @echo off
-echo hello dork
+test8086.com
+
