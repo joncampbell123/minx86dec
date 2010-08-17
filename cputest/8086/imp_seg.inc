@@ -16,7 +16,8 @@ test8086_imp_seg:
 ; This is kind of superfluous since if that were not the case
 ; this program and DOS would have crashed a bit far back, but
 ; I still want to make sure:
-def_ds:	push	cs
+test8086_imp_seg_ds:
+	push	cs
 	pop	ds
 	mov	si,s_test8086_imp_seg
 	call	puts
@@ -40,7 +41,8 @@ def_ds:	push	cs
 ;
 ; This is the reason interrupts were cleared above: we're
 ; going to mess with the stack pointer and register!
-def_ss:	push	cs
+test8086_imp_seg_ss:
+	push	cs
 	pop	ds
 	mov	si,s_test8086_imp_seg
 	call	puts
@@ -103,8 +105,4 @@ s_test8086_imp_seg_stack_bp:
 	db		'[BP] implies SS........',0
 s_test8086_imp_seg:
 	db		'8086 implied segment: ',0
-s_testval:
-	dw		0x1234
-s_sp:
-	dw		0
 
