@@ -25,49 +25,49 @@ test-headers: test-headers.o
 	./$@
 
 decode8086: decode8086.o core8086.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decode8086.o core8086.o string.o
 
 decodenecv20: decodenecv20.o corenecv20.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decodenecv20.o corenecv20.o string.o
 
 decode286: decode286.o core286.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decode286.o core286.o string.o
 
 decode386: decode386.o core386.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decode386.o core386.o string.o
 
 decode486: decode486.o core486.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decode486.o core486.o string.o
 
 decode586: decode586.o core586.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decode586.o core586.o string.o
 	rm -f decode-pentium
 	ln -s decode586 decode-pentium
 
 decode586pro: decode586pro.o core586pro.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decode586pro.o core586pro.o string.o
 	rm -f decode-pentiumpro
 	ln -s decode586pro decode-pentiumpro
 
 decode686: decode686.o core686.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decode686.o core686.o string.o
 	rm -f decode-pentium2
 	ln -s decode686 decode-pentium2
 
 decode6x86_cyrix: decode6x86_cyrix.o core6x86_cyrix.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decode6x86_cyrix.o core6x86_cyrix.o string.o
 
 decodeall: decodeall.o coreall.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decodeall.o coreall.o string.o
 
 recodeall: recodeall.o coreall.o encoreall.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ recodeall.o coreall.o encoreall.o string.o
 
 recodeall32: recodeall32.o coreall.o encoreall.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ recodeall32.o coreall.o encoreall.o string.o
 
 decodeall_x64: decodeall_x64.o coreall_x64.o string.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ decodeall_x64.o coreall_x64.o string.o
 
 .c.o:
 	gcc $(CFLAGS) -c -o $@ $<
