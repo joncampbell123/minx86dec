@@ -408,7 +408,7 @@ decode_next:
 			INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM); set_register(reg,mrm.f.reg);
 		} break;
 		case 0x8F:
-			if (*cip >= 0x08) {
+			if (*cip >= 0xC0) {
 #  if defined(vex_level) || defined(everything)
 				union minx86dec_vex v; v.raw = fetch_u16() ^ 0x78E0; ins->vex = v;
 				unsigned int vector_size = 16 << (v.f.l?1:0); const uint8_t opcode = *cip++;

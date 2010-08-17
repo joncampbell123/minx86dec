@@ -783,7 +783,7 @@ _start:
 	pop	word [si]
 	pop	word [di]
 	pop	word [bx]
-;	pop	word [bp]		; FIXME: this doesn't decode properly
+	pop	word [bp]		; FIXME: this doesn't decode properly
 	pop	word [bx+si]
 	pop	word [bx+di]
 	pop	word [bp+si]
