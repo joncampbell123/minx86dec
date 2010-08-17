@@ -5,4 +5,5 @@ test8086.com: test8086.asm 8086/*.inc
 
 clean:
 	rm -f stdout.txt results.txt *~ *.com *.LOG *.log stderr.txt
+	find -name \*~ -delete
 
