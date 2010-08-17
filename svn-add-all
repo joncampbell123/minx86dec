@@ -1,0 +1,9 @@
+#!/bin/bash
+make clean
+echo Committing the rest
+svn add * */* */*/* */*/*/* */*/*/*/*
+svn commit --message x
+svn update
+#svn revert * */* */*/* */*/*/* */*/*/*/*
+exit 0
+
