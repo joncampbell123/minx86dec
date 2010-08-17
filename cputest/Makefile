@@ -1,5 +1,5 @@
 all:
 
 clean:
-	rm -f stdout.txt results.txt
+	rm -f stdout.txt results.txt *~
 
