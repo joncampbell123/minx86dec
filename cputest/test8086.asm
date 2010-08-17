@@ -41,6 +41,7 @@ puts:		push	si
 		xor	al,al
 		repne	scasb
 		not	cx
+		dec	cx
 ; print it to console
 		push	si
 		push	cx
