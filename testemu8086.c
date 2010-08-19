@@ -158,6 +158,34 @@ void emu8086_state_free(struct emu8086_state *s) {
 	s->prefetch = NULL;
 }
 
+void print_state(struct emu8086_state *c) {
+	fprintf(stderr,"[st] %04X:%04X A=%04X B=%04X C=%04X D=%04X S=%04X D=%04X BP=%04X\n",
+		c->sreg[MX86_SEG_CS].value,
+		c->ip.value,
+		c->reg.n.ax,
+		c->reg.n.bx,
+		c->reg.n.cx,
+		c->reg.n.dx,
+		c->reg.n.si,
+		c->reg.n.di,
+		c->reg.n.bp);
+	fprintf(stderr,"     FL%04X %s %s %s %s %s %s %s %s %s DS=%04X ES=%04X SS:SP=%04X:%04X\n",
+		c->flags,
+		(c->flags & (1<<11)) ? "OF" : "  ",
+		(c->flags & (1<<10)) ? "DF" : "  ",
+		(c->flags &  (1<<9)) ? "IF" : "  ",
+		(c->flags &  (1<<8)) ? "TF" : "  ",
+		(c->flags &  (1<<7)) ? "SF" : "  ",
+		(c->flags &  (1<<6)) ? "ZF" : "  ",
+		(c->flags &  (1<<4)) ? "AF" : "  ",
+		(c->flags &  (1<<2)) ? "PF" : "  ",
+		(c->flags &  (1<<0)) ? "CF" : "  ",
+		c->sreg[MX86_SEG_DS].value,
+		c->sreg[MX86_SEG_ES].value,
+		c->sreg[MX86_SEG_SS].value,
+		c->reg.n.sp);
+}
+
 void print_ins(struct minx86dec_instruction *i) {
 	minx86_read_ptr_t iptr;
 	char arg_c[101];
@@ -362,7 +390,7 @@ int main(int argc,char **argv) {
 		s->reg.n.ax = 0;	s->reg.n.bx = 0;
 		s->reg.n.cx = 0;	s->reg.n.dx = 0;
 		s->reg.n.si = 0;	s->reg.n.di = 0;
-		s->reg.n.bp = 0;	s->reg.n.sp = 0;
+		s->reg.n.bp = 0;	s->reg.n.sp = 0xFFF8;
 		emu8086_segment_set(&(s->sreg[MX86_SEG_CS]),psp_seg);
 		emu8086_segment_set(&(s->sreg[MX86_SEG_DS]),psp_seg);
 		emu8086_segment_set(&(s->sreg[MX86_SEG_ES]),psp_seg);
@@ -381,7 +409,10 @@ int main(int argc,char **argv) {
 
 			emu8086_state_event_print(&cpu,&event);
 #ifdef DEBUG
-			if (event.decoded_ins) print_ins(&cpu.last_ins);
+			if (event.decoded_ins) {
+				print_ins(&cpu.last_ins);
+				print_state(&cpu);
+			}
 #endif
 
 			my_event_handler(&cpu,&event);
@@ -394,29 +425,6 @@ int main(int argc,char **argv) {
 	/* done */
 	emu8086_state_free(&cpu);
 
-#if 0
-	minx86dec_init_state(&st);
-	minx86dec_set_buffer(&st,memory,sizeof(memory));
-#endif
-#if 0
-	while (st.read_ip < st.fence) {
-		struct minx86dec_instruction i;
-		st.ip_value = (uint32_t)(st.read_ip - buffer);
-		minx86dec_decode8086(&st,&i);
-		printf("0x%04X  ",(unsigned int)(i.start - buffer));
-		for (c=0,iptr=i.start;iptr != i.end;c++)
-			printf("%02X ",*iptr++);
-		for (;c < 8;c++)
-			printf("   ");
-		printf("%-8s ",opcode_string[i.opcode]);
-		for (c=0;c < i.argc;) {
-			minx86dec_regprint(&i.argv[c],arg_c);
-			printf("%s",arg_c);
-			if (++c < i.argc) printf(",");
-		}
-		printf("\n");
-	}
-#endif
 	return 0;
 }
 
