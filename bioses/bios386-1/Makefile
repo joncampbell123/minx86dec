@@ -8,8 +8,8 @@ rombios.bin: main.bin cpuentry.bin
 
 main.bin: rombios.o
 	objcopy -j .text -O binary $< $@.tmp
-	cat $@.tmp /dev/zero | dd count=1 bs=$$((0x1FF80)) >$@
-	rm $@.tmp
+	cat $@.tmp /dev/zero | dd count=128 bs=1024 >$@.tmp2; rm $@.tmp
+	dd if=$@.tmp2 of=$@ bs=128 count=1023; rm $@.tmp2
 
 cpuentry.bin: rombios.o
 	objcopy -j .cpuentry --rename-section .cpuentry=.text,alloc,load,readonly,code,contents -O binary $< $@
