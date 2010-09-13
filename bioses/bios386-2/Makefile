@@ -1,6 +1,6 @@
 all: rombios.bin
 
-CFLAGS=-march=i386 -m32 -g0 -O0 -fomit-frame-pointer -nostdinc -nostdlib
+CFLAGS=-march=i386 -m32 -g0 -Os -fomit-frame-pointer -nostdinc -nostdlib
 ASFLAGS=-march=i386 -m32
 
 rombios.o: entry.o entry_c.o
