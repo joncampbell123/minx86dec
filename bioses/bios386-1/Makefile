@@ -8,7 +8,7 @@ rombios.bin: main.bin cpuentry.bin
 
 main.bin: rombios.o
 	objcopy -j .text -O binary $< $@.tmp
-	(cat $@.tmp /dev/zero) | dd of=$@ count=1 bs=$$((0x1FF80)) >$@
+	cat $@.tmp /dev/zero | dd count=1 bs=$$((0x1FF80)) >$@
 	rm $@.tmp
 
 cpuentry.bin: rombios.o
