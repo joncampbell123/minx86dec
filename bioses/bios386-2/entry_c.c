@@ -4,34 +4,37 @@
 #include "bios_ioport.h"
 #include "bios_memio.h"
 
+static inline void call_far(const uint16_t seg,const uint16_t offset) {
+	/* it's not safe to call into other code when the stack pointer is 32-bit wide
+	 * and pointing within our segment. It needs to be within 16-bit range down
+	 * in a memory region. so  we have to switch the stack down first, then call */
+	__asm__ __volatile__(	"pushal\n"
+				"pushfl\n"
+				"cli\n"
+				"addl	$0xF0000,%%esp\n"
+				"xorw	%%ax,%%ax\n"
+				"movw	%%ax,%%ss\n"
+				"lcallw	%0,%1\n"
+				"movw	$0xF000,%%ax\n"
+				"movw	%%ax,%%ss\n"
+				"movw	%%ax,%%ds\n"
+				"xorw	%%ax,%%ax\n"
+				"movw	%%ax,%%es\n"
+				"subl	$0xF0000,%%esp\n"
+				"popfl\n"
+				"popal\n" : : "i" (seg), "i" (offset));
+}
+
 /*=========================BIOS C ENTRY POINT==========================*/
 void __attribute__((noreturn)) _cpu_c_entry() {
-	unsigned int c;
+	call_far(0xC000,0x0003);
 
-	iori_b(0x41);
-	c = ior_b(0x3CF);
+	memw_b(0xB8000,'H');
+	memw_b(0xB8002,'e');
+	memw_b(0xB8004,'l');
+	memw_b(0xB8006,'l');
+	memw_b(0xB8008,'o');
 
-	iowi_b(0x41,0x22);
-	iow_b(0x3CF,0x44);
-
-	iori_w(0x41);
-	c = ior_w(0x3CF);
-
-	iowi_w(0x41,0x2222);
-	iow_w(0x3CF,0x4444);
-
-	iori_l(0x41);
-	c = ior_l(0x3CF);
-
-	iowi_l(0x41,0x22222222);
-	iow_l(0x3CF,0x44444444);
-
-	memw_b(0xB8000,'C');
-	memw_b(0xB8001,0x07);
-	c = memr_b(0xB8000);
-	memw_w(0xB8002,0x1234);
-	c = memr_w(0xB8002);
-	memw_l(0xB8004,0x12345678);
-	c = memr_l(0xB8004);
+	for (;;);
 }
 
