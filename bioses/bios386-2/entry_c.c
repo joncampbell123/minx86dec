@@ -5,9 +5,9 @@
 #include "bios_memio.h"
 
 static inline void call_far(const uint16_t seg,const uint16_t offset) {
-	/* it's not safe to call into other code when the stack pointer is 32-bit wide
-	 * and pointing within our segment. It needs to be within 16-bit range down
-	 * in a memory region. so  we have to switch the stack down first, then call */
+	/* it's not safe to rely on our funky 32-bit stack scheme when we're
+	 * calling other real-mode subroutines. switch the stack pointer around
+	 * and then call the far routine */
 	__asm__ __volatile__(	"pushal\n"
 				"pushfl\n"
 				"cli\n"
@@ -27,14 +27,10 @@ static inline void call_far(const uint16_t seg,const uint16_t offset) {
 
 /*=========================BIOS C ENTRY POINT==========================*/
 void __attribute__((noreturn)) _cpu_c_entry() {
+	/* bring the VGA BIOS online (POST) */
 	call_far(0xC000,0x0003);
 
-	memw_b(0xB8000,'H');
-	memw_b(0xB8002,'e');
-	memw_b(0xB8004,'l');
-	memw_b(0xB8006,'l');
-	memw_b(0xB8008,'o');
-
+	/* hang */
 	for (;;);
 }
 
