@@ -61,7 +61,7 @@ static inline void call_far(const uint16_t seg,const uint16_t offset) {
 	 * calling other real-mode subroutines. switch the stack pointer around
 	 * and then call the far routine */
 	realcall_prepare();
-	__asm__ __volatile__(	"pushal\n"
+	__asm__ __volatile__(	"pushal\n"		/* save regs and flags, the routine may very well trash them all */
 				"pushfl\n"
 				"lcallw	%0,%1\n"
 				"popfl\n"
@@ -70,12 +70,30 @@ static inline void call_far(const uint16_t seg,const uint16_t offset) {
 	realcall_leave();
 }
 
-void __attribute__((noinline)) int10_putc(const char c) {
+void int10_putc(const char c) {
 	realcall_prepare();
+	__asm__ __volatile__(	"xorw	%%bx,%%bx\n"
+				"movb	$0x0E,%%ah\n"
+				"movb	%0,%%al\n"
+				"int	$0x10\n"
+				: /* no outputs */
+				: "g" (c) /* input */
+				: "%eax", "%ebx" /* we trashd these */);
 	realcall_leave();
 }
 
-void __attribute__((noinline)) int10_puts(const char *str) {
+void int10_setmode(unsigned char mode) {
+	realcall_prepare();
+	__asm__ __volatile__(	"xorb	%%ah,%%ah\n"
+				"movb	%0,%%al\n"
+				"int	$0x10\n"
+				: /* no outputs */
+				: "g" (mode) /* input */
+				: "%eax" /* we trashd these */);
+	realcall_leave();
+}
+
+void int10_puts(const char *str) {
 	while (*str != '\0') int10_putc(*str++);
 }
 
@@ -87,6 +105,7 @@ void __attribute__((noreturn)) _cpu_c_entry() {
 	call_far(0xC000,0x0003);
 
 	/* print something on-screen */
+	int10_setmode(3);
 	int10_puts("Hello world\r\n");
 
 	/* hang */
