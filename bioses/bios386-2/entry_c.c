@@ -54,37 +54,21 @@ __asm__ (		".globl _asm_realcall_leave\n"
 				"popfl\n"
 				"popal\n"
 				"add	$2,%sp\n"		/* throw away the original return addr */
-				"movw	-40(%esp),%bx\n"	/* reach back and retrieve caller's return addr */
-				"jmp	*%bx\n"			/* return to caller */
+				"jmpw	-40(%esp)\n"		/* return to caller */
 );
 #define realcall_leave() \
 	__asm__ __volatile__(	"callw	_asm_realcall_leave");
 
-static inline void call_far(const uint16_t seg,const uint16_t offset,struct x86_saved_stackd *stk) {
+/* call a far subroutine.
+ * This is designed for subroutines that don't necessary care what the registers contain.
+ * If the subroutine DOES care, use a different version of this function! */
+static inline void call_far(const uint16_t seg,const uint16_t offset) {
 	/* it's not safe to rely on our funky 32-bit stack scheme when we're
 	 * calling other real-mode subroutines. switch the stack pointer around
 	 * and then call the far routine */
-#if 1
 	realcall_prepare();
 	__asm__ __volatile__(	"lcallw	%0,%1\n" : : "i" (seg), "i" (offset));
 	realcall_leave();
-#else
-	__asm__ __volatile__(	"pushal\n"
-				"pushfl\n"
-				"cli\n"
-				"addl	$0xF0000,%%esp\n"
-				"xorw	%%ax,%%ax\n"
-				"movw	%%ax,%%ss\n"
-				"lcallw	%0,%1\n"
-				"movw	$0xF000,%%ax\n"
-				"movw	%%ax,%%ss\n"
-				"movw	%%ax,%%ds\n"
-				"xorw	%%ax,%%ax\n"
-				"movw	%%ax,%%es\n"
-				"subl	$0xF0000,%%esp\n"
-				"popfl\n"
-				"popal\n" : : "i" (seg), "i" (offset));
-#endif
 }
 
 /*=========================BIOS C ENTRY POINT==========================*/
@@ -92,7 +76,7 @@ void __attribute__((noreturn)) _cpu_c_entry() {
 	struct x86_saved_stackd stk;
 
 	/* bring the VGA BIOS online (POST) */
-	call_far(0xC000,0x0003,&stk);
+	call_far(0xC000,0x0003);
 
 	/* hang */
 	for (;;);
