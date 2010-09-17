@@ -26,35 +26,29 @@ struct x86_saved_stackd {
 /* you must use the corresponding undo function to complete this safely */
 __asm__ (		".globl _asm_realcall_prepare\n"
 			"_asm_realcall_prepare:\n"
-				"pushal\n"
-				"pushfl\n"
-
-				"movw	36(%esp),%bx\n"		/* reach back and save the return address 4 x (1 + 8) = 36 bytes */
-
+				"pushw	%ax\n"
 				"cli\n"				/* we're going to screw with the stack, disable interrupts */
 				"addl	$0xF0000,%esp\n"	/* BIOS stack is relative to 0xF0000, and we set ESP+base to overflow to 0xF0000 */
 				"xorw	%ax,%ax\n"		/* so we add 0xF0000 and zero SS to make the equivalent realmode stack ptr */
 				"movw	%ax,%ss\n"
-
-				"jmp	*%bx\n"			/* return to caller */
+				"popw	%ax\n"
+				"retw\n"
 );
 #define realcall_prepare() \
 	__asm__ __volatile__(	"callw	_asm_realcall_prepare");
 
 __asm__ (		".globl _asm_realcall_leave\n"
 			"_asm_realcall_leave:\n"
+				"pushw	%ax\n"
 				"cli\n"
-				"add	$2,%sp\n"		/* step past return addr */
 				"movw	$0xF000,%ax\n"		/* restore stack pointer, DS, ES, SS */
 				"movw	%ax,%ss\n"
 				"movw	%ax,%ds\n"
 				"xorw	%ax,%ax\n"
 				"movw	%ax,%es\n"
 				"subl	$0xF0000,%esp\n"
-				"popfl\n"
-				"popal\n"
-				"add	$2,%sp\n"		/* throw away the original return addr */
-				"jmpw	-40(%esp)\n"		/* return to caller */
+				"popw	%ax\n"
+				"retw\n"
 );
 #define realcall_leave() \
 	__asm__ __volatile__(	"callw	_asm_realcall_leave");
@@ -67,8 +61,22 @@ static inline void call_far(const uint16_t seg,const uint16_t offset) {
 	 * calling other real-mode subroutines. switch the stack pointer around
 	 * and then call the far routine */
 	realcall_prepare();
-	__asm__ __volatile__(	"lcallw	%0,%1\n" : : "i" (seg), "i" (offset));
+	__asm__ __volatile__(	"pushal\n"
+				"pushfl\n"
+				"lcallw	%0,%1\n"
+				"popfl\n"
+				"popal\n"
+				: : "i" (seg), "i" (offset));
 	realcall_leave();
+}
+
+void __attribute__((noinline)) int10_putc(const char c) {
+	realcall_prepare();
+	realcall_leave();
+}
+
+void __attribute__((noinline)) int10_puts(const char *str) {
+	while (*str != '\0') int10_putc(*str++);
 }
 
 /*=========================BIOS C ENTRY POINT==========================*/
@@ -77,6 +85,9 @@ void __attribute__((noreturn)) _cpu_c_entry() {
 
 	/* bring the VGA BIOS online (POST) */
 	call_far(0xC000,0x0003);
+
+	/* print something on-screen */
+	int10_puts("Hello world\r\n");
 
 	/* hang */
 	for (;;);
