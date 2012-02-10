@@ -1,33 +1,33 @@
 ; x86-64 test assembly language
 bits 64
-	mov	rax,[rsi]
-	mov	[rsi],rax
-	mov	rax,[es:rdi]
-	mov	[es:rdi],rax
-	mov	rax,[rdi]
-	mov	[rdi],rax
+	mov		rax,[rsi]
+	mov		[rsi],rax
+	mov		rax,[es:rdi]
+	mov		[es:rdi],rax
+	mov		rax,[rdi]
+	mov		[rdi],rax
 
-	mov	cr0,rax
-	mov	rax,cr0
-	mov	cr1,rax
-	mov	rax,cr1
-	mov	cr8,rax
-	mov	rax,cr8
-	mov	cr15,rax
-	mov	rax,cr15
+	mov		cr0,rax
+	mov		rax,cr0
+	mov		cr1,rax
+	mov		rax,cr1
+	mov		cr8,rax
+	mov		rax,cr8
+	mov		cr15,rax
+	mov		rax,cr15
 
-	mov	dr0,rax
-	mov	rax,dr0
-	mov	dr1,rax
-	mov	rax,dr1
-	mov	dr8,rax
-	mov	rax,dr8
-	mov	dr11,rax
-	mov	rax,dr11
-	mov	dr15,rax
-	mov	rax,dr15
+	mov		dr0,rax
+	mov		rax,dr0
+	mov		dr1,rax
+	mov		rax,dr1
+	mov		dr8,rax
+	mov		rax,dr8
+	mov		dr11,rax
+	mov		rax,dr11
+	mov		dr15,rax
+	mov		rax,dr15
 
-	mov	[ds:4],rax
+	mov		[ds:4],rax
 
 	push		byte 0x12
 	push		word 0x1234
