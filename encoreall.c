@@ -332,14 +332,16 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_NOP: { /*====================NOP====================*/
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (ins->lock) *o++ = 0xF0;
-			o = minx86enc_seg_overrides(a,est,o);
-			o = minx86enc_32_overrides(a,est,o,1);
 
 			if (a->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0x0F; *o++ = 0x1F;
 				*o++ = (3 << 6) | (0 << 3) | a->reg;
 			}
 			else if (a->regtype == MX86_RT_NONE && a->memregs > 0) {
+				o = minx86enc_seg_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0x0F; *o++ = 0x1F;
 				o = minx86enc_encode_memreg(a,o,0);
 			}
@@ -586,6 +588,20 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0xFE + word; o = minx86enc_encode_memreg(a,o,1);
 			}
+		} break;
+		case MXOP_SYSCALL: {
+			*o++ = 0x0F;
+			*o++ = 0x05;
+		} break;
+		case MXOP_SYSRET: {
+			*o++ = 0x0F;
+			*o++ = 0x07;
+		} break;
+		case MXOP_SALC: {
+			*o++ = 0xD6;
+		} break;
+		case MXOP_ICEBP: {
+			*o++ = 0xF1;
 		} break;
 	}
 
