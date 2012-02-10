@@ -44,6 +44,36 @@ _start:
 	inc	byte [eax+ebx+0x1234]
 	inc	byte [ebx*4+ecx+0x1234]
 
+	dec	al
+	dec	ax
+	dec	eax
+	dec	bl
+	dec	bx
+	dec	ebx
+	dec	byte [si]
+	dec	word [si]
+	dec	dword [si]
+	dec	byte [esi]
+	dec	word [esi]
+	dec	dword [esi]
+	dec	byte [es:si]
+	dec	word [es:si]
+	dec	dword [es:si]
+	dec	byte [es:esi]
+	dec	word [es:esi]
+	dec	dword [es:esi]
+	dec	byte [bx+di]
+	dec	word [bx+di]
+	dec	dword [bx+di]
+	dec	byte [bx+di+0x44]
+	dec	byte [bx+di+0x1234]
+	dec	byte [eax]
+	dec	byte [ecx]
+	dec	byte [ecx+edx]
+	dec	byte [ebx+esi+0x44]
+	dec	byte [eax+ebx+0x1234]
+	dec	byte [ebx*4+ecx+0x1234]
+
 ; FIXME: This does NOT decode correctly at the moment
 	jmp	[ebp+eax]
 
@@ -952,7 +982,11 @@ l4:
 	nop					; 90
 	nop	ax				; 0F 1F /0	WTF?
 	nop	eax				; 0F 1F /0	Really?
+	nop	ecx				; 0F 1F /0
 	nop	word [si]			; 0F 1F /0
+	nop	dword [si]			; 0F 1F /0
+	nop	word [ebx]			; 0F 1F /0
+	nop	dword [ebx]			; 0F 1F /0
 	not	dh				; F6 /2
 	not	byte [si]			; F6 /2
 	not	cx				; F7 /2

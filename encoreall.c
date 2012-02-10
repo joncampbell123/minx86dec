@@ -22,6 +22,11 @@ static inline minx86_write_ptr_t minx86enc_32_overrides_far(struct minx86dec_arg
 	return o;
 }
 
+minx86_write_ptr_t minx86enc_encode_rm_reg(struct minx86dec_argv *a,unsigned int reg,unsigned int rm,minx86_write_ptr_t o) {
+	*o++ = (3 << 6) | (reg << 3) | rm;
+	return o;
+}
+
 minx86_write_ptr_t minx86enc_seg_overrides(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o) {
 	int need_ds = 0,i;
 
@@ -324,7 +329,24 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0xFF; o = minx86enc_encode_memreg_far(ofs,o,3);
 			}
 		} break;
-		case MXOP_NOP: /*====================NOP====================*/ *o++ = 0x90; break;
+		case MXOP_NOP: { /*====================NOP====================*/
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (ins->lock) *o++ = 0xF0;
+			o = minx86enc_seg_overrides(a,est,o);
+			o = minx86enc_32_overrides(a,est,o,1);
+
+			if (a->regtype == MX86_RT_REG) {
+				*o++ = 0x0F; *o++ = 0x1F;
+				*o++ = (3 << 6) | (0 << 3) | a->reg;
+			}
+			else if (a->regtype == MX86_RT_NONE && a->memregs > 0) {
+				*o++ = 0x0F; *o++ = 0x1F;
+				o = minx86enc_encode_memreg(a,o,0);
+			}
+			else {
+				*o++ = 0x90;
+			}
+		} break;
 		case MXOP_XCHG: { /*========================XCHG======================*/
 			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
 			unsigned char word = (a->size >= 2) ? 1 : 0;
@@ -523,18 +545,46 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		} break;
 		case MXOP_INC: { /*====================INC=====================*/
 			struct minx86dec_argv *a=&ins->argv[0];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
 
 			if (a->regtype == MX86_RT_REG) {
-				/* NTS: 32-bit only encoding. This encoding is not valid in x86-64 */
-				o = minx86enc_32_overrides(a,est,o,1);
-				*o++ = 0x40+a->reg;
+				if (word) {
+					/* NTS: 32-bit only encoding. This encoding is not valid in x86-64 */
+					o = minx86enc_32_overrides(a,est,o,1);
+					*o++ = 0x40+a->reg;
+				}
+				else {
+					*o++ = 0xFE;
+					o = minx86enc_encode_rm_reg(a,0/*INC*/,a->reg,o);
+				}
 			}
 			else if (a->regtype == MX86_RT_NONE) {
-				unsigned char word = (a->size >= 2) ? 1 : 0;
-	
+				/* NTS: You must also use this encoding in x86_64, or with BYTE register references */
 				o = minx86enc_seg_overrides(a,est,o);
 				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0xFE + word; o = minx86enc_encode_memreg(a,o,0);
+			}
+		} break;
+		case MXOP_DEC: { /*====================DEC=====================*/
+			struct minx86dec_argv *a=&ins->argv[0];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+
+			if (a->regtype == MX86_RT_REG) {
+				if (word) {
+					/* NTS: 32-bit only encoding. This encoding is not valid in x86-64 */
+					o = minx86enc_32_overrides(a,est,o,1);
+					*o++ = 0x48+a->reg;
+				}
+				else {
+					*o++ = 0xFE;
+					o = minx86enc_encode_rm_reg(a,1/*DEC*/,a->reg,o);
+				}
+			}
+			else if (a->regtype == MX86_RT_NONE) {
+				/* NTS: You must also use this encoding in x86_64, or with BYTE register references */
+				o = minx86enc_seg_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0xFE + word; o = minx86enc_encode_memreg(a,o,1);
 			}
 		} break;
 	}
