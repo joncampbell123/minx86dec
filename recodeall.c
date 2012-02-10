@@ -74,9 +74,10 @@ int main(int argc,char **argv) {
 		if (i.lock) printf("  ; LOCK#");
 		printf("\n");
 
-		printf("     -> ");
 		est.ip_value = st.ip_value;
 		minx86enc_encodeall(&est,&i);
+#if 0
+		printf("     -> ");
 		{
 			minx86_read_ptr_t x = (minx86_read_ptr_t)est.started_here;
 			while (x < est.write_ip && (*x == 0x66 || *x == 0x67)) x++;
@@ -97,24 +98,30 @@ int main(int argc,char **argv) {
 			}
 		}
 		printf("\n");
+#endif
 
-		rst.read_ip = est.started_here;
-		rst.fence = encoded + sizeof(encoded);
-		rst.prefetch_fence = encoded + sizeof(encoded) - 16;
-		minx86dec_decodeall(&rst,&i);
-		printf("    ->> ");
-		for (c=0,iptr=i.start;iptr != i.end;c++)
-			printf("%02X ",*iptr++);
-		for (;c < 8;c++)
-			printf("   ");
-		printf("%-8s ",opcode_string[i.opcode]);
-		for (c=0;c < i.argc;) {
-			minx86dec_regprint(&i.argv[c],arg_c);
-			printf("%s",arg_c);
-			if (++c < i.argc) printf(",");
+		if (est.started_here < est.write_ip) {
+			rst.read_ip = est.started_here;
+			rst.fence = encoded + sizeof(encoded);
+			rst.prefetch_fence = encoded + sizeof(encoded) - 16;
+			minx86dec_decodeall(&rst,&i);
+			printf("    ->> ");
+			for (c=0,iptr=i.start;iptr != i.end;c++)
+				printf("%02X ",*iptr++);
+			for (;c < 8;c++)
+				printf("   ");
+			printf("%-8s ",opcode_string[i.opcode]);
+			for (c=0;c < i.argc;) {
+				minx86dec_regprint(&i.argv[c],arg_c);
+				printf("%s",arg_c);
+				if (++c < i.argc) printf(",");
+			}
+			if (i.lock) printf("  ; LOCK#");
+			printf("\n");
 		}
-		if (i.lock) printf("  ; LOCK#");
-		printf("\n");
+		else {
+			printf("    ->> \n");
+		}
 	}
 
 	return 0;

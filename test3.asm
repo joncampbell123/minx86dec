@@ -14,6 +14,36 @@ _start:
 	mov	ax,[di]
 	mov	[di],ax
 
+	inc	al
+	inc	ax
+	inc	eax
+	inc	bl
+	inc	bx
+	inc	ebx
+	inc	byte [si]
+	inc	word [si]
+	inc	dword [si]
+	inc	byte [esi]
+	inc	word [esi]
+	inc	dword [esi]
+	inc	byte [es:si]
+	inc	word [es:si]
+	inc	dword [es:si]
+	inc	byte [es:esi]
+	inc	word [es:esi]
+	inc	dword [es:esi]
+	inc	byte [bx+di]
+	inc	word [bx+di]
+	inc	dword [bx+di]
+	inc	byte [bx+di+0x44]
+	inc	byte [bx+di+0x1234]
+	inc	byte [eax]
+	inc	byte [ecx]
+	inc	byte [ecx+edx]
+	inc	byte [ebx+esi+0x44]
+	inc	byte [eax+ebx+0x1234]
+	inc	byte [ebx*4+ecx+0x1234]
+
 ; FIXME: This does NOT decode correctly at the moment
 	jmp	[ebp+eax]
 

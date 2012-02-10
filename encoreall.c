@@ -521,6 +521,22 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 			}
 		} break;
+		case MXOP_INC: { /*====================INC=====================*/
+			struct minx86dec_argv *a=&ins->argv[0];
+
+			if (a->regtype == MX86_RT_REG) {
+				/* NTS: 32-bit only encoding. This encoding is not valid in x86-64 */
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x40+a->reg;
+			}
+			else if (a->regtype == MX86_RT_NONE) {
+				unsigned char word = (a->size >= 2) ? 1 : 0;
+	
+				o = minx86enc_seg_overrides(a,est,o);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0xFE + word; o = minx86enc_encode_memreg(a,o,0);
+			}
+		} break;
 	}
 
 	est->write_ip = o;
