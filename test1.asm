@@ -26,6 +26,10 @@ _start:
 	add	bl,[ebp]
 	add	bl,[ebp+42h]
 
+	idiv	al
+	idiv	ah
+	idiv	ax
+	idiv	bx
 	idiv	eax
 	idiv	ebx
 	idiv	ecx
@@ -38,6 +42,23 @@ _start:
 	idiv	word [edx]
 	idiv	word [esi]
 	idiv	word [edi]
+
+	imul	al
+	imul	ah
+	imul	ax
+	imul	bx
+	imul	eax
+	imul	ebx
+	imul	ecx
+	imul	edx
+	imul	esi
+	imul	edi
+	imul	word [eax]
+	imul	word [ebx]
+	imul	word [ecx]
+	imul	word [edx]
+	imul	word [esi]
+	imul	word [edi]
 
 	nop
 	lea	bx,[si+3]
