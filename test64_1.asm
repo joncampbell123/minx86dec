@@ -1,5 +1,12 @@
 ; x86-64 test assembly language
 bits 64
+	mov	rax,[rsi]
+	mov	[rsi],rax
+	mov	rax,[es:rdi]
+	mov	[es:rdi],rax
+	mov	rax,[rdi]
+	mov	[rdi],rax
+
 	mov	cr0,rax
 	mov	rax,cr0
 	mov	cr1,rax
@@ -19,6 +26,8 @@ bits 64
 	mov	rax,dr11
 	mov	dr15,rax
 	mov	rax,dr15
+
+	mov	[ds:4],rax
 
 	push		byte 0x12
 	push		word 0x1234
@@ -167,6 +176,15 @@ bits 64
 
 	vfrczsd		xmm1,xmm2
 	vfrczsd		xmm1,[rsi]
+
+	vfmaddpd	xmm1,xmm2,xmm3,xmm4
+	vfmaddpd	xmm1,xmm2,[rsi],xmm4
+	vfmaddpd	ymm1,ymm2,ymm3,ymm4
+	vfmaddpd	ymm1,ymm2,[rsi],ymm4
+	vfmaddps	xmm1,xmm2,xmm3,xmm4
+	vfmaddps	xmm1,xmm2,[rsi],xmm4
+	vfmaddps	ymm1,ymm2,ymm3,ymm4
+	vfmaddps	ymm1,ymm2,[rsi],ymm4
 
 	mov	bl,12h
 	mov	bx,1234h

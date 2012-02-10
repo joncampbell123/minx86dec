@@ -4,7 +4,16 @@
 ; if they show up on disassembly correctly, we know it's supported.
 org 0
 
+; Requires: NASM 2.09.10
+
 _start:
+	mov	ax,[si]
+	mov	[si],ax
+	mov	ax,[es:di]
+	mov	[es:di],ax
+	mov	ax,[di]
+	mov	[di],ax
+
 ; FIXME: This does NOT decode correctly at the moment
 	jmp	[ebp+eax]
 
@@ -55,6 +64,21 @@ _start:
 
 	lds	si,[si]
 	les	di,[si]
+
+	lds	si,[cs:si]
+	les	di,[cs:si]
+
+	lds	si,[ds:si]
+	les	di,[ds:si]
+
+	lds	si,[es:si]
+	les	di,[es:si]
+
+	lds	si,[fs:si]
+	les	di,[fs:si]
+
+	lds	si,[gs:si]
+	les	di,[gs:si]
 
 	fadd	st0,st1
 	fmul	st0,st1
@@ -1771,8 +1795,13 @@ bits 16
 ; more
 	movq2dq	xmm1,mm0
 	movdq2q	mm0,xmm1
+%if 0 ; What the hell NASM you used to support encoding these instructions?
 	vpermil2ps	xmm0,xmm1,xmm2,xmm3,1
 	vpermil2ps	xmm0,xmm1,[esi],xmm3,1
 	vpermil2pd	xmm0,xmm1,xmm2,xmm3,1
 	vpermil2pd	xmm0,xmm1,[esi],xmm3,1
-
+	vpermil2ps	ymm0,ymm1,ymm2,ymm3,1
+	vpermil2ps	ymm0,ymm1,[esi],ymm3,1
+	vpermil2pd	ymm0,ymm1,ymm2,ymm3,1
+	vpermil2pd	ymm0,ymm1,[esi],ymm3,1
+%endif

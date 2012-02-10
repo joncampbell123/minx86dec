@@ -202,6 +202,7 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 			else {
 				a->memregs = 0;
 			}
+			a->segment = (s->segment >= 0 ? s->segment : MX86_SEG_DS);
 			a->memref_base = (uint64_t)((int32_t)fetch_u32()); /* sign-extended */
 			return mrm;
 		}
@@ -240,10 +241,20 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 
 		if (sib.f.base == 5 && mrm.f.mod == 0)
 			a->memref_base = (uint64_t)((int32_t)fetch_u32());
+
+		if (s->segment >= 0)
+			a->segment = s->segment;
+		else if ((a->memregs >= 1 && (a->memreg[0] == MX86_REG_BP || a->memreg[0] == MX86_REG_SP)) ||
+			(a->memregs >= 2 && (a->memreg[1] == MX86_REG_BP || a->memreg[1] == MX86_REG_SP)))
+			a->segment = MX86_SEG_SS;
+		else
+			a->segment = MX86_SEG_DS;
 	}
 	else {
 		a->memregs = 1;
 		a->memreg[0] = mrm.f.rm;
+		a->segment = (s->segment >= 0 ? s->segment :
+			((a->memreg[0] == MX86_REG_BP || a->memreg[0] == MX86_REG_SP) ? MX86_SEG_SS : MX86_SEG_DS));
 	}
 
 	if (mrm.f.mod == 2)

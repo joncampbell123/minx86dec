@@ -1,3 +1,5 @@
+; requires NASM 2.09.10
+
 	org	0
 	bits	16
 
@@ -1018,10 +1020,12 @@ _start:
 	vpcomud		xmm1,xmm2,[si],4
 	vpcomuq		xmm1,xmm2,xmm3,4
 	vpcomuq		xmm1,xmm2,[si],4
+%if 0 ; What the hell NASM you used to support encoding this instruction
 	vpermil2pd	xmm1,xmm2,xmm3,xmm4,5
 	vpermil2pd	xmm1,xmm2,[si],xmm4,5
 	vpermil2pd	ymm1,ymm2,ymm3,ymm4,5
 	vpermil2pd	ymm1,ymm2,[si],ymm4,5
+%endif
 	vphaddbw	xmm1,xmm2
 	vphaddbw	xmm1,[si]
 	vphaddbd	xmm1,xmm2

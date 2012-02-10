@@ -3250,9 +3250,9 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 						case 0: d->size = 4; ins->opcode = MXOP_FLD;    break;
 						case 2: d->size = 4; ins->opcode = MXOP_FST;    break;
 						case 3: d->size = 4; ins->opcode = MXOP_FSTP;   break;
-						case 4: d->size = 14;ins->opcode = MXOP_FLDENV; break;
+						case 4: d->size = isdata32?28:14;ins->opcode = MXOP_FLDENV; break;
 						case 5: d->size = 2; ins->opcode = MXOP_FLDCW;  break;
-						case 6: d->size = 4; ins->opcode = MXOP_FSTENV; break;
+						case 6: d->size = isdata32?28:14;ins->opcode = MXOP_FSTENV; break;
 						case 7: d->size = 2; ins->opcode = MXOP_FSTCW;  break;
 					}; decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
 				} break;
