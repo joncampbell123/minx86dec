@@ -650,6 +650,34 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0x84 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
 			}
+			/* CMP reg/rm,imm */
+			else if ((a->regtype == MX86_RT_NONE || a->regtype == MX86_RT_REG) && b->regtype == MX86_RT_IMM) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				if (a->regtype == MX86_RT_REG && a->reg == MX86_REG_EAX) {
+					*o++ = 0xA8 + (word&1);
+				}
+				else {
+					*o++ = 0xF6 + (word&1);
+					if (a->regtype == MX86_RT_REG)
+						o = minx86enc_encode_rm_reg(a,0,a->reg,o);
+					else
+						o = minx86enc_encode_memreg(a,o,0);
+				}
+
+				if (!word) {
+					*o++ = (unsigned char)(b->value);
+				}
+				else {
+					if (a->size == 4) {
+						*((uint32_t*)o) = (uint32_t)b->value; o += 4;
+					}
+					else {
+						*((uint16_t*)o) = (uint16_t)b->value; o += 2;
+					}
+				}
+			}
+
 		} break;
 		case MXOP_ADD: { /*=====================ADD========================*/
 			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
@@ -1237,6 +1265,79 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			struct minx86dec_argv *a=&ins->argv[0];
 			*o++ = 0xD4;
 			*o++ = (unsigned char)(a->value & 0xFF);
+		} break;
+		case MXOP_MWAIT: {
+			*o++ = 0x0F;
+			*o++ = 0x01;
+			*o++ = 0xC9;
+		} break;
+		case MXOP_POPA: {
+			*o++ = 0x61;
+		} break;
+		case MXOP_POPAD: {
+			*o++ = 0x66;
+			*o++ = 0x61;
+		} break;
+		case MXOP_PUSHA: {
+			*o++ = 0x60;
+		} break;
+		case MXOP_PUSHAD: {
+			*o++ = 0x66;
+			*o++ = 0x60;
+		} break;
+		case MXOP_PUSHF: {
+			*o++ = 0x9C;
+		} break;
+		case MXOP_PUSHFD: {
+			*o++ = 0x66;
+			*o++ = 0x9C;
+		} break;
+		case MXOP_RDTSC: {
+			*o++ = 0x0F;
+			*o++ = 0x31;
+		} break;
+		case MXOP_RDTSCP: {
+			*o++ = 0x0F;
+			*o++ = 0x01;
+			*o++ = 0xF9;
+		} break;
+		case MXOP_RDPMC: {
+			*o++ = 0x0F;
+			*o++ = 0x33;
+		} break;
+		case MXOP_RET: {
+			if (ins->argc == 1) {
+				struct minx86dec_argv *a=&ins->argv[0];
+				*o++ = 0xC2;
+				if (a->size == 4) {
+					*((uint32_t*)o) = (uint32_t)a->value; o += 4;
+				}
+				else {
+					*((uint16_t*)o) = (uint16_t)a->value; o += 2;
+				}
+			}
+			else {
+				*o++ = 0xC3;
+			}
+		} break;
+		case MXOP_RETF: {
+			if (ins->argc == 1) {
+				struct minx86dec_argv *a=&ins->argv[0];
+				*o++ = 0xCA;
+				if (a->size == 4) {
+					*((uint32_t*)o) = (uint32_t)a->value; o += 4;
+				}
+				else {
+					*((uint16_t*)o) = (uint16_t)a->value; o += 2;
+				}
+			}
+			else {
+				*o++ = 0xCB;
+			}
+		} break;
+		case MXOP_CPUID: {
+			*o++ = 0x0F;
+			*o++ = 0xA2;
 		} break;
 	}
 
