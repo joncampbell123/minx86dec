@@ -670,6 +670,49 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0x00 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
 			}
 		} break;
+		case MXOP_CMP: { /*=====================CMP========================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; word += 2; }
+
+			/* ADD [mem],reg or ADD reg,[mem] */
+			if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x38 + word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			/* TEST reg,reg or TEST reg,reg */
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x38 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+			/* CMP reg/rm,imm */
+			else if ((a->regtype == MX86_RT_NONE || a->regtype == MX86_RT_REG) && b->regtype == MX86_RT_IMM) {
+				unsigned char shorthand = 0;
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				if (word && (b->value >= 0xFFFFFF80 || (b->value >= 0xFF80 && a->size == 2) || b->value < 0x80)) shorthand = 2;
+				*o++ = 0x80 + (word&1) + shorthand;
+				if (a->regtype == MX86_RT_REG)
+					o = minx86enc_encode_rm_reg(a,7,a->reg,o);
+				else
+					o = minx86enc_encode_memreg(a,o,7);
+
+				if (shorthand || !word) {
+					*o++ = (unsigned char)(b->value);
+				}
+				else {
+					if (a->size == 4) {
+						*((uint32_t*)o) = (uint32_t)b->value; o += 4;
+					}
+					else {
+						*((uint16_t*)o) = (uint16_t)b->value; o += 2;
+					}
+				}
+			}
+		} break;
 		case MXOP_SYSCALL: {
 			*o++ = 0x0F;
 			*o++ = 0x05;

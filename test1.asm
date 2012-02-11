@@ -56,6 +56,42 @@ _start:
 	add	[ebp],ebx
 	add	[ebp+42h],ebx
 
+	cmp	bl,[esp]
+	cmp	bl,[a32 12345678h]
+	cmp	bl,[a32 12345678h+edx+eax]
+	cmp	bl,[ebp]
+	cmp	bl,[ebp+42h]
+
+	cmp	[esp],bl
+	cmp	[a32 12345678h],bl
+	cmp	[a32 12345678h+edx+eax],bl
+	cmp	[ebp],bl
+	cmp	[ebp+42h],bl
+
+	cmp	bx,[esp]
+	cmp	bx,[a32 12345678h]
+	cmp	bx,[a32 12345678h+edx+eax]
+	cmp	bx,[ebp]
+	cmp	bx,[ebp+42h]
+
+	cmp	[esp],bx
+	cmp	[a32 12345678h],bx
+	cmp	[a32 12345678h+edx+eax],bx
+	cmp	[ebp],bx
+	cmp	[ebp+42h],bx
+
+	cmp	ebx,[esp]
+	cmp	ebx,[a32 12345678h]
+	cmp	ebx,[a32 12345678h+edx+eax]
+	cmp	ebx,[ebp]
+	cmp	ebx,[ebp+42h]
+
+	cmp	[esp],ebx
+	cmp	[a32 12345678h],ebx
+	cmp	[a32 12345678h+edx+eax],ebx
+	cmp	[ebp],ebx
+	cmp	[ebp+42h],ebx
+
 	idiv	al
 	idiv	ah
 	idiv	ax
@@ -116,6 +152,8 @@ _start:
 	xchg	[di],si
 	cmp	bl,44h
 	cmp	bx,2446h
+	cmp	cx,7Eh
+	cmp	cx,0xFF99
 	cmp	byte [bx+3],35h
 	cmp	word [bp-3],2244h
 	cmp	word [di],62h
