@@ -42,6 +42,7 @@ int main(int argc,char **argv) {
 
 	while (st.read_ip < st.fence) {
 		struct minx86dec_instruction i;
+		minx86dec_init_instruction(&i);
 		st.ip_value = (uint32_t)(st.read_ip - buffer);
 		minx86dec_decode486(&st,&i);
 		printf("0x%04X  ",(unsigned int)(i.start - buffer));

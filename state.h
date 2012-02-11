@@ -203,5 +203,8 @@ struct minx86enc_state {
 	uint8_t			addr32:1;	/* 386+ 32-bit encoding */
 };
 
+void minx86dec_init_instruction(struct minx86dec_instruction *i);
+void minx86dec_init_instruction_x64(struct minx86dec_instruction_x64 *i);
+
 #endif
 

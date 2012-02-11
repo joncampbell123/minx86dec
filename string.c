@@ -257,3 +257,11 @@ void minx86dec_regprint_x64(struct minx86dec_argv_x64 *a,char *output) {
 	}
 }
 
+void minx86dec_init_instruction(struct minx86dec_instruction *i) {
+	memset(i,0,sizeof(*i));
+}
+
+void minx86dec_init_instruction_x64(struct minx86dec_instruction_x64 *i) {
+	memset(i,0,sizeof(*i));
+}
+

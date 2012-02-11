@@ -1,7 +1,7 @@
 #include "minx86dec/types.h"
 #include "minx86dec/state.h"
 #include "minx86dec/opcodes.h"
-#include "minx86dec/coreall.h"
+#include "minx86dec/core586.h"
 #include "minx86dec/opcodes_str.h"
 #include "minx86dec/encoreall.h"
 #include <string.h>
@@ -60,7 +60,7 @@ int main(int argc,char **argv) {
 		struct minx86dec_instruction i;
 		minx86dec_init_instruction(&i);
 		st.ip_value = (uint32_t)(st.read_ip - buffer); rst = st;
-		minx86dec_decodeall(&st,&i);
+		minx86dec_decode586(&st,&i);
 		printf("0x%04X  ",(unsigned int)(i.start - buffer));
 		for (c=0,iptr=i.start;iptr != i.end;c++)
 			printf("%02X ",*iptr++);
@@ -81,7 +81,7 @@ int main(int argc,char **argv) {
 			rst.read_ip = est.started_here;
 			rst.fence = encoded + sizeof(encoded);
 			rst.prefetch_fence = encoded + sizeof(encoded) - 16;
-			minx86dec_decodeall(&rst,&i);
+			minx86dec_decode586(&rst,&i);
 			printf("    ->> ");
 			for (c=0,iptr=i.start;iptr != i.end;c++)
 				printf("%02X ",*iptr++);
