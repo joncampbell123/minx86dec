@@ -2567,6 +2567,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 						decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); break;
 					case 1: if (!is_mod3) { ins->argc = 1; d->size = 512;
 						decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); } break;
+					default: cip++; break;
 				};
 			} break;
 # endif
@@ -3354,6 +3355,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					const unsigned char in = (fpu_code >> 3) & 7; ins->argc = 1; ARGV *d = &ins->argv[0]; cip--;
 					switch (in) {
 						case 0: d->size = 8; ins->opcode = MXOP_FLD;    break;
+						case 1: d->size = 8; ins->opcode = MXOP_FISTTP; break;
 						case 2: d->size = 8; ins->opcode = MXOP_FST;    break;
 						case 3:	d->size = 8; ins->opcode = MXOP_FSTP;   break;
 						case 4:	d->size=108; ins->opcode = MXOP_FRSTOR;	break;

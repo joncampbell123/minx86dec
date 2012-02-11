@@ -76,30 +76,6 @@ int main(int argc,char **argv) {
 
 		est.ip_value = st.ip_value;
 		minx86enc_encodeall(&est,&i);
-#if 0
-		printf("     -> ");
-		{
-			minx86_read_ptr_t x = (minx86_read_ptr_t)est.started_here;
-			while (x < est.write_ip && (*x == 0x66 || *x == 0x67)) x++;
-			if (x < est.write_ip) {
-				if (*x == 0x90) /* a NOP is a NOP is a NOP */
-					mark = 0;
-			}
-		}
-		{
-			unsigned char mismatch = 0;
-			minx86_write_ptr_t p = est.started_here;
-			minx86_read_ptr_t r = i.start;
-			while (p != est.write_ip) {
-				printf("%02X",*p);
-				if (mark && *r != *p) printf(".");
-				else printf(" ");
-				r++; p++;
-			}
-		}
-		printf("\n");
-#endif
-
 		if (est.started_here < est.write_ip) {
 			rst.read_ip = est.started_here;
 			rst.fence = encoded + sizeof(encoded);

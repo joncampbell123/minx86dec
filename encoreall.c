@@ -669,6 +669,131 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0x00 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
 			}
+			/* CMP reg/rm,imm */
+			else if ((a->regtype == MX86_RT_NONE || a->regtype == MX86_RT_REG) && b->regtype == MX86_RT_IMM) {
+				unsigned char shorthand = 0;
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				if (word && (b->value >= 0xFFFFFF80 || (b->value >= 0xFF80 && a->size == 2) || b->value < 0x80)) shorthand = 2;
+				if (a->regtype == MX86_RT_REG && a->reg == MX86_REG_EAX && !shorthand) {
+					*o++ = 0x04 + (word&1);
+				}
+				else {
+					*o++ = 0x80 + (word&1) + shorthand;
+					if (a->regtype == MX86_RT_REG)
+						o = minx86enc_encode_rm_reg(a,0,a->reg,o);
+					else
+						o = minx86enc_encode_memreg(a,o,0);
+				}
+
+				if (shorthand || !word) {
+					*o++ = (unsigned char)(b->value);
+				}
+				else {
+					if (a->size == 4) {
+						*((uint32_t*)o) = (uint32_t)b->value; o += 4;
+					}
+					else {
+						*((uint16_t*)o) = (uint16_t)b->value; o += 2;
+					}
+				}
+			}
+		} break;
+		case MXOP_ADC: { /*=====================ADC========================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; word += 2; }
+
+			/* ADD [mem],reg or ADD reg,[mem] */
+			if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x10 + word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			/* TEST reg,reg or TEST reg,reg */
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x10 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+			/* CMP reg/rm,imm */
+			else if ((a->regtype == MX86_RT_NONE || a->regtype == MX86_RT_REG) && b->regtype == MX86_RT_IMM) {
+				unsigned char shorthand = 0;
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				if (word && (b->value >= 0xFFFFFF80 || (b->value >= 0xFF80 && a->size == 2) || b->value < 0x80)) shorthand = 2;
+				if (a->regtype == MX86_RT_REG && a->reg == MX86_REG_EAX && !shorthand) {
+					*o++ = 0x14 + (word&1);
+				}
+				else {
+					*o++ = 0x80 + (word&1) + shorthand;
+					if (a->regtype == MX86_RT_REG)
+						o = minx86enc_encode_rm_reg(a,2,a->reg,o);
+					else
+						o = minx86enc_encode_memreg(a,o,2);
+				}
+
+				if (shorthand || !word) {
+					*o++ = (unsigned char)(b->value);
+				}
+				else {
+					if (a->size == 4) {
+						*((uint32_t*)o) = (uint32_t)b->value; o += 4;
+					}
+					else {
+						*((uint16_t*)o) = (uint16_t)b->value; o += 2;
+					}
+				}
+			}
+		} break;
+		case MXOP_AND: { /*=====================AND========================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; word += 2; }
+
+			/* ADD [mem],reg or ADD reg,[mem] */
+			if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x20 + word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			/* TEST reg,reg or TEST reg,reg */
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x20 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+			/* CMP reg/rm,imm */
+			else if ((a->regtype == MX86_RT_NONE || a->regtype == MX86_RT_REG) && b->regtype == MX86_RT_IMM) {
+				unsigned char shorthand = 0;
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				if (word && (b->value >= 0xFFFFFF80 || (b->value >= 0xFF80 && a->size == 2) || b->value < 0x80)) shorthand = 2;
+				if (a->regtype == MX86_RT_REG && a->reg == MX86_REG_EAX && !shorthand) {
+					*o++ = 0x24 + (word&1);
+				}
+				else {
+					*o++ = 0x80 + (word&1) + shorthand;
+					if (a->regtype == MX86_RT_REG)
+						o = minx86enc_encode_rm_reg(a,4,a->reg,o);
+					else
+						o = minx86enc_encode_memreg(a,o,4);
+				}
+
+				if (shorthand || !word) {
+					*o++ = (unsigned char)(b->value);
+				}
+				else {
+					if (a->size == 4) {
+						*((uint32_t*)o) = (uint32_t)b->value; o += 4;
+					}
+					else {
+						*((uint16_t*)o) = (uint16_t)b->value; o += 2;
+					}
+				}
+			}
 		} break;
 		case MXOP_CMP: { /*=====================CMP========================*/
 			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
@@ -694,11 +819,160 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
 				o = minx86enc_32_overrides(a,est,o,word);
 				if (word && (b->value >= 0xFFFFFF80 || (b->value >= 0xFF80 && a->size == 2) || b->value < 0x80)) shorthand = 2;
-				*o++ = 0x80 + (word&1) + shorthand;
-				if (a->regtype == MX86_RT_REG)
-					o = minx86enc_encode_rm_reg(a,7,a->reg,o);
-				else
-					o = minx86enc_encode_memreg(a,o,7);
+				if (a->regtype == MX86_RT_REG && a->reg == MX86_REG_EAX && !shorthand) {
+					*o++ = 0x3C + (word&1);
+				}
+				else {
+					*o++ = 0x80 + (word&1) + shorthand;
+					if (a->regtype == MX86_RT_REG)
+						o = minx86enc_encode_rm_reg(a,7,a->reg,o);
+					else
+						o = minx86enc_encode_memreg(a,o,7);
+				}
+
+				if (shorthand || !word) {
+					*o++ = (unsigned char)(b->value);
+				}
+				else {
+					if (a->size == 4) {
+						*((uint32_t*)o) = (uint32_t)b->value; o += 4;
+					}
+					else {
+						*((uint16_t*)o) = (uint16_t)b->value; o += 2;
+					}
+				}
+			}
+		} break;
+		case MXOP_SBB: { /*=====================SBB========================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; word += 2; }
+
+			/* ADD [mem],reg or ADD reg,[mem] */
+			if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x18 + word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			/* TEST reg,reg or TEST reg,reg */
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x18 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+			/* CMP reg/rm,imm */
+			else if ((a->regtype == MX86_RT_NONE || a->regtype == MX86_RT_REG) && b->regtype == MX86_RT_IMM) {
+				unsigned char shorthand = 0;
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				if (word && (b->value >= 0xFFFFFF80 || (b->value >= 0xFF80 && a->size == 2) || b->value < 0x80)) shorthand = 2;
+				if (a->regtype == MX86_RT_REG && a->reg == MX86_REG_EAX && !shorthand) {
+					*o++ = 0x1C + (word&1);
+				}
+				else {
+					*o++ = 0x80 + (word&1) + shorthand;
+					if (a->regtype == MX86_RT_REG)
+						o = minx86enc_encode_rm_reg(a,3,a->reg,o);
+					else
+						o = minx86enc_encode_memreg(a,o,3);
+				}
+
+				if (shorthand || !word) {
+					*o++ = (unsigned char)(b->value);
+				}
+				else {
+					if (a->size == 4) {
+						*((uint32_t*)o) = (uint32_t)b->value; o += 4;
+					}
+					else {
+						*((uint16_t*)o) = (uint16_t)b->value; o += 2;
+					}
+				}
+			}
+		} break;
+		case MXOP_SUB: { /*=====================SUB========================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; word += 2; }
+
+			/* ADD [mem],reg or ADD reg,[mem] */
+			if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x28 + word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			/* TEST reg,reg or TEST reg,reg */
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x28 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+			/* CMP reg/rm,imm */
+			else if ((a->regtype == MX86_RT_NONE || a->regtype == MX86_RT_REG) && b->regtype == MX86_RT_IMM) {
+				unsigned char shorthand = 0;
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				if (word && (b->value >= 0xFFFFFF80 || (b->value >= 0xFF80 && a->size == 2) || b->value < 0x80)) shorthand = 2;
+				if (a->regtype == MX86_RT_REG && a->reg == MX86_REG_EAX && !shorthand) {
+					*o++ = 0x2C + (word&1);
+				}
+				else {
+					*o++ = 0x80 + (word&1) + shorthand;
+					if (a->regtype == MX86_RT_REG)
+						o = minx86enc_encode_rm_reg(a,5,a->reg,o);
+					else
+						o = minx86enc_encode_memreg(a,o,5);
+				}
+
+				if (shorthand || !word) {
+					*o++ = (unsigned char)(b->value);
+				}
+				else {
+					if (a->size == 4) {
+						*((uint32_t*)o) = (uint32_t)b->value; o += 4;
+					}
+					else {
+						*((uint16_t*)o) = (uint16_t)b->value; o += 2;
+					}
+				}
+			}
+		} break;
+		case MXOP_XOR: { /*=====================XOR========================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; word += 2; }
+
+			/* ADD [mem],reg or ADD reg,[mem] */
+			if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x30 + word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			/* TEST reg,reg or TEST reg,reg */
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x30 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+			/* CMP reg/rm,imm */
+			else if ((a->regtype == MX86_RT_NONE || a->regtype == MX86_RT_REG) && b->regtype == MX86_RT_IMM) {
+				unsigned char shorthand = 0;
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				if (word && (b->value >= 0xFFFFFF80 || (b->value >= 0xFF80 && a->size == 2) || b->value < 0x80)) shorthand = 2;
+				if (a->regtype == MX86_RT_REG && a->reg == MX86_REG_EAX && !shorthand) {
+					*o++ = 0x34 + (word&1);
+				}
+				else {
+					*o++ = 0x80 + (word&1) + shorthand;
+					if (a->regtype == MX86_RT_REG)
+						o = minx86enc_encode_rm_reg(a,6,a->reg,o);
+					else
+						o = minx86enc_encode_memreg(a,o,6);
+				}
 
 				if (shorthand || !word) {
 					*o++ = (unsigned char)(b->value);
@@ -721,11 +995,248 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			*o++ = 0x0F;
 			*o++ = 0x07;
 		} break;
+		case MXOP_SYSENTER: {
+			*o++ = 0x0F;
+			*o++ = 0x34;
+		} break;
+		case MXOP_SYSEXIT: {
+			*o++ = 0x0F;
+			*o++ = 0x35;
+		} break;
+		case MXOP_WRMSR: {
+			*o++ = 0x0F;
+			*o++ = 0x30;
+		} break;
+		case MXOP_RDMSR: {
+			*o++ = 0x0F;
+			*o++ = 0x32;
+		} break;
+		case MXOP_FWAIT: {
+			*o++ = 0x9B;
+		} break;
+		case MXOP_WBINVD: {
+			*o++ = 0x0F;
+			*o++ = 0x09;
+		} break;
+		case MXOP_VMCALL: {
+			*o++ = 0x0F;
+			*o++ = 0x01;
+			*o++ = 0xC1;
+		} break;
+		case MXOP_VMLAUNCH: {
+			*o++ = 0x0F;
+			*o++ = 0x01;
+			*o++ = 0xC2;
+		} break;
+		case MXOP_VMRESUME: {
+			*o++ = 0x0F;
+			*o++ = 0x01;
+			*o++ = 0xC3;
+		} break;
+		case MXOP_VMXOFF: {
+			*o++ = 0x0F;
+			*o++ = 0x01;
+			*o++ = 0xC4;
+		} break;
+		case MXOP_GETSEC: {
+			*o++ = 0x0F;
+			*o++ = 0x37;
+		} break;
+
 		case MXOP_SALC: {
 			*o++ = 0xD6;
 		} break;
 		case MXOP_ICEBP: {
 			*o++ = 0xF1;
+		} break;
+		case MXOP_XLAT: {
+			*o++ = 0xD7;
+		} break;
+		case MXOP_XGETBV: {
+			*o++ = 0x0F;
+			*o++ = 0x01;
+			*o++ = 0xD0;
+		} break;
+		case MXOP_XSETBV: {
+			*o++ = 0x0F;
+			*o++ = 0x01;
+			*o++ = 0xD1;
+		} break;
+		case MXOP_SWAPGS: {
+			*o++ = 0x0F;
+			*o++ = 0x01;
+			*o++ = 0xF8;
+		} break;
+		case MXOP_UD2: {
+			*o++ = 0x0F;
+			*o++ = 0x0B;
+		} break;
+		case MXOP_XSHA1: {
+			*o++ = 0xF3;
+			*o++ = 0x0F;
+			*o++ = 0xA6;
+			*o++ = 0xC8;
+		} break;
+		case MXOP_XSHA256: {
+			*o++ = 0xF3;
+			*o++ = 0x0F;
+			*o++ = 0xA6;
+			*o++ = 0xD0;
+		} break;
+		case MXOP_UMC_IDENT: {
+			*o++ = 0x64;
+			*o++ = 0xD6;
+		} break;
+		case MXOP_MONTMUL: {
+			*o++ = 0xF3;
+			*o++ = 0x0F;
+			*o++ = 0xA6;
+			*o++ = 0xC0;
+		} break;
+		case MXOP_XSTORE: {
+			if (ins->rep == MX86_REPNE) *o++ = 0xF3;
+			*o++ = 0x0F;
+			*o++ = 0xA7;
+			*o++ = 0xC0;
+		} break;
+		case MXOP_XCRYPTECB: {
+			*o++ = 0xF3;
+			*o++ = 0x0F;
+			*o++ = 0xA7;
+			*o++ = 0xC8;
+		} break;
+		case MXOP_XCRYPTCBC: {
+			*o++ = 0xF3;
+			*o++ = 0x0F;
+			*o++ = 0xA7;
+			*o++ = 0xD0;
+		} break;
+		case MXOP_XCRYPTCTR: {
+			*o++ = 0xF3;
+			*o++ = 0x0F;
+			*o++ = 0xA7;
+			*o++ = 0xD8;
+		} break;
+		case MXOP_XCRYPTCFB: {
+			*o++ = 0xF3;
+			*o++ = 0x0F;
+			*o++ = 0xA7;
+			*o++ = 0xE0;
+		} break;
+		case MXOP_XCRYPTOFB: {
+			*o++ = 0xF3;
+			*o++ = 0x0F;
+			*o++ = 0xA7;
+			*o++ = 0xE8;
+		} break;
+		case MXOP_FEMMS: {
+			*o++ = 0x0F;
+			*o++ = 0x0E;
+		} break;
+		case MXOP_EMMS: {
+			*o++ = 0x0F;
+			*o++ = 0x77;
+		} break;
+		case MXOP_SFENCE: {
+			*o++ = 0x0F;
+			*o++ = 0xAE;
+			*o++ = 0xF8;
+		} break;
+		case MXOP_MFENCE: {
+			*o++ = 0x0F;
+			*o++ = 0xAE;
+			*o++ = 0xF0;
+		} break;
+		case MXOP_LFENCE: {
+			*o++ = 0x0F;
+			*o++ = 0xAE;
+			*o++ = 0xE8;
+		} break;
+		case MXOP_MONITOR: {
+			*o++ = 0x0F;
+			*o++ = 0x01;
+			*o++ = 0xC8;
+		} break;
+		case MXOP_LEAVE: {
+			*o++ = 0xC9;
+		} break;
+		case MXOP_IRET: {
+			*o++ = 0xCF;
+		} break;
+		case MXOP_IRETD: {
+			*o++ = 0x66;
+			*o++ = 0xCF;
+		} break;
+		case MXOP_LAHF: {
+			*o++ = 0x9F;
+		} break;
+		case MXOP_SAHF: {
+			*o++ = 0x9E;
+		} break;
+		case MXOP_RSM: {
+			*o++ = 0x0F;
+			*o++ = 0xAA;
+		} break;
+		case MXOP_STC: {
+			*o++ = 0xF9;
+		} break;
+		case MXOP_STD: {
+			*o++ = 0xFD;
+		} break;
+		case MXOP_STI: {
+			*o++ = 0xFB;
+		} break;
+		case MXOP_CLI: {
+			*o++ = 0xFA;
+		} break;
+		case MXOP_CLTS: {
+			*o++ = 0x0F;
+			*o++ = 0x06;
+		} break;
+		case MXOP_CMC: {
+			*o++ = 0xF5;
+		} break;
+		case MXOP_CLD: {
+			*o++ = 0xFC;
+		} break;
+		case MXOP_CLC: {
+			*o++ = 0xF8;
+		} break;
+		case MXOP_CBW: {
+			*o++ = 0x98;
+		} break;
+		case MXOP_CWDE: {
+			*o++ = 0x66;
+			*o++ = 0x98;
+		} break;
+		case MXOP_AAS: {
+			*o++ = 0x3F;
+		} break;
+		case MXOP_DAA: {
+			*o++ = 0x27;
+		} break;
+		case MXOP_DAS: {
+			*o++ = 0x2F;
+		} break;
+		case MXOP_CWD: {
+			*o++ = 0x99;
+		} break;
+		case MXOP_CDQ: {
+			*o++ = 0x66;
+			*o++ = 0x99;
+		} break;
+		case MXOP_AAA: {
+			*o++ = 0x37;
+		} break;
+		case MXOP_AAD: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			*o++ = 0xD5;
+			*o++ = (unsigned char)(a->value & 0xFF);
+		} break;
+		case MXOP_AAM: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			*o++ = 0xD4;
+			*o++ = (unsigned char)(a->value & 0xFF);
 		} break;
 	}
 
