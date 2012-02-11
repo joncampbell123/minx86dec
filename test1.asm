@@ -26,6 +26,36 @@ _start:
 	add	bl,[ebp]
 	add	bl,[ebp+42h]
 
+	add	[esp],bl
+	add	[a32 12345678h],bl
+	add	[a32 12345678h+edx+eax],bl
+	add	[ebp],bl
+	add	[ebp+42h],bl
+
+	add	bx,[esp]
+	add	bx,[a32 12345678h]
+	add	bx,[a32 12345678h+edx+eax]
+	add	bx,[ebp]
+	add	bx,[ebp+42h]
+
+	add	[esp],bx
+	add	[a32 12345678h],bx
+	add	[a32 12345678h+edx+eax],bx
+	add	[ebp],bx
+	add	[ebp+42h],bx
+
+	add	ebx,[esp]
+	add	ebx,[a32 12345678h]
+	add	ebx,[a32 12345678h+edx+eax]
+	add	ebx,[ebp]
+	add	ebx,[ebp+42h]
+
+	add	[esp],ebx
+	add	[a32 12345678h],ebx
+	add	[a32 12345678h+edx+eax],ebx
+	add	[ebp],ebx
+	add	[ebp+42h],ebx
+
 	idiv	al
 	idiv	ah
 	idiv	ax
@@ -63,6 +93,8 @@ _start:
 	nop
 	lea	bx,[si+3]
 	lea	cx,[bx+di+33h]
+	lea	eax,[ebx+0x1234]
+	lea	ebx,[esi*4+ecx+0x22]
 	mov	ax,es
 	mov	ds,ax
 	mov	bx,cs
@@ -76,6 +108,9 @@ _start:
 	test	cl,bh
 	test	[di],bx
 	test	[si+bx+43],cx
+	test	bx,[di]
+	test	cx,[si+bx+43]
+
 	xchg	bl,dl
 	xchg	[si],cl
 	xchg	[di],si

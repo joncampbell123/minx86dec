@@ -621,6 +621,50 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0xF6 + word; o = minx86enc_encode_memreg(a,o,5);
 			}
 		} break;
+		case MXOP_LEA: { /*=====================LEA========================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,1);
+				*o++ = 0x8D; o = minx86enc_encode_memreg(b,o,a->reg);
+			}
+		} break;
+		case MXOP_TEST: { /*=====================TEST========================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			/* NTS: TEST only ANDs the two operands together and updates the flags, it doesn't matter the order.
+			 *      so most assemblers like NASM will encode the one [mem],reg form no matter what order you put the operands in */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; }
+
+			/* TEST [mem],reg or TEST reg,[mem] */
+			if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x84 + word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			/* TEST reg,reg or TEST reg,reg */
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x84 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+		} break;
+		case MXOP_ADD: { /*=====================ADD========================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; word += 2; }
+
+			/* ADD [mem],reg or ADD reg,[mem] */
+			if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x00 + word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+		} break;
 		case MXOP_SYSCALL: {
 			*o++ = 0x0F;
 			*o++ = 0x05;
