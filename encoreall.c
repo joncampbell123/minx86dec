@@ -1292,6 +1292,13 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			*o++ = 0x66;
 			*o++ = 0x9C;
 		} break;
+		case MXOP_POPF: {
+			*o++ = 0x9D;
+		} break;
+		case MXOP_POPFD: {
+			*o++ = 0x66;
+			*o++ = 0x9D;
+		} break;
 		case MXOP_RDTSC: {
 			*o++ = 0x0F;
 			*o++ = 0x31;
@@ -1364,9 +1371,20 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			struct minx86dec_argv *a=&ins->argv[0];
 			int32_t delta = (int32_t)(a->value - est->ip_value),extra = (int32_t)(o - est->started_here);
 			if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
-				{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0xE3; *o++ = (uint8_t)(delta-(2+extra)); }
+				{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0xE2; *o++ = (uint8_t)(delta-(2+extra)); }
 		} break;
-
+		case MXOP_LOOPE: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			int32_t delta = (int32_t)(a->value - est->ip_value),extra = (int32_t)(o - est->started_here);
+			if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
+				{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0xE1; *o++ = (uint8_t)(delta-(2+extra)); }
+		} break;
+		case MXOP_LOOPNE: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			int32_t delta = (int32_t)(a->value - est->ip_value),extra = (int32_t)(o - est->started_here);
+			if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
+				{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0xE0; *o++ = (uint8_t)(delta-(2+extra)); }
+		} break;
 	}
 
 	est->write_ip = o;
