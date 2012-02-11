@@ -1360,6 +1360,12 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
 				{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0xE3; *o++ = (uint8_t)(delta-(2+extra)); }
 		} break;
+		case MXOP_LOOP: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			int32_t delta = (int32_t)(a->value - est->ip_value),extra = (int32_t)(o - est->started_here);
+			if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
+				{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0xE3; *o++ = (uint8_t)(delta-(2+extra)); }
+		} break;
 
 	}
 
