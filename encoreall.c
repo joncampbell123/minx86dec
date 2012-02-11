@@ -664,6 +664,11 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				o = minx86enc_32_overrides(a,est,o,word);
 				*o++ = 0x00 + word; o = minx86enc_encode_memreg(a,o,b->reg);
 			}
+			/* TEST reg,reg or TEST reg,reg */
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x00 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
 		} break;
 		case MXOP_SYSCALL: {
 			*o++ = 0x0F;
