@@ -1339,6 +1339,28 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			*o++ = 0x0F;
 			*o++ = 0xA2;
 		} break;
+		case MXOP_JO:	case MXOP_JNO:	case MXOP_JB:	case MXOP_JNB:
+		case MXOP_JZ:	case MXOP_JNZ:	case MXOP_JBE:	case MXOP_JA:
+		case MXOP_JS:	case MXOP_JNS:	case MXOP_JP:	case MXOP_JNP:
+		case MXOP_JL:	case MXOP_JGE:	case MXOP_JLE:	case MXOP_JG: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			int32_t delta = (int32_t)(a->value - est->ip_value),extra = (int32_t)(o - est->started_here);
+			/* if it's small enough, encode as single-byte JMP */
+			if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
+				{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0x70+(ins->opcode-MXOP_JO); *o++ = (uint8_t)(delta-(2+extra)); }
+			/* if the encoding is for 32-bit mode, OR the delta is too large for 16-bit mode: */
+			else if (est->addr32 || !((delta-(5+extra)) >= -0x8000 && (delta-(5+extra)) < 0x8000))
+				{ if (!est->addr32) { *o++ = 0x66; extra++; }; *o++ = 0x0F; *o++ = 0x80+(ins->opcode-MXOP_JO); *((uint32_t*)o) = (uint32_t)(delta-(5+extra)); o += 4; }
+			else
+				{ *o++ = 0x0F; *o++ = 0x80+(ins->opcode-MXOP_JO); *((uint16_t*)o) = (uint16_t)(delta-(3+extra)); o += 2; }
+		} break;
+		case MXOP_JCXZ: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			int32_t delta = (int32_t)(a->value - est->ip_value),extra = (int32_t)(o - est->started_here);
+			if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
+				{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0xE3; *o++ = (uint8_t)(delta-(2+extra)); }
+		} break;
+
 	}
 
 	est->write_ip = o;
