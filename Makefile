@@ -15,7 +15,7 @@ else
 CFLAGS += -march=i686
 endif
 
-all: test-headers decode8086 decodenecv20 decode286 decode386 decode486 decode586 decode586pro decode686 decode6x86_cyrix decodeall decodeall_x64 test1.bin test2.bin test3.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin test_evolution.bin test_all_amd64.bin recodeall recodeall32 recode1.bin all-cputest testemu8086
+all: test-headers decode8086 decodenecv20 decode286 decode386 decode486 decode586 decode586pro decode686 decode6x86_cyrix decodeall decodeall_x64 test1.bin test2.bin test3.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin test_evolution.bin test_all_amd64.bin recode286 recode386 recodeall recodeall32 recode1.bin all-cputest testemu8086
 	make -C bioses
 
 all-cputest:
@@ -79,6 +79,12 @@ decode6x86_cyrix: decode6x86_cyrix.o core6x86_cyrix.o string.o
 coreall.o: x86_core.h x86_core_macros.h
 
 decodeall: decodeall.o coreall.o string.o
+	gcc $(CFLAGS) -o $@ $^
+
+recode286: recode286.o core286.o encoreall.o string.o
+	gcc $(CFLAGS) -o $@ $^
+
+recode386: recode386.o core386.o encoreall.o string.o
 	gcc $(CFLAGS) -o $@ $^
 
 recodeall: recodeall.o coreall.o encoreall.o string.o

@@ -333,7 +333,10 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (ins->lock) *o++ = 0xF0;
 
-			if (a->regtype == MX86_RT_REG) {
+			if (ins->argc == 0) {
+				*o++ = 0x90;
+			}
+			else if (a->regtype == MX86_RT_REG) {
 				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
 				o = minx86enc_32_overrides(a,est,o,1);
 				*o++ = 0x0F; *o++ = 0x1F;
@@ -1312,6 +1315,10 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			*o++ = 0x0F;
 			*o++ = 0x33;
 		} break;
+		case MXOP_LOADALL_386: {
+			*o++ = 0x0F;
+			*o++ = 0x07;
+		} break;
 		case MXOP_RET: {
 			if (ins->argc == 1) {
 				struct minx86dec_argv *a=&ins->argv[0];
@@ -1385,6 +1392,26 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
 				{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0xE0; *o++ = (uint8_t)(delta-(2+extra)); }
 		} break;
+		case MXOP_UMOV: { /*=====================UMOV========================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; word += 2; }
+
+			/* ADD [mem],reg or ADD reg,[mem] */
+			if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x0F; *o++ = 0x10 + word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			/* TEST reg,reg or TEST reg,reg */
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0x0F; *o++ = 0x10 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+		} break;
+
 	}
 
 	est->write_ip = o;

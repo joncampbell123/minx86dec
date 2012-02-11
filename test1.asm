@@ -237,6 +237,7 @@ j2:	jno	j2
 
 	salc
 	icebp
+; 386/486 only
 	umov	eax,ebx
 	umov	[edi],ebx
 	umov	esi,[edi]

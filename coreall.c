@@ -44,6 +44,8 @@ void minx86dec_decodeall(struct minx86dec_state *state,struct minx86dec_instruct
 		ins->argc = 0;
 		if ((*(state->read_ip) & 0xF8) == 0xD8)
 			ins->end = state->read_ip = (ins->start + 2);
+		else if (*(state->read_ip) == 0x0F)
+			ins->end = state->read_ip = (ins->start + 2);
 		else
 			ins->end = state->read_ip = (ins->start + 1);
 	}
