@@ -2504,6 +2504,110 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 			}
 		} break;
+		case MXOP_ANDPD: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (ins->argc == 3) { /* Intel AVX form using ymm1, etc. */
+				struct minx86dec_argv *c=&ins->argv[2];
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_SSE) {
+					/* NTS: VEX pp=1 l=<YMM/XMM> w=1 v=b->reg */
+					*o++ = 0xC5; *o++ = 0xC1+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x54; o = minx86enc_encode_rm_reg(a,a->reg,c->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(c,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(c,est,o,0);
+					*o++ = 0xC5; *o++ = 0xC1+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x54; o = minx86enc_encode_memreg(c,o,a->reg);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					*o++ = 0x66; *o++ = 0x0F; *o++ = 0x54; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					*o++ = 0x66; *o++ = 0x0F; *o++ = 0x54; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+		} break;
+		case MXOP_ANDNPD: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (ins->argc == 3) { /* Intel AVX form using ymm1, etc. */
+				struct minx86dec_argv *c=&ins->argv[2];
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_SSE) {
+					/* NTS: VEX pp=1 l=<YMM/XMM> w=1 v=b->reg */
+					*o++ = 0xC5; *o++ = 0xC1+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x55; o = minx86enc_encode_rm_reg(a,a->reg,c->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(c,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(c,est,o,0);
+					*o++ = 0xC5; *o++ = 0xC1+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x55; o = minx86enc_encode_memreg(c,o,a->reg);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					*o++ = 0x66; *o++ = 0x0F; *o++ = 0x55; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					*o++ = 0x66; *o++ = 0x0F; *o++ = 0x55; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+		} break;
+		case MXOP_ANDPS: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (ins->argc == 3) { /* Intel AVX form using ymm1, etc. */
+				struct minx86dec_argv *c=&ins->argv[2];
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_SSE) {
+					/* NTS: VEX pp=1 l=<YMM/XMM> w=1 v=b->reg */
+					*o++ = 0xC5; *o++ = 0xC3+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x54; o = minx86enc_encode_rm_reg(a,a->reg,c->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(c,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(c,est,o,0);
+					*o++ = 0xC5; *o++ = 0xC3+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x54; o = minx86enc_encode_memreg(c,o,a->reg);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					*o++ = 0x0F; *o++ = 0x54; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					*o++ = 0x0F; *o++ = 0x54; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+		} break;
+		case MXOP_ANDNPS: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (ins->argc == 3) { /* Intel AVX form using ymm1, etc. */
+				struct minx86dec_argv *c=&ins->argv[2];
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_SSE) {
+					/* NTS: VEX pp=1 l=<YMM/XMM> w=1 v=b->reg */
+					*o++ = 0xC5; *o++ = 0xC3+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x55; o = minx86enc_encode_rm_reg(a,a->reg,c->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(c,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(c,est,o,0);
+					*o++ = 0xC5; *o++ = 0xC3+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x55; o = minx86enc_encode_memreg(c,o,a->reg);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					*o++ = 0x0F; *o++ = 0x55; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					*o++ = 0x0F; *o++ = 0x55; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+		} break;
 	}
 
 	est->write_ip = o;
