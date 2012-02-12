@@ -782,7 +782,9 @@ l3:
 	ldmxcsr	[bx]				; 0F AE /2
 	ldmxcsr	[esi]				; 0F AE /2
 	lds	si,[bx]				; C5 /r
+	lds	si,[eax]
 	lds	esi,[eax]			; C5 /r
+	lds	esi,[di]
 	lss	si,[bx]				; 0F B2 /r
 	lss	esi,[ebx]			; 0F B2 /r
 	les	si,[bx]				; C4 /r
