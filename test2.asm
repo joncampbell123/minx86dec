@@ -71,6 +71,7 @@ _start:
 	arpl	si,bx
 	arpl	[si],cx
 	arpl	[bx+di+3],ax
+
 	bound	ax,[bx]
 	bound	bx,[bx+si+4]
 	bound	cx,[eax+ebx+3]
