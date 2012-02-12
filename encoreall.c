@@ -2084,6 +2084,9 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_FYL2XP1: {
 			*o++ = 0xD9; *o++ = 0xF9;
 		} break;
+		case MXOP_PAUSE: {
+			*o++ = 0xF3; *o++ = 0x90;
+		} break;
 	}
 
 	est->write_ip = o;
