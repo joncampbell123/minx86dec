@@ -1593,6 +1593,59 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0x62; o = minx86enc_encode_memreg(b,o,a->reg);
 			}
 		} break;
+		case MXOP_LGDT: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0x0F; *o++ = 0x01; o = minx86enc_encode_memreg(a,o,2);
+			}
+		} break;
+		case MXOP_LIDT: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0x0F; *o++ = 0x01; o = minx86enc_encode_memreg(a,o,3);
+			}
+		} break;
+		case MXOP_LLDT: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0x0F; *o++ = 0x00; o = minx86enc_encode_memreg(a,o,2);
+			}
+			else if (a->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
+				*o++ = 0x0F; *o++ = 0x00; o = minx86enc_encode_rm_reg(a,2,a->reg,o);
+			}
+		} break;
+		case MXOP_LMSW: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0x0F; *o++ = 0x01; o = minx86enc_encode_memreg(a,o,6);
+			}
+			else if (a->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
+				*o++ = 0x0F; *o++ = 0x01; o = minx86enc_encode_rm_reg(a,6,a->reg,o);
+			}
+		} break;
+		case MXOP_LTR: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0x0F; *o++ = 0x00; o = minx86enc_encode_memreg(a,o,3);
+			}
+			else if (a->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
+				*o++ = 0x0F; *o++ = 0x00; o = minx86enc_encode_rm_reg(a,3,a->reg,o);
+			}
+		} break;
+
 	}
 
 	est->write_ip = o;
