@@ -308,6 +308,8 @@ _start:
       bswap	ebx				; 0F C8+rd           BSWAP r32
 
          bt	ax,bx				; 0F A3 ??           BT r/m16, r16
+         bt     [si],ax
+         bt     [edx],ax
          bt	ecx,edx				; 0F A3 ??           BT r/m32, r32
          bt	si,1				; 0F BA /4 ib        BT r/m16, imm8
          bt	edi,4				; 0F BA /4 ib        BT r/m32, imm8

@@ -2749,6 +2749,82 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 			}
 		} break;
+		case MXOP_BT: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			/* there is no byte-size versionm and there is no version that writes the result to memory */
+
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xA3; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xA3; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_IMM) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xBA; o = minx86enc_encode_rm_reg(b,4,a->reg,o);
+				*o++ = (unsigned char)(b->value);
+			}
+		} break;
+		case MXOP_BTC: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			/* there is no byte-size versionm and there is no version that writes the result to memory */
+
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xBB; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xBB; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_IMM) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xBA; o = minx86enc_encode_rm_reg(b,7,a->reg,o);
+				*o++ = (unsigned char)(b->value);
+			}
+		} break;
+		case MXOP_BTR: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			/* there is no byte-size versionm and there is no version that writes the result to memory */
+
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xB3; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xB3; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_IMM) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xBA; o = minx86enc_encode_rm_reg(b,6,a->reg,o);
+				*o++ = (unsigned char)(b->value);
+			}
+		} break;
+		case MXOP_BTS: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			/* there is no byte-size versionm and there is no version that writes the result to memory */
+
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xAB; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xAB; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_IMM) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0xBA; o = minx86enc_encode_rm_reg(b,5,a->reg,o);
+				*o++ = (unsigned char)(b->value);
+			}
+		} break;
 	}
 
 	est->write_ip = o;
