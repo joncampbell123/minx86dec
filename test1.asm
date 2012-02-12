@@ -2,6 +2,11 @@
 org 0
 
 _start:
+	lea	bx,[si+3]
+	lea	cx,[bx+di+33h]
+	lea	eax,[ebx+0x1234]
+	lea	ebx,[esi*4+ecx+0x22]
+
 ; test implied SS register
 	mov	[si],ax
 	mov	[di],bx
@@ -253,4 +258,20 @@ j2:	jno	j2
 	nop
 	nop
 	db	0x0F,0x07	; 386 loadall
+
+	nop
+	nop
+	nop
+	movupd	xmm0,xmm3
+	movupd	[di],xmm3
+	movupd	[edi],xmm3
+	movupd	xmm3,[edi]
+	movupd	xmm3,[di]
+	movups	[edi],xmm6
+	movups	xmm6,[edi]
+	movups	xmm1,xmm4
+	movlpd	[edi],xmm6
+	movlpd	xmm6,[edi]
+	movlps	[esi],xmm4
+	movlps	xmm4,[esi]
 

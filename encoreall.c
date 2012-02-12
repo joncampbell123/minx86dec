@@ -7,6 +7,12 @@
 #include <string.h>
 #include <stdio.h>
 
+static inline minx86_write_ptr_t minx86enc_32_sse_mod(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o,unsigned int wordsize) {
+	if (a->regtype == MX86_RT_NONE && (a->memregsz>>2)^(est->addr32?1:0)) *o++ = 0x67;
+	if ((wordsize?1:0)^(est->data32?1:0)) *o++ = 0x66;
+	return o;
+}
+
 /* code will call this to generate the appropriate 386 data override prefix.
  * if 16-bit mode and the arg provided is 32 bits wide, OR
  * if 32-bit mode and the arg provided is 16 bits wide */
@@ -46,6 +52,29 @@ minx86_write_ptr_t minx86enc_seg_overrides(struct minx86dec_argv *a,struct minx8
 	}
 	else if (a->segment == MX86_SEG_ES) {
 		*o++ = 0x26;
+	}
+	else if (a->segment == MX86_SEG_CS) {
+		*o++ = 0x2E;
+	}
+	else if (a->segment == MX86_SEG_FS) {
+		*o++ = 0x64;
+	}
+	else if (a->segment == MX86_SEG_GS) {
+		*o++ = 0x65;
+	}
+
+	return o;
+}
+
+minx86_write_ptr_t minx86enc_seg_overrides_es(struct minx86dec_argv *a,struct minx86enc_state *est,minx86_write_ptr_t o,int force_seg_override) {
+	if (a->segment == MX86_SEG_DS) {
+		*o++ = 0x3E;	/* DS: */
+	}
+	else if (a->segment == MX86_SEG_SS) {
+		*o++ = 0x36;	/* SS: */
+	}
+	else if (a->segment == MX86_SEG_ES) {
+		if (force_seg_override) *o++ = 0x26;
 	}
 	else if (a->segment == MX86_SEG_CS) {
 		*o++ = 0x2E;
@@ -628,7 +657,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
 
 			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_NONE) {
-				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
 				o = minx86enc_32_overrides(b,est,o,1);
 				*o++ = 0x8D; o = minx86enc_encode_memreg(b,o,a->reg);
 			}
@@ -1415,6 +1444,95 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0x0F; *o++ = 0x10 + word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
 			}
 		} break;
+		case MXOP_MOVUPD:
+		case MXOP_MOVUPS: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = 0;
+
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; word++; }
+
+			if (b->regtype == MX86_RT_SSE && a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_sse_mod(a,est,o,ins->opcode == MXOP_MOVUPD);
+				*o++ = 0x0F; *o++ = 0x11 - word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+			else if (b->regtype == MX86_RT_SSE && a->regtype == MX86_RT_SSE) {
+				o = minx86enc_32_sse_mod(a,est,o,ins->opcode == MXOP_MOVUPD);
+				*o++ = 0x0F; *o++ = 0x11 - word; o = minx86enc_encode_rm_reg(b,b->reg,a->reg,o);
+			}
+		} break;
+		case MXOP_MOVLPD:
+		case MXOP_MOVLPS: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = 0;
+
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (b->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; word++; }
+
+			if (b->regtype == MX86_RT_SSE && a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_sse_mod(a,est,o,ins->opcode == MXOP_MOVLPD);
+				*o++ = 0x0F; *o++ = 0x13 - word; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+		} break;
+		case MXOP_CMPS: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (b->regtype == MX86_RT_NONE && a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
+				*o++ = 0xA6 + (a->size>=2?1:0);
+			}
+		} break;
+		case MXOP_SCAS: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides_es(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
+				*o++ = 0xAE + (a->size>=2?1:0);
+			}
+		} break;
+		case MXOP_LODS: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
+				*o++ = 0xAC + (a->size>=2?1:0);
+			}
+		} break;
+		case MXOP_STOS: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides_es(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
+				*o++ = 0xAA + (a->size>=2?1:0);
+			}
+		} break;
+		case MXOP_MOVS: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (b->regtype == MX86_RT_NONE && a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
+				*o++ = 0xA4 + (a->size>=2?1:0);
+			}
+		} break;
+		case MXOP_OUTS: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
+				*o++ = 0x6E + (a->size>=2?1:0);
+			}
+		} break;
+		case MXOP_INS: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides_es(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
+				*o++ = 0x6C + (a->size>=2?1:0);
+			}
+		} break;
+
 
 	}
 
