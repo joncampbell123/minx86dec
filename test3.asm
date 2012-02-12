@@ -288,7 +288,9 @@ _start:
 
 ; THE FOLLOWING INSTRUCTIONS ARE NOT RECOGNIZED UNLESS USING A RECENT NASM
     blendpd	xmm1,xmm2,2			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
+    blendpd	xmm1,[si],2			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
     blendps	xmm1,xmm2,3			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+    blendps	xmm1,[si],3			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
    blendvpd	xmm1,xmm2,xmm0			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
    blendvps	xmm1,xmm2,xmm0			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
 
@@ -1663,6 +1665,7 @@ bits 16
 
         vblendpd xmm1,xmm2,xmm3,4			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
         vblendps xmm1,xmm2,xmm3,4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+        vblendps xmm1,xmm2,[si],4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
         vblendvpd xmm1,xmm2,xmm3,xmm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
         vblendvps xmm1,xmm2,xmm3,xmm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
 
