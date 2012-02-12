@@ -1583,6 +1583,16 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0x63; o = minx86enc_encode_memreg(a,o,b->reg);
 			}
 		} break;
+		case MXOP_BOUND: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				if ((b->memregsz>>2)^(est->addr32?1:0)) *o++ = 0x67;
+				if ((a->size>>2)^(est->data32?1:0)) *o++ = 0x66;
+				*o++ = 0x62; o = minx86enc_encode_memreg(b,o,a->reg);
+			}
+		} break;
 	}
 
 	est->write_ip = o;
