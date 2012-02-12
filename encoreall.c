@@ -1645,7 +1645,28 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0x0F; *o++ = 0x00; o = minx86enc_encode_rm_reg(a,3,a->reg,o);
 			}
 		} break;
-
+		case MXOP_SGDT: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0x0F; *o++ = 0x01; o = minx86enc_encode_memreg(a,o,4);
+			}
+		} break;
+		case MXOP_SIDT: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0x0F; *o++ = 0x01; o = minx86enc_encode_memreg(a,o,5);
+			}
+		} break;
+#if 0
+       0x00C5  0F 01 44 02             SGDT     DS:(3WORD*)[SI+0x2]
+       0x00C9  0F 01 4D FC             SIDT     DS:(3WORD*)[DI-0x4]
+       0x00CD  0F 01 40 2A             SGDT     DS:(3WORD*)[BX+SI+0x2A]
+       0x00D1  0F 01 09                SIDT     DS:(3WORD*)[BX+DI]
+#endif
 	}
 
 	est->write_ip = o;
