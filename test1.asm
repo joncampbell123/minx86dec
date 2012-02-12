@@ -224,6 +224,10 @@ j2:	jno	j2
 	push	cs
 	push	es
 	pop	cs
+	nop
+	nop
+	nop
+	nop
 	pop	ds
 
 	mov	cr0,eax

@@ -1964,13 +1964,126 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = 0x0F; *o++ = 0xC7; o = minx86enc_encode_memreg(a,o,7);
 			}
 		} break;
-
-#if 0
-   0x104A  67 0F AE 2E             XRSTOR   DS:(WORD*)[ESI]
-   0x104E  67 0F AE 26             XSAVE    DS:(WORD*)[ESI]
-   0x106F  67 0F C7 36             VMPTRLD  DS:(QWORD*)[ESI]
-   0x1073  67 0F C7 3E             VMPTRST  DS:(QWORD*)[ESI]
-#endif
+		case MXOP_CMOVO: case MXOP_CMOVNO: case MXOP_CMOVC:  case MXOP_CMOVNC:
+		case MXOP_CMOVZ: case MXOP_CMOVNZ: case MXOP_CMOVBE: case MXOP_CMOVA:
+		case MXOP_CMOVS: case MXOP_CMOVNS: case MXOP_CMOVP:  case MXOP_CMOVNP:
+		case MXOP_CMOVL: case MXOP_CMOVNL: case MXOP_CMOVNG: case MXOP_CMOVG: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,0);
+				*o++ = 0x0F; *o++ = 0x40+(ins->opcode-MXOP_CMOVO); o = minx86enc_encode_memreg(b,o,a->reg);
+			}
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				*o++ = 0x0F; *o++ = 0x40+(ins->opcode-MXOP_CMOVO); o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+			}
+		} break;
+		case MXOP_F2XM1: {
+			*o++ = 0xD9; *o++ = 0xF0;
+		} break;
+		case MXOP_FABS: {
+			*o++ = 0xD9; *o++ = 0xE1;
+		} break;
+		case MXOP_FCHS: {
+			*o++ = 0xD9; *o++ = 0xE0;
+		} break;
+		case MXOP_FCLEX: {
+			if (ins->fwait) *o++ = 0x9B;
+			*o++ = 0xDB; *o++ = 0xE2;
+		} break;
+		case MXOP_FCOS: {
+			*o++ = 0xD9; *o++ = 0xFF;
+		} break;
+		case MXOP_FDECSTP: {
+			*o++ = 0xD9; *o++ = 0xF6;
+		} break;
+		case MXOP_FDISI: {
+			if (ins->fwait) *o++ = 0x9B;
+			*o++ = 0xDB; *o++ = 0xE1;
+		} break;
+		case MXOP_FENI: {
+			if (ins->fwait) *o++ = 0x9B;
+			*o++ = 0xDB; *o++ = 0xE0;
+		} break;
+		case MXOP_FSETPM: {
+			*o++ = 0xDB; *o++ = 0xE4;
+		} break;
+		case MXOP_FINCSTP: {
+			*o++ = 0xD9; *o++ = 0xF7;
+		} break;
+		case MXOP_FINIT: {
+			if (ins->fwait) *o++ = 0x9B;
+			*o++ = 0xDB; *o++ = 0xE3;
+		} break;
+		case MXOP_FLD1: {
+			*o++ = 0xD9; *o++ = 0xE8;
+		} break;
+		case MXOP_FLDL2T: {
+			*o++ = 0xD9; *o++ = 0xE9;
+		} break;
+		case MXOP_FLDL2E: {
+			*o++ = 0xD9; *o++ = 0xEA;
+		} break;
+		case MXOP_FLDPI: {
+			*o++ = 0xD9; *o++ = 0xEB;
+		} break;
+		case MXOP_FLDLG2: {
+			*o++ = 0xD9; *o++ = 0xEC;
+		} break;
+		case MXOP_FLDLN2: {
+			*o++ = 0xD9; *o++ = 0xED;
+		} break;
+		case MXOP_FLDZ: {
+			*o++ = 0xD9; *o++ = 0xEE;
+		} break;
+		case MXOP_FNOP: {
+			*o++ = 0xD9; *o++ = 0xD0;
+		} break;
+		case MXOP_FPATAN: {
+			*o++ = 0xD9; *o++ = 0xF3;
+		} break;
+		case MXOP_FPREM: {
+			*o++ = 0xD9; *o++ = 0xF8;
+		} break;
+		case MXOP_FPREM1: {
+			*o++ = 0xD9; *o++ = 0xF5;
+		} break;
+		case MXOP_FPTAN: {
+			*o++ = 0xD9; *o++ = 0xF2;
+		} break;
+		case MXOP_FRNDINT: {
+			*o++ = 0xD9; *o++ = 0xFC;
+		} break;
+		case MXOP_FSCALE: {
+			*o++ = 0xD9; *o++ = 0xFD;
+		} break;
+		case MXOP_FSIN: {
+			*o++ = 0xD9; *o++ = 0xFE;
+		} break;
+		case MXOP_FSINCOS: {
+			*o++ = 0xD9; *o++ = 0xFB;
+		} break;
+		case MXOP_FSQRT: {
+			*o++ = 0xD9; *o++ = 0xFA;
+		} break;
+		case MXOP_FTST: {
+			*o++ = 0xD9; *o++ = 0xE4;
+		} break;
+		case MXOP_FUCOMPP: {
+			*o++ = 0xDA; *o++ = 0xE9;
+		} break;
+		case MXOP_FXAM: {
+			*o++ = 0xD9; *o++ = 0xE5;
+		} break;
+		case MXOP_FXTRACT: {
+			*o++ = 0xD9; *o++ = 0xF4;
+		} break;
+		case MXOP_FYL2X: {
+			*o++ = 0xD9; *o++ = 0xF1;
+		} break;
+		case MXOP_FYL2XP1: {
+			*o++ = 0xD9; *o++ = 0xF9;
+		} break;
 	}
 
 	est->write_ip = o;

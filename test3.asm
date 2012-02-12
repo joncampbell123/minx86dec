@@ -349,6 +349,37 @@ call1:	call	dword call1			; E8 id              CALL rel32
 	clts					; 0F 06              CLTS
 	cmc					; F5                 CMC
 
+        cmovo   cx,ax                           ; 0F 40 /r           CMOVO
+        cmovno  cx,ax                           ; 0F 41 /r           CMOVNO
+        cmovnae cx,ax                           ; 0F 42 /r           CMOVNAE
+        cmovc   cx,ax                           ; 0F 42 /r           CMOVC
+        cmovb   cx,ax                           ; 0F 42 /r           CMOVB
+        cmovnb  cx,ax                           ; 0F 43 /r           CMOVNB
+        cmovnc  cx,ax                           ; 0F 43 /r           CMOVNC
+        cmovae  cx,ax                           ; 0F 43 /r           CMOVAE
+        cmovz   cx,ax                           ; 0F 44 /r           CMOVZ
+        cmove   cx,ax                           ; 0F 44 /r           CMOVE
+        cmovnz  cx,ax                           ; 0F 45 /r           CMOVNZ
+        cmovne  cx,ax                           ; 0F 45 /r           CMOVNE
+        cmovbe  cx,ax                           ; 0F 46 /r           CMOVBE
+        cmovna  cx,ax                           ; 0F 46 /r           CMOVNA
+        cmova   cx,ax                           ; 0F 47 /r           CMOVA
+        cmovnbe cx,ax                           ; 0F 47 /r           CMOVNBE
+        cmovs   cx,ax                           ; 0F 48 /r           CMOVS
+        cmovns  cx,ax                           ; 0F 49 /r           CMOVNS
+        cmovp   cx,ax                           ; 0F 4A /r           CMOVP
+        cmovpe  cx,ax                           ; 0F 4A /r           CMOVPE
+        cmovpo  cx,ax                           ; 0F 4B /r           CMOVPO
+        cmovnp  cx,ax                           ; 0F 4B /r           CMOVNP
+        cmovnge cx,ax                           ; 0F 4C /r           CMOVNGE
+        cmovl   cx,ax                           ; 0F 4C /r           CMOVL
+        cmovge  cx,ax                           ; 0F 4D /r           CMOVGE
+        cmovnl  cx,ax                           ; 0F 4D /r           CMOVNL
+        cmovle  cx,ax                           ; 0F 4E /r           CMOVLE
+        cmovng  cx,ax                           ; 0F 4E /r           CMOVNG
+        cmovnle cx,ax                           ; 0F 4F /r           CMOVNLE
+        cmovg   cx,ax                           ; 0F 4F /r           CMOVG
+
         cmovo   cx,[bx+si]                      ; 0F 40 /r           CMOVO
         cmovno  cx,[bx+si]                      ; 0F 41 /r           CMOVNO
         cmovnae cx,[bx+si]                      ; 0F 42 /r           CMOVNAE
