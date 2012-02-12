@@ -1667,12 +1667,17 @@ bits 16
         vblendps xmm1,xmm2,xmm3,4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
         vblendps xmm1,xmm2,[si],4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
         vblendvpd xmm1,xmm2,xmm3,xmm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
+        vblendvpd xmm1,xmm2,[si],xmm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
         vblendvps xmm1,xmm2,xmm3,xmm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
+        vblendvps xmm1,xmm2,[si],xmm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
 
         vblendpd ymm1,ymm2,ymm3,4			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
         vblendps ymm1,ymm2,ymm3,4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+        vblendps ymm1,ymm2,[si],4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
         vblendvpd ymm1,ymm2,ymm3,ymm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
+        vblendvpd ymm1,ymm2,[si],ymm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
         vblendvps ymm1,ymm2,ymm3,ymm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
+        vblendvps ymm1,ymm2,[si],ymm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
 
 	vbroadcastss xmm1,[esi]
 	vbroadcastss ymm1,[esi]
