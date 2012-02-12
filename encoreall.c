@@ -288,7 +288,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				int32_t delta = (int32_t)(a->value - est->ip_value),extra = (int32_t)(o - est->started_here);
 				/* if it's small enough, encode as single-byte JMP */
 				if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
-					{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0xEB; *o++ = (uint8_t)(delta-(2+extra)); }
+					{ /*o = minx86enc_32_overrides(a,est,o,1);*/ *o++ = 0xEB; *o++ = (uint8_t)(delta-(2+extra)); }
 				/* if the encoding is for 32-bit mode, OR the delta is too large for 16-bit mode: */
 				else if (est->addr32 || !((delta-(5+extra)) >= -0x8000 && (delta-(5+extra)) < 0x8000))
 					{ if (!est->addr32) { *o++ = 0x66; extra++; }; *o++ = 0xE9; *((uint32_t*)o) = (uint32_t)(delta-(5+extra)); o += 4; }
@@ -332,7 +332,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				/* no such thing as single-byte CALL. */
 				/* if the encoding is for 32-bit mode, OR the delta is too large for 16-bit mode: */
 				if (est->addr32 || !((delta-(5+extra)) >= -0x8000 && (delta-(5+extra)) < 0x8000))
-					{ if (!est->addr32) { *o++ = 0x66; extra++; }; *o++ = 0xE8; *((uint32_t*)o) = (uint32_t)(delta-(5+extra)); o += 4; }
+					{ if (!est->addr32) { *o++ = 0x66; extra++;}; *o++ = 0xE8; *((uint32_t*)o) = (uint32_t)(delta-(5+extra)); o += 4; }
 				else
 					{ *o++ = 0xE8; *((uint16_t*)o) = (uint16_t)(delta-(3+extra)); o += 2; }
 			}
@@ -1394,12 +1394,12 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			int32_t delta = (int32_t)(a->value - est->ip_value),extra = (int32_t)(o - est->started_here);
 			/* if it's small enough, encode as single-byte JMP */
 			if ((delta-(2+extra)) >= -0x80 && (delta-(2+extra)) < 0x80)
-				{ o = minx86enc_32_overrides(a,est,o,1); *o++ = 0x70+(ins->opcode-MXOP_JO); *o++ = (uint8_t)(delta-(2+extra)); }
+				{ /*o = minx86enc_32_overrides(a,est,o,1);*/ *o++ = 0x70+(ins->opcode-MXOP_JO); *o++ = (uint8_t)(delta-(2+extra)); }
 			/* if the encoding is for 32-bit mode, OR the delta is too large for 16-bit mode: */
 			else if (est->addr32 || !((delta-(5+extra)) >= -0x8000 && (delta-(5+extra)) < 0x8000))
-				{ if (!est->addr32) { *o++ = 0x66; extra++; }; *o++ = 0x0F; *o++ = 0x80+(ins->opcode-MXOP_JO); *((uint32_t*)o) = (uint32_t)(delta-(5+extra)); o += 4; }
+				{ if (!est->addr32) { *o++ = 0x66; extra++; }; *o++ = 0x0F; *o++ = 0x80+(ins->opcode-MXOP_JO); *((uint32_t*)o) = (uint32_t)(delta-(6+extra)); o += 4; }
 			else
-				{ *o++ = 0x0F; *o++ = 0x80+(ins->opcode-MXOP_JO); *((uint16_t*)o) = (uint16_t)(delta-(3+extra)); o += 2; }
+				{ *o++ = 0x0F; *o++ = 0x80+(ins->opcode-MXOP_JO); *((uint16_t*)o) = (uint16_t)(delta-(4+extra)); o += 2; }
 		} break;
 		case MXOP_JCXZ: {
 			struct minx86dec_argv *a=&ins->argv[0];
@@ -1597,7 +1597,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (a->regtype == MX86_RT_NONE) {
 				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
-				o = minx86enc_32_overrides(a,est,o,0);
+				o = minx86enc_32_overrides(a,est,o,ins->data32);
 				*o++ = 0x0F; *o++ = 0x01; o = minx86enc_encode_memreg(a,o,2);
 			}
 		} break;
@@ -1605,7 +1605,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (a->regtype == MX86_RT_NONE) {
 				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
-				o = minx86enc_32_overrides(a,est,o,0);
+				o = minx86enc_32_overrides(a,est,o,ins->data32);
 				*o++ = 0x0F; *o++ = 0x01; o = minx86enc_encode_memreg(a,o,3);
 			}
 		} break;
@@ -1649,7 +1649,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (a->regtype == MX86_RT_NONE) {
 				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
-				o = minx86enc_32_overrides(a,est,o,0);
+				o = minx86enc_32_overrides(a,est,o,ins->data32);
 				*o++ = 0x0F; *o++ = 0x01; o = minx86enc_encode_memreg(a,o,0);
 			}
 		} break;
@@ -1657,7 +1657,7 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (a->regtype == MX86_RT_NONE) {
 				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
-				o = minx86enc_32_overrides(a,est,o,0);
+				o = minx86enc_32_overrides(a,est,o,ins->data32);
 				*o++ = 0x0F; *o++ = 0x01; o = minx86enc_encode_memreg(a,o,1);
 			}
 		} break;
@@ -1719,6 +1719,34 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			else if (a->regtype == MX86_RT_REG) {
 				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
 				*o++ = 0x0F; *o++ = 0x00; o = minx86enc_encode_rm_reg(a,5,a->reg,o);
+			}
+		} break;
+		case MXOP_LSL: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			/* there is no byte-size versionm and there is no version that writes the result to memory */
+
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0x03; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+			}
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,1);
+				*o++ = 0x0F; *o++ = 0x03; o = minx86enc_encode_memreg(b,o,a->reg);
+			}
+		} break;
+		case MXOP_LAR: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			/* there is no byte-size versionm and there is no version that writes the result to memory */
+
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0x02; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+			}
+			else if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,1);
+				*o++ = 0x0F; *o++ = 0x02; o = minx86enc_encode_memreg(b,o,a->reg);
 			}
 		} break;
 

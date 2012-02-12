@@ -77,9 +77,13 @@ _start:
 	bound	cx,[eax+ebx+3]
 	bound	esi,[ebx+42h]
 	lgdt	[si+2]
-	lidt	[di-4]
 	lgdt	[bx+si+42]
+	lgdt	[eax]
+	o32 lgdt [si]
+	lidt	[di-4]
 	lidt	[bx+di]
+	lidt	[ecx]
+	o32 lidt [si]
 	lldt	ax
 	lldt	[bx]
 	lmsw	ax
@@ -88,13 +92,20 @@ _start:
 	lsl	ax,bx
 	lsl	bx,[si]
 	lsl	bx,[si+bx]
+	lsl	eax,bx
+	lsl	ebx,[si]
+	lsl	ebx,[si+bx]
 	ltr	ax
 	ltr	bx
 	ltr	[bx+si]
 	sgdt	[si+2]
-	sidt	[di-4]
 	sgdt	[bx+si+42]
+	sgdt	[esi]
+	o32 sgdt [si]
+	sidt	[di-4]
 	sidt	[bx+di]
+	sidt	[ebx]
+	o32 sidt [si]
 	sldt	ax
 	sldt	[bx]
 	str	ax
