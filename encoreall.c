@@ -2087,6 +2087,319 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_PAUSE: {
 			*o++ = 0xF3; *o++ = 0x90;
 		} break;
+		case MXOP_FLD: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				if (a->size == 10) {
+					*o++ = 0xDB;
+					o = minx86enc_encode_memreg(a,o,5);
+				}
+				else if (a->size == 8) {
+					*o++ = 0xDD;
+					o = minx86enc_encode_memreg(a,o,0);
+				}
+				else {
+					*o++ = 0xD9;
+					o = minx86enc_encode_memreg(a,o,0);
+				}
+			}
+			else if (a->regtype == MX86_RT_ST) {
+				*o++ = 0xD9;
+				o = minx86enc_encode_rm_reg(a,0,a->reg,o);
+			}
+		} break;
+		case MXOP_FADD: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				/* NTS: You can fadd st0,st<N> or fadd st<N>,st0 but you can't do any other combination */
+				if (a->reg != 0) {
+					*o++ = 0xDC; o = minx86enc_encode_rm_reg(a,0,a->reg,o);
+				}
+				else if (b->reg != 0) {
+					*o++ = 0xD8; o = minx86enc_encode_rm_reg(a,0,b->reg,o);
+				}
+			}
+			else if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_NONE) {
+				/* NTS: The decoder puts st(0) in the first argv for explanatory reasons, else
+				 *      you would be wondering what FADD is adding to */
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,0);
+				*o++ = (b->size >= 8 ? 0xDC : 0xD8); o = minx86enc_encode_memreg(b,o,0);
+			}
+		} break;
+		case MXOP_FMUL: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				/* NTS: You can fadd st0,st<N> or fadd st<N>,st0 but you can't do any other combination */
+				if (a->reg != 0) {
+					*o++ = 0xDC; o = minx86enc_encode_rm_reg(a,1,a->reg,o);
+				}
+				else if (b->reg != 0) {
+					*o++ = 0xD8; o = minx86enc_encode_rm_reg(a,1,b->reg,o);
+				}
+			}
+			else if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_NONE) {
+				/* NTS: The decoder puts st(0) in the first argv for explanatory reasons, else
+				 *      you would be wondering what FADD is adding to */
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,0);
+				*o++ = (b->size >= 8 ? 0xDC : 0xD8); o = minx86enc_encode_memreg(b,o,1);
+			}
+		} break;
+		case MXOP_FCOM: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				/* NTS: You can fadd st0,st<N> or fadd st<N>,st0 but you can't do any other combination */
+				if (a->reg != 0) {
+					*o++ = 0xDC; o = minx86enc_encode_rm_reg(a,2,a->reg,o);
+				}
+				else if (b->reg != 0) {
+					*o++ = 0xD8; o = minx86enc_encode_rm_reg(a,2,b->reg,o);
+				}
+			}
+			else if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_NONE) {
+				/* NTS: The decoder puts st(0) in the first argv for explanatory reasons, else
+				 *      you would be wondering what FADD is adding to */
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,0);
+				*o++ = (b->size >= 8 ? 0xDC : 0xD8); o = minx86enc_encode_memreg(b,o,2);
+			}
+		} break;
+		case MXOP_FCOMP: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				/* NTS: You can fadd st0,st<N> or fadd st<N>,st0 but you can't do any other combination */
+				if (a->reg != 0) {
+					*o++ = 0xDC; o = minx86enc_encode_rm_reg(a,3,a->reg,o);
+				}
+				else if (b->reg != 0) {
+					*o++ = 0xD8; o = minx86enc_encode_rm_reg(a,3,b->reg,o);
+				}
+			}
+			else if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_NONE) {
+				/* NTS: The decoder puts st(0) in the first argv for explanatory reasons, else
+				 *      you would be wondering what FADD is adding to */
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,0);
+				*o++ = (b->size >= 8 ? 0xDC : 0xD8); o = minx86enc_encode_memreg(b,o,3);
+			}
+		} break;
+		case MXOP_FSUB: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				/* NTS: You can fadd st0,st<N> or fadd st<N>,st0 but you can't do any other combination */
+				if (a->reg != 0) {
+					*o++ = 0xDC; o = minx86enc_encode_rm_reg(a,4,a->reg,o);
+				}
+				else if (b->reg != 0) {
+					*o++ = 0xD8; o = minx86enc_encode_rm_reg(a,4,b->reg,o);
+				}
+			}
+			else if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_NONE) {
+				/* NTS: The decoder puts st(0) in the first argv for explanatory reasons, else
+				 *      you would be wondering what FADD is adding to */
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,0);
+				*o++ = (b->size >= 8 ? 0xDC : 0xD8); o = minx86enc_encode_memreg(b,o,4);
+			}
+		} break;
+		case MXOP_FSUBR: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				/* NTS: You can fadd st0,st<N> or fadd st<N>,st0 but you can't do any other combination */
+				if (a->reg != 0) {
+					*o++ = 0xDC; o = minx86enc_encode_rm_reg(a,5,a->reg,o);
+				}
+				else if (b->reg != 0) {
+					*o++ = 0xD8; o = minx86enc_encode_rm_reg(a,5,b->reg,o);
+				}
+			}
+			else if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_NONE) {
+				/* NTS: The decoder puts st(0) in the first argv for explanatory reasons, else
+				 *      you would be wondering what FADD is adding to */
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,0);
+				*o++ = (b->size >= 8 ? 0xDC : 0xD8); o = minx86enc_encode_memreg(b,o,5);
+			}
+		} break;
+		case MXOP_FDIV: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				/* NTS: You can fadd st0,st<N> or fadd st<N>,st0 but you can't do any other combination */
+				if (a->reg != 0) {
+					*o++ = 0xDC; o = minx86enc_encode_rm_reg(a,6,a->reg,o);
+				}
+				else if (b->reg != 0) {
+					*o++ = 0xD8; o = minx86enc_encode_rm_reg(a,6,b->reg,o);
+				}
+			}
+			else if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_NONE) {
+				/* NTS: The decoder puts st(0) in the first argv for explanatory reasons, else
+				 *      you would be wondering what FADD is adding to */
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,0);
+				*o++ = (b->size >= 8 ? 0xDC : 0xD8); o = minx86enc_encode_memreg(b,o,6);
+			}
+		} break;
+		case MXOP_FDIVR: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				/* NTS: You can fadd st0,st<N> or fadd st<N>,st0 but you can't do any other combination */
+				if (a->reg != 0) {
+					*o++ = 0xDC; o = minx86enc_encode_rm_reg(a,7,a->reg,o);
+				}
+				else if (b->reg != 0) {
+					*o++ = 0xD8; o = minx86enc_encode_rm_reg(a,7,b->reg,o);
+				}
+			}
+			else if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_NONE) {
+				/* NTS: The decoder puts st(0) in the first argv for explanatory reasons, else
+				 *      you would be wondering what FADD is adding to */
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,0);
+				*o++ = (b->size >= 8 ? 0xDC : 0xD8); o = minx86enc_encode_memreg(b,o,7);
+			}
+		} break;
+		case MXOP_FST: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0xD9; o = minx86enc_encode_memreg(a,o,2);
+			}
+		} break;
+		case MXOP_FSTP: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0xD9; o = minx86enc_encode_memreg(a,o,3);
+			}
+		} break;
+		case MXOP_FLDENV: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0xD9; o = minx86enc_encode_memreg(a,o,4);
+			}
+		} break;
+		case MXOP_FLDCW: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0xD9; o = minx86enc_encode_memreg(a,o,5);
+			}
+		} break;
+		case MXOP_FSTENV: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0xD9; o = minx86enc_encode_memreg(a,o,6);
+			}
+		} break;
+		case MXOP_FSTCW: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,0);
+				*o++ = 0xD9; o = minx86enc_encode_memreg(a,o,7);
+			}
+		} break;
+		case MXOP_FADDP: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				*o++ = 0xDE; o = minx86enc_encode_rm_reg(a,0,a->reg,o);
+			}
+		} break;
+		case MXOP_FDIVP: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				*o++ = 0xDE; o = minx86enc_encode_rm_reg(a,6,a->reg,o);
+			}
+		} break;
+		case MXOP_FDIVRP: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				*o++ = 0xDE; o = minx86enc_encode_rm_reg(a,7,a->reg,o);
+			}
+		} break;
+		case MXOP_FMULP: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				*o++ = 0xDE; o = minx86enc_encode_rm_reg(a,1,a->reg,o);
+			}
+		} break;
+		case MXOP_FSUBRP: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				*o++ = 0xDE; o = minx86enc_encode_rm_reg(a,5,a->reg,o);
+			}
+		} break;
+		case MXOP_FSUBP: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
+				*o++ = 0xDE; o = minx86enc_encode_rm_reg(a,4,a->reg,o);
+			}
+		} break;
+		case MXOP_ADDPD: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (ins->argc == 3) { /* Intel AVX form using ymm1, etc. */
+				struct minx86dec_argv *c=&ins->argv[2];
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_SSE) {
+					/* NTS: VEX pp=1 l=<YMM/XMM> w=1 v=b->reg */
+					*o++ = 0xC5; *o++ = 0xC1+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x58; o = minx86enc_encode_rm_reg(a,a->reg,c->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(c,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(c,est,o,0);
+					*o++ = 0xC5; *o++ = 0xC1+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x58; o = minx86enc_encode_memreg(c,o,a->reg);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					*o++ = 0x66; *o++ = 0x0F; *o++ = 0x58; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(b,est,o,1);
+					*o++ = 0x0F; *o++ = 0x58; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+		} break;
+		case MXOP_ADDPS: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (ins->argc == 3) { /* Intel AVX form using ymm1, etc. */
+				struct minx86dec_argv *c=&ins->argv[2];
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_SSE) {
+					/* NTS: VEX pp=0 l=<YMM/XMM> w=1 v=b->reg */
+					*o++ = 0xC5; *o++ = 0xC0+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x58; o = minx86enc_encode_rm_reg(a,a->reg,c->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(c,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(c,est,o,0);
+					*o++ = 0xC5; *o++ = 0xC0+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0x58; o = minx86enc_encode_memreg(c,o,a->reg);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					*o++ = 0x0F; *o++ = 0x58; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(b,est,o,0);
+					*o++ = 0x0F; *o++ = 0x58; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+		} break;
 	}
 
 	est->write_ip = o;
