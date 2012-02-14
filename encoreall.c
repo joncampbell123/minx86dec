@@ -1482,6 +1482,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_CMPS: {
 			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
 			if (b->regtype == MX86_RT_NONE && a->regtype == MX86_RT_NONE) {
+				if (ins->rep == MX86_REPE) *o++ = 0xF2;
+				else if (ins->rep == MX86_REPNE) *o++ = 0xF3;
 				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
 				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
 				*o++ = 0xA6 + (a->size>=2?1:0);
@@ -1490,6 +1492,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_SCAS: {
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (a->regtype == MX86_RT_NONE) {
+				if (ins->rep == MX86_REPE) *o++ = 0xF2;
+				else if (ins->rep == MX86_REPNE) *o++ = 0xF3;
 				o = minx86enc_seg_overrides_es(a,est,o,ins->segment >= 0);
 				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
 				*o++ = 0xAE + (a->size>=2?1:0);
@@ -1498,6 +1502,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_LODS: {
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (a->regtype == MX86_RT_NONE) {
+				if (ins->rep == MX86_REPE) *o++ = 0xF2;
+				else if (ins->rep == MX86_REPNE) *o++ = 0xF3;
 				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
 				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
 				*o++ = 0xAC + (a->size>=2?1:0);
@@ -1506,6 +1512,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_STOS: {
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (a->regtype == MX86_RT_NONE) {
+				if (ins->rep == MX86_REPE) *o++ = 0xF2;
+				else if (ins->rep == MX86_REPNE) *o++ = 0xF3;
 				o = minx86enc_seg_overrides_es(a,est,o,ins->segment >= 0);
 				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
 				*o++ = 0xAA + (a->size>=2?1:0);
@@ -1514,6 +1522,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_MOVS: {
 			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
 			if (b->regtype == MX86_RT_NONE && a->regtype == MX86_RT_NONE) {
+				if (ins->rep == MX86_REPE) *o++ = 0xF2;
+				else if (ins->rep == MX86_REPNE) *o++ = 0xF3;
 				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
 				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
 				*o++ = 0xA4 + (a->size>=2?1:0);
@@ -1522,6 +1532,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_OUTS: {
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (a->regtype == MX86_RT_NONE) {
+				if (ins->rep == MX86_REPE) *o++ = 0xF2;
+				else if (ins->rep == MX86_REPNE) *o++ = 0xF3;
 				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
 				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
 				*o++ = 0x6E + (a->size>=2?1:0);
@@ -1530,6 +1542,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_INS: {
 			struct minx86dec_argv *a=&ins->argv[0];
 			if (a->regtype == MX86_RT_NONE) {
+				if (ins->rep == MX86_REPE) *o++ = 0xF2;
+				else if (ins->rep == MX86_REPNE) *o++ = 0xF3;
 				o = minx86enc_seg_overrides_es(a,est,o,ins->segment >= 0);
 				o = minx86enc_32_overrides(a,est,o,a->size>=2?1:0);
 				*o++ = 0x6C + (a->size>=2?1:0);
