@@ -1390,6 +1390,24 @@ prefetchnta	[esi]				; 0F 18 /0
         rcl	ebx,1				; D1 /2
         rcl	ebx,cl				; D3 /2
         rcl	ebx,3				; C1 /2 ib
+	rcl	byte [si],1
+	rcl	byte [eax],1
+	rcl	word [si],1
+	rcl	word [eax],1
+	rcl	dword [si],1
+	rcl	dword [eax],1
+	rcl	byte [si],cl
+	rcl	byte [eax],cl
+	rcl	word [si],cl
+	rcl	word [eax],cl
+	rcl	dword [si],cl
+	rcl	dword [eax],cl
+	rcl	byte [si],4
+	rcl	byte [eax],4
+	rcl	word [si],4
+	rcl	word [eax],4
+	rcl	dword [si],4
+	rcl	dword [eax],4
 
 	rcr	bh,1				; D0 /3
         rcr	bh,cl				; D2 /3
@@ -1400,6 +1418,25 @@ prefetchnta	[esi]				; 0F 18 /0
         rcr	ebx,1				; D1 /3
         rcr	ebx,cl				; D3 /3
         rcr	ebx,3				; C1 /3 ib
+	rcr	byte [si],1
+	rcr	byte [eax],1
+	rcr	word [si],1
+	rcr	word [eax],1
+	rcr	dword [si],1
+	rcr	dword [eax],1
+	rcr	byte [si],cl
+	rcr	byte [eax],cl
+	rcr	word [si],cl
+	rcr	word [eax],cl
+	rcr	dword [si],cl
+	rcr	dword [eax],cl
+	rcr	byte [si],4
+	rcr	byte [eax],4
+	rcr	word [si],4
+	rcr	word [eax],4
+	rcr	dword [si],4
+	rcr	dword [eax],4
+
       rcpps	xmm1,xmm2			;    0F 53 /r
       rcpss	xmm1,xmm2			; F3 0F 53 /r
       rdmsr					; 0F 32
