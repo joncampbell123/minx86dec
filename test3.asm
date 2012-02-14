@@ -973,9 +973,13 @@ l4:
 	movhps	xmm1,[ebx]			; 0F 16 /r
 	movhps	[ebx],xmm1			; 0F 17 /r
 	movlhps	xmm1,xmm2			; 0F 16 /r
+	movlpd	xmm1,[si]
 	movlpd	xmm1,[ebx]			; 66 0F 12 /r
+	movlpd	[si],xmm1
 	movlpd	[ebx],xmm1			; 66 0F 13 /r
+	movlps	xmm1,[si]
 	movlps	xmm1,[ebx]			; 0F 12 /r
+	movlps	[si],xmm1
 	movlps	[ebx],xmm1			; 0F 13 /r
       movmskpd	eax,xmm1			; 66 0F 50 /r
       movmskpd	ebx,xmm6			; 66 0F 50 /r
