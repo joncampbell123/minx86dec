@@ -687,7 +687,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 								if (!v.f.l) {
 									ARGV *d=&ins->argv[0],*s=&ins->argv[1];
 									ins->opcode=MXOP_COMISS+(dataprefix32?1:0);
-									ins->argc = 2; d->size = s->size = 16;
+									ins->argc = 2; d->size = s->size = (dataprefix32?8:4);
 									INS_MRM mrm = decode_rm_ex_(s,ins,s->size,
 										PLUSR_TRANSFORM,MX86_RT_SSE);
 									set_sse_register(d,mrm.f.reg);

@@ -498,7 +498,11 @@ call1:	call	dword call1			; E8 id              CALL rel32
   cmpxchg8b	[ebx]				; 0F C7 /1           CMPXCHG8B
 
      comisd	xmm1,xmm2			; 66 0F 2F /r        COMISD
+     comisd	xmm1,[si]
+     comisd	xmm1,[eax]
      comiss	xmm1,xmm2			; 0F 2F /r           COMISS
+     comiss	xmm1,[si]
+     comiss	xmm1,[eax]
      
       cpuid
 
@@ -506,6 +510,10 @@ call1:	call	dword call1			; E8 id              CALL rel32
       crc32	eax,byte [bx+si]		; F2 0F 38 F0 /r     CRC32
       crc32	ebx,word [bx+si]		; F2 0F 38 F0 /r     CRC32
       crc32	ecx,dword [bx+si]		; F2 0F 38 F0 /r     CRC32
+
+      crc32	eax,byte [esi]			; F2 0F 38 F0 /r     CRC32
+      crc32	ebx,word [esi]			; F2 0F 38 F0 /r     CRC32
+      crc32	ecx,dword [esi]			; F2 0F 38 F0 /r     CRC32
 
    cvtdq2pd	xmm1,xmm2			; F3 0F E6
    cvtdq2ps	xmm1,xmm2			; 0F 5B /r
@@ -1779,8 +1787,12 @@ bits 16
 	vdivss	xmm1,xmm2,[eax]
 
         vcomisd	xmm1,xmm2			; 66 0F 2F /r        COMISD
+	vcomisd xmm1,qword [si]
+	vcomisd xmm1,qword [eax]
         vcomiss	xmm1,xmm2			; 0F 2F /r           COMISS
-
+	vcomiss xmm1,dword [si]
+	vcomiss xmm1,dword [eax]
+ 
         vcvtdq2pd xmm1,xmm2			; F3 0F E6
         vcvtdq2ps xmm1,xmm2			; 0F 5B /r
         vcvtpd2dq xmm1,xmm2			; F2 0F E6

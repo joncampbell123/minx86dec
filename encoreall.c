@@ -3124,6 +3124,92 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 			}
 		} break;
+		case MXOP_DIV: {
+			struct minx86dec_argv *a=&ins->argv[0];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+	
+			if (a->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0xF6 + word; o = minx86enc_encode_memreg(a,o,6);
+			}
+			else if (a->regtype == MX86_RT_REG) {
+				o = minx86enc_32_overrides(a,est,o,word);
+				*o++ = 0xF6 + word; o = minx86enc_encode_rm_reg(a,6,a->reg,o);
+			}
+	       	} break;
+		case MXOP_COMISS: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (a->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; }
+
+			if (ins->vex.raw != 0) { /* Intel AVX form using ymm1, etc. */
+				/* FIXME: Ummm..... so the third argument isn't used? Why use the AVX version? I don't understand... */
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					/* NTS: VEX pp=0 l=<YMM/XMM> w=1 v=b->reg */
+					*o++ = 0xC5; *o++ = 0xC0+(7<<3);
+					*o++ = 0x2F; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(b,est,o,0);
+					*o++ = 0xC5; *o++ = 0xC0+(7<<3);
+					*o++ = 0x2F; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					*o++ = 0x0F; *o++ = 0x2F; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(b,est,o,0);
+					*o++ = 0x0F; *o++ = 0x2F; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+		} break;
+		case MXOP_COMISD: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+
+			/* make sure a is r/m and b is reg. ASSUME: both are the same datasize */
+			if (a->regtype == MX86_RT_NONE) { struct minx86dec_argv *t = a; a = b; b = t; }
+
+			if (ins->vex.raw != 0) { /* Intel AVX form using ymm1, etc. */
+				/* FIXME: Ummm..... so the third argument isn't used? Why use the AVX version? I don't understand... */
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					/* NTS: VEX pp=0 l=<YMM/XMM> w=1 v=b->reg */
+					*o++ = 0xC5; *o++ = 0xC1+(7<<3);
+					*o++ = 0x2F; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(b,est,o,0);
+					*o++ = 0xC5; *o++ = 0xC1+(7<<3);
+					*o++ = 0x2F; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					*o++ = 0x66; *o++ = 0x0F; *o++ = 0x2F; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(b,est,o,0);
+					*o++ = 0x66; *o++ = 0x0F; *o++ = 0x2F; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+		} break;
+		case MXOP_CRC32: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (b->size >= 2) ? 1 : 0;
+	
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,word);
+				*o++ = 0xF2; *o++ = 0x0F; *o++ = 0x38; *o++ = 0xF0 + word; o = minx86enc_encode_memreg(b,o,a->reg);
+			}
+		} break;
 	}
 
 	est->write_ip = o;
