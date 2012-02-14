@@ -38,6 +38,10 @@ int main(int argc,char **argv) {
 	}
 
 	minx86dec_init_state(&st);
+	if (argc > 2 && (!strcmp(argv[2],"/32") || !strcmp(argv[2],"-32"))) {
+		st.data32 = st.addr32 = 1;
+		fprintf(stderr,"Warning: This core does not support 32-bit encoding.\n");
+	}
 	minx86dec_set_buffer(&st,buffer,sz);
 
 	while (st.read_ip < st.fence) {

@@ -4,6 +4,13 @@
 ; if they show up on disassembly correctly, we know it's supported.
 org 0
 
+; for testing: we can make 16-bit and 32-bit binaries
+%ifdef B32
+bits 32
+%else
+bits 16
+%endif
+
 ; Requires: NASM 2.09.10
 
 _start:
@@ -244,16 +251,22 @@ _start:
 
       addpd	xmm1,xmm2			; 66 0F 58 /r        ADDPD xmm1, xmm2/m128
       addpd	xmm1,[bx+si]			; 66 0F 58 /r        ADDPD xmm1, xmm2/m128
+      addpd	xmm1,[eax]
       addps	xmm1,xmm2			; 0F 58 /r           ADDPS xmm1, xmm2/m128
       addps	xmm1,[bx+si]			; 0F 58 /r           ADDPS xmm1, xmm2/m128
+      addps	xmm1,[eax]
       addsd	xmm1,xmm2			; F2 0F 58 /r        ADDSD xmm1, xmm2/m128
       addsd	xmm1,[bx+si]			; F2 0F 58 /r        ADDSD xmm1, xmm2/m128
+      addsd	xmm1,[eax]
       addss	xmm1,xmm2			; F3 0F 58 /r        ADDSS xmm1, xmm2/m128
       addss	xmm1,[bx+si]			; F3 0F 58 /r        ADDSS xmm1, xmm2/m128
+      addss	xmm1,[eax]
    addsubpd	xmm1,xmm2			; 66 0F D0 /r        ADDSUBPD xmm1, xmm2/m128
-   addsubpd	xmm1,[bx+si]			; 66 0F D0 /r        ADDSUBPD xmm1, xmm2/m128
+   addsubpd	xmm1,[bx+si]			; 66 0F D0 /r        ADDSUBPD xmm1, xmm2/m128a
+   addsubpd	xmm1,[eax]
    addsubps	xmm1,xmm2			; F2 0F D0 /r        ADDSUBPS xmm1, xmm2/m128
    addsubps	xmm1,[bx+si]			; F2 0F D0 /r        ADDSUBPS xmm1, xmm2/m128
+   addsubps	xmm1,[eax]
 
 	and	al,2				; 24 ib
 	and	ax,1234				; 25 iw
@@ -279,9 +292,17 @@ _start:
 	and	ebx,dword [bx+si+4]		; 23 /r	             AND r32, r/m32
 
       andpd	xmm1,xmm2			; 66 0F 54 /r        ANDPD xmm1, xmm2/m128
+      andpd	xmm1,[bx+si]
+      andpd	xmm1,[eax]
       andps	xmm1,xmm2			; 0F 54 /r           ANDPS xmm1, xmm2/m128
+      andps	xmm1,[bx+si]
+      andps	xmm1,[eax]
      andnpd	xmm1,xmm2			; 66 0F 55 /r        ANDNPD xmm1, xmm2/m128
+     andnpd	xmm1,[bx+si]
+     andnpd	xmm1,[eax]
      andnps	xmm1,xmm2			; 0F 55 /r           ANDNPS xmm1, xmm2/m128
+     andnps	xmm1,[bx+si]
+     andnps	xmm1,[eax]
 
        arpl	ax,bx				; 63 /r              ARPL r/m16, r16
        arpl	[si],bx				; 63 /r              ARPL r/m16, r16
@@ -289,10 +310,16 @@ _start:
 ; THE FOLLOWING INSTRUCTIONS ARE NOT RECOGNIZED UNLESS USING A RECENT NASM
     blendpd	xmm1,xmm2,2			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
     blendpd	xmm1,[si],2			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
+    blendpd	xmm1,[esi],2
     blendps	xmm1,xmm2,3			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
     blendps	xmm1,[si],3			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+    blendps	xmm1,[esi],3
    blendvpd	xmm1,xmm2,xmm0			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
+   blendvpd	xmm1,[si],xmm0
+   blendvpd	xmm1,[esi],xmm0
    blendvps	xmm1,xmm2,xmm0			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
+   blendvps	xmm1,[si],xmm0
+   blendvps	xmm1,[esi],xmm0
 
       bound	ax,[si]				; 62 /r              BOUND r16, m16
       bound	ebx,[eax]			; 62 /r              BOUND r32, m32
@@ -440,8 +467,10 @@ call1:	call	dword call1			; E8 id              CALL rel32
 
       cmppd	xmm1,xmm2,2			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
       cmppd	xmm1,[bx+si],3			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
+      cmppd	xmm1,[eax],3
       cmpps	xmm1,xmm2,4			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
       cmpps	xmm1,[bx+si],5			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
+      cmpps	xmm1,[eax],5
 
       cmpsb					; A6                 CMPSB
       cmpsw					; A7                 CMPSW
@@ -449,8 +478,10 @@ call1:	call	dword call1			; E8 id              CALL rel32
 
       cmpsd	xmm1,xmm2,2			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
       cmpsd	xmm1,[bx+si],3			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
+      cmpsd	xmm1,[eax],3
       cmpss	xmm1,xmm2,4			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
       cmpss	xmm1,[bx+si],5			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
+      cmpss	xmm1,[eax],5
 
     cmpxchg	al,ah				; 0F B0 /r           CMPXCHG
     cmpxchg	[bx+si],cx			; 0F B0 /r           CMPXCHG
@@ -1666,20 +1697,30 @@ bits 16
         vandnps	ymm1,ymm2,ymm3
 
         vblendpd xmm1,xmm2,xmm3,4			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
+	vblendpd xmm1,xmm2,[si],4
+	vblendpd xmm1,xmm2,[esi],4
         vblendps xmm1,xmm2,xmm3,4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
         vblendps xmm1,xmm2,[si],4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+	vblendps xmm1,xmm2,[esi],4
         vblendvpd xmm1,xmm2,xmm3,xmm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
         vblendvpd xmm1,xmm2,[si],xmm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
+	vblendvpd xmm1,xmm2,[esi],xmm4
         vblendvps xmm1,xmm2,xmm3,xmm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
         vblendvps xmm1,xmm2,[si],xmm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
+	vblendvps xmm1,xmm2,[esi],xmm4
 
         vblendpd ymm1,ymm2,ymm3,4			; 66 0F 3A 0D /r ib  BLENDPD xmm1, xmm2/m128, imm8
+	vblendpd ymm1,ymm2,[si],4
+	vblendpd ymm1,ymm2,[esi],4
         vblendps ymm1,ymm2,ymm3,4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
         vblendps ymm1,ymm2,[si],4			; 66 0F 3A 0C /r ib  BLENDPS xmm1, xmm2/m128, imm8
+	vblendps ymm1,ymm2,[esi],4
         vblendvpd ymm1,ymm2,ymm3,ymm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
         vblendvpd ymm1,ymm2,[si],ymm4			; 66 0F 38 15 /r     BLENDVPD xmm1, xmm2/m128, xmm0
+	vblendvpd ymm1,ymm2,[esi],ymm4
         vblendvps ymm1,ymm2,ymm3,ymm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
         vblendvps ymm1,ymm2,[si],ymm4			; 66 0F 38 14 /r     BLENDVPS xmm1, xmm2/m128, xmm0
+	vblendvps ymm1,ymm2,[esi],ymm4
 
 	vbroadcastss xmm1,[esi]
 	vbroadcastss ymm1,[esi]
@@ -1688,18 +1729,24 @@ bits 16
 
         vcmppd	xmm1,xmm2,xmm3,2			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
         vcmppd	xmm1,xmm2,[bx+si],3			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
+	vcmppd	xmm1,xmm2,[eax],3
         vcmpps	xmm1,xmm2,xmm3,4			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
         vcmpps	xmm1,xmm2,[bx+si],5			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
+	vcmpps	xmm1,xmm2,[eax],5
 
         vcmppd	ymm1,ymm2,ymm3,2			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
         vcmppd	ymm1,ymm2,[bx+si],3			; 66 0F C2 /r ib     CMPPD xmm1, xmm2/m128, imm8
+	vcmppd	ymm1,ymm2,[eax],3
         vcmpps	ymm1,ymm2,ymm3,4			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
         vcmpps	ymm1,ymm2,[bx+si],5			; 0F C2 /r ib        CMPPS xmm1, xmm2/m128, imm8
+	vcmpps	ymm1,ymm2,[eax],5
 
         vcmpsd	xmm1,xmm2,xmm3,2			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
         vcmpsd	xmm1,xmm2,[bx+si],3			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
+	vcmpsd	xmm1,xmm2,[eax],4
         vcmpss	xmm1,xmm2,xmm3,4			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
         vcmpss	xmm1,xmm2,[bx+si],5			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
+	vcmpss	xmm1,xmm2,[eax],6
 
         vcomisd	xmm1,xmm2			; 66 0F 2F /r        COMISD
         vcomiss	xmm1,xmm2			; 0F 2F /r           COMISS

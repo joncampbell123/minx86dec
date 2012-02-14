@@ -54,6 +54,9 @@ int main(int argc,char **argv) {
 	minx86dec_set_buffer(&st,buffer,sz);
 	minx86enc_init_state(&est);
 	minx86enc_set_buffer(&est,encoded,sizeof(encoded));
+	if (argc > 2 && (!strcmp(argv[2],"/32") || !strcmp(argv[2],"-32"))) st.data32 = st.addr32 = est.data32 = est.addr32 = 1;
+	else if (argc > 2 && (!strcmp(argv[2],"/16x32") || !strcmp(argv[2],"-16x32"))) { st.data32 = st.addr32 = 0; est.data32 = est.addr32 = 1; }
+	else if (argc > 2 && (!strcmp(argv[2],"/32x16") || !strcmp(argv[2],"-32x16"))) { st.data32 = st.addr32 = 1; est.data32 = est.addr32 = 0; }
 
 	while (st.read_ip < st.fence) {
 		unsigned char mark = 1;
@@ -81,6 +84,8 @@ int main(int argc,char **argv) {
 			rst.read_ip = est.started_here;
 			rst.fence = encoded + sizeof(encoded);
 			rst.prefetch_fence = encoded + sizeof(encoded) - 16;
+			rst.data32 = est.data32;
+			rst.addr32 = est.addr32;
 			minx86dec_decodeall(&rst,&i);
 			printf("    ->> ");
 			for (c=0,iptr=i.start;iptr != i.end;c++)
