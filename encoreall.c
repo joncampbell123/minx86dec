@@ -2825,6 +2825,64 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = (unsigned char)(b->value);
 			}
 		} break;
+		case MXOP_CMPPD: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1],*c=&ins->argv[2];
+			if (ins->argc == 4) {
+				struct minx86dec_argv *d=&ins->argv[3];
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_SSE && d->regtype == MX86_RT_IMM) {
+					*o++ = 0xC5; *o++ = 0xC1+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0xC2; o = minx86enc_encode_rm_reg(a,a->reg,c->reg,o);
+					*o++ = (unsigned char)(d->value);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_NONE && d->regtype == MX86_RT_IMM) {
+					*o++ = 0xC5; *o++ = 0xC1+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0xC2; o = minx86enc_encode_memreg(c,o,a->reg);
+					*o++ = (unsigned char)(d->value);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_IMM) {
+					o = minx86enc_32_overrides(a,est,o,1);
+					*o++ = 0x0F; *o++ = 0xC2; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+					*o++ = (unsigned char)(c->value);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE && c->regtype == MX86_RT_IMM) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(a,est,o,1);
+					*o++ = 0x0F; *o++ = 0xC2; o = minx86enc_encode_memreg(b,o,a->reg);
+					*o++ = (unsigned char)(c->value);
+				}
+			}
+		} break;
+		case MXOP_CMPPS: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1],*c=&ins->argv[2];
+			if (ins->argc == 4) {
+				struct minx86dec_argv *d=&ins->argv[3];
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_SSE && d->regtype == MX86_RT_IMM) {
+					*o++ = 0xC5; *o++ = 0xC0+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0xC2; o = minx86enc_encode_rm_reg(a,a->reg,c->reg,o);
+					*o++ = (unsigned char)(d->value);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_NONE && d->regtype == MX86_RT_IMM) {
+					*o++ = 0xC5; *o++ = 0xC0+((b->reg^7)<<3)+(a->size==32?4:0);
+					*o++ = 0xC2; o = minx86enc_encode_memreg(c,o,a->reg);
+					*o++ = (unsigned char)(d->value);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE && c->regtype == MX86_RT_IMM) {
+					*o++ = 0x0F; *o++ = 0xC2; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+					*o++ = (unsigned char)(c->value);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE && c->regtype == MX86_RT_IMM) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					*o++ = 0x0F; *o++ = 0xC2; o = minx86enc_encode_memreg(b,o,a->reg);
+					*o++ = (unsigned char)(c->value);
+				}
+			}
+		} break;
+
+
 	}
 
 	est->write_ip = o;
