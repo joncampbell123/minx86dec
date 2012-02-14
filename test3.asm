@@ -483,6 +483,13 @@ call1:	call	dword call1			; E8 id              CALL rel32
       cmpss	xmm1,[bx+si],5			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
       cmpss	xmm1,[eax],5
 
+      divsd	xmm1,xmm2			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
+      divsd	xmm1,[bx+si]			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
+      divsd	xmm1,[eax]
+      divss	xmm1,xmm2			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
+      divss	xmm1,[bx+si]			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
+      divss	xmm1,[eax]
+
     cmpxchg	al,ah				; 0F B0 /r           CMPXCHG
     cmpxchg	[bx+si],cx			; 0F B0 /r           CMPXCHG
     cmpxchg     [ebx],esi			; 0F B0 /r           CMPXCHG
@@ -553,10 +560,18 @@ call1:	call	dword call1			; E8 id              CALL rel32
 	div	dword [esi]			; F7 /6
 
       divpd	xmm1,xmm2			; 66 0F 5E /r
+      divpd	xmm1,[si]
+      divpd	xmm1,[eax]
       divps	xmm1,xmm2			;    0F 5E /r
+      divps     xmm1,[si]
+      divps	xmm1,[eax]
       divsd	xmm1,xmm2			; F2 0F 5E /r
+      divsd     xmm1,[si]
+      divsd	xmm1,[eax]
       divss	xmm1,xmm2			; F3 0F 5E /r
-
+      divss     xmm1,[si]
+      divss	xmm1,[eax]
+ 
        dppd	xmm1,xmm2,1			; 66 0F 3A 41 /r ib
        dppd	xmm2,xmm3,4			; 66 0F 3A 41 /r ib
        dpps	xmm1,xmm2,2			; 66 0F 3A 40 /r ib
@@ -1536,7 +1551,11 @@ prefetchnta	[esi]				; 0F 18 /0
 ; the instruction is not valid in 16- and 32-bit modes, so we have to tell NASM we're assembling 64-bit here.
 bits 64
      swapgs					; 0F 01 /7
+%ifdef B32
+bits 32
+%else
 bits 16
+%endif
 
     syscall					; 0F 05
    sysenter					; 0F 34
@@ -1752,6 +1771,13 @@ bits 16
         vcmpss	xmm1,xmm2,[bx+si],5			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
 	vcmpss	xmm1,xmm2,[eax],6
 
+        vdivsd	xmm1,xmm2,xmm3				; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
+        vdivsd	xmm1,xmm2,[bx+si]			; F2 0F C2 /r ib     CMPSD xmm1, xmm2/m128, imm8
+	vdivsd	xmm1,xmm2,[eax]
+        vdivss	xmm1,xmm2,xmm3				; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
+        vdivss	xmm1,xmm2,[bx+si]			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
+	vdivss	xmm1,xmm2,[eax]
+
         vcomisd	xmm1,xmm2			; 66 0F 2F /r        COMISD
         vcomiss	xmm1,xmm2			; 0F 2F /r           COMISS
 
@@ -1791,12 +1817,24 @@ bits 16
         vcvttss2si	eax,xmm1			; F3 0F 2C /r
 
         vdivpd	xmm1,xmm2,xmm3			; 66 0F 5E /r
+	vdivpd	xmm1,xmm2,[si]
+	vdivpd	xmm1,xmm2,[eax]
         vdivps	xmm1,xmm2,xmm3			;    0F 5E /r
+	vdivps	xmm1,xmm2,[si]
+	vdivps	xmm1,xmm2,[eax]
         vdivsd	xmm1,xmm2,xmm3			; F2 0F 5E /r
+	vdivsd	xmm1,xmm2,[si]
+	vdivsd	xmm1,xmm2,[eax]
         vdivss	xmm1,xmm2,xmm3			; F3 0F 5E /r
+	vdivss	xmm1,xmm2,[si]
+	vdivss	xmm1,xmm2,[eax]
         vdivpd	ymm1,ymm2,ymm3			; 66 0F 5E /r
+	vdivpd	ymm1,ymm2,[si]
+	vdivpd	ymm1,ymm2,[eax]
         vdivps	ymm1,ymm2,ymm3			;    0F 5E /r
-
+	vdivps	ymm1,ymm2,[si]
+	vdivps	ymm1,ymm2,[eax]
+ 
         vdppd	xmm1,xmm2,xmm3,1			; 66 0F 3A 41 /r ib
         vdppd	xmm1,xmm2,xmm3,4			; 66 0F 3A 41 /r ib
         vdpps	xmm1,xmm2,xmm3,2			; 66 0F 3A 40 /r ib

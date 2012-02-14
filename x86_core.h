@@ -753,7 +753,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 						} break;
 						case 0x5E: {
 							ARGV *d = &ins->argv[0],*s1 = &ins->argv[1],*s2 = &ins->argv[2];
-							ins->argc=2; d->size=s1->size=s2->size=vector_size;
+							ins->argc=3; d->size=s1->size=s2->size=vector_size;
 							if (ins->rep >= MX86_REPE) ins->opcode=MXOP_DIVSD+ins->rep-MX86_REPE;
 							else if (dataprefix32) ins->opcode=MXOP_DIVPD;
 							else ins->opcode = MXOP_DIVPS;
