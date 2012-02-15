@@ -1679,11 +1679,15 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 # if core_level >= 5 && sse_level >= 1
 			case 0x2A: {
 				ARGV *d = &ins->argv[0],*s = &ins->argv[1]; ins->argc = 2; d->size = 16; INS_MRM mrm;
-				if (ins->rep >= MX86_REPE)
-					{ins->opcode=(ins->rep==MX86_REPNE)?MXOP_CVTSI2SS:MXOP_CVTSI2SD; s->size = 4; }
-				else
-					{ ins->opcode = MXOP_CVTPI2PS + (dataprefix32 & 1); s->size = 8; }
-				mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_sse_register(d,mrm.f.reg);
+				if (ins->rep >= MX86_REPE) {
+					ins->opcode=(ins->rep==MX86_REPNE)?MXOP_CVTSI2SS:MXOP_CVTSI2SD; s->size = 4;
+					mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM);
+				}
+				else {
+					ins->opcode = MXOP_CVTPI2PS + (dataprefix32 & 1); s->size = 8;
+					mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_MMX);
+				}
+				set_sse_register(d,mrm.f.reg);
 			} break;
 # endif
 # if core_level >= 5 && sse_level >= 2
