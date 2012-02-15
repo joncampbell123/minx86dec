@@ -517,6 +517,8 @@ call1:	call	dword call1			; E8 id              CALL rel32
 
    cvtdq2pd	xmm1,xmm2			; F3 0F E6
    cvtdq2ps	xmm1,xmm2			; 0F 5B /r
+   cvtdq2ps	xmm1,[esi]
+   cvtdq2ps	xmm1,[bx]
    cvtpd2dq	xmm1,xmm2			; F2 0F E6
    cvtpd2pi	mm1,xmm2			; 66 0F 2D /r
    cvtpd2ps	xmm1,xmm2			; 66 0F 5A /r
