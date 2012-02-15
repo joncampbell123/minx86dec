@@ -727,7 +727,8 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 							}
 							else {
 								ins->opcode = MXOP_CVTPS2PD+(dataprefix32&1);
-								s->size=d->size=(dataprefix32&1)==0?vector_size:16;
+								s->size=(dataprefix32&1)==1?vector_size:16;
+								d->size=(dataprefix32&1)==0?vector_size:16;
 							}
 							INS_MRM mrm=decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 							set_sse_register(d,mrm.f.reg);
