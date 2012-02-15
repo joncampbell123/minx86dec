@@ -3556,7 +3556,6 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		case MXOP_CVTDQ2PD: {
 			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
 			if (ins->vex.raw != 0) {
-				/* FIXME */
 				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
 					o = minx86enc_32_overrides(a,est,o,0);
 					*o++ = 0xC5; *o++ = 0xFA+(a->size==32?4:0);
@@ -3581,8 +3580,33 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 			}
 		} break;
-
-
+		case MXOP_CVTPD2DQ: {
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			if (ins->vex.raw != 0) {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					o = minx86enc_32_overrides(a,est,o,0);
+					*o++ = 0xC5; *o++ = 0xFB+(b->size==32?4:0);
+					*o++ = 0xE6; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(b,est,o,0);
+					*o++ = 0xC5; *o++ = 0xFB+(b->size==32?4:0);
+					*o++ = 0xE6; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+			else {
+				if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_SSE) {
+					o = minx86enc_32_overrides(a,est,o,0);
+					*o++ = 0xF2; *o++ = 0x0F; *o++ = 0xE6; o = minx86enc_encode_rm_reg(a,a->reg,b->reg,o);
+				}
+				else if (a->regtype == MX86_RT_SSE && b->regtype == MX86_RT_NONE) {
+					o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+					o = minx86enc_32_overrides(b,est,o,0);
+					*o++ = 0xF2; *o++ = 0x0F; *o++ = 0xE6; o = minx86enc_encode_memreg(b,o,a->reg);
+				}
+			}
+		} break;
 	}
 
 	est->write_ip = o;
