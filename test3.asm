@@ -545,16 +545,38 @@ call1:	call	dword call1			; E8 id              CALL rel32
    cvtsd2si	eax,[esi]
    cvtsd2si	eax,[bx]
    cvtsd2ss	xmm1,xmm2			; F2 0F 5A /r
+   cvtsd2ss	xmm1,[esi]
+   cvtsd2ss	xmm1,[bx]
    cvtsi2sd	xmm1,eax			; F2 0F 2A /r
+   cvtsi2sd	xmm1,[esi]
+   cvtsi2sd	xmm1,[bx]
    cvtsi2ss	xmm1,ebx			; F3 0F 2A /r
+   cvtsi2ss	xmm1,[esi]
+   cvtsi2ss	xmm1,[bx]
    cvtss2sd	xmm1,xmm2			; F3 0F 5A /r
+   cvtss2sd	xmm1,[esi]
+   cvtss2sd	xmm1,[bx]
    cvtss2si	eax,xmm1			; F3 0F 2D /r
+   cvtss2si	eax,[esi]
+   cvtss2si	eax,[bx]
   cvttpd2dq	xmm1,xmm2			; 66 0F E6
+  cvttpd2dq	xmm1,[esi]
+  cvttpd2dq	xmm1,[bx]
   cvttpd2pi	mm1,xmm1			; 66 0F 2C /r
+  cvttpd2pi	mm1,[esi]
+  cvttpd2pi	mm1,[bx]
   cvttps2dq	xmm1,xmm2			; F3 0F 5B /r
+  cvttps2dq	xmm1,[esi]
+  cvttps2dq	xmm1,[bx]
   cvttps2pi	mm1,xmm2			; 0F 2C /r
+  cvttps2pi	mm1,[esi]
+  cvttps2pi	mm1,[bx]
   cvttsd2si	eax,xmm1			; F2 0F 2C /r
+  cvttsd2si	eax,[esi]
+  cvttsd2si	eax,[bx]
   cvttss2si	eax,xmm1			; F3 0F 2C /r
+  cvttss2si	eax,[esi]
+  cvttss2si	eax,[bx]
 
 	cwd					; 99
 	cdq					; [66] 99
@@ -600,7 +622,11 @@ call1:	call	dword call1			; E8 id              CALL rel32
  
        dppd	xmm1,xmm2,1			; 66 0F 3A 41 /r ib
        dppd	xmm2,xmm3,4			; 66 0F 3A 41 /r ib
+       dppd	xmm2,[esi],3
+       dppd	xmm2,[bx],3
        dpps	xmm1,xmm2,2			; 66 0F 3A 40 /r ib
+       dpps	xmm1,[esi],2
+       dpps	xmm1,[bx],2
        dpps	xmm1,xmm2,5			; 66 0F 3A 40 /r ib
 
        emms					; 0F 77
@@ -1869,19 +1895,47 @@ bits 16
         vcvtpd2ps	xmm1,xmm2			; 66 0F 5A /r
         vcvtpd2ps	xmm1,ymm2			; 66 0F 5A /r
         vcvtps2dq	xmm1,xmm2			; 66 0F 5B /r
+        vcvtps2dq	xmm1,[esi]			; 66 0F 5B /r
+	vcvtps2dq	xmm1,[bx]
         vcvtps2dq	ymm1,ymm2			; 66 0F 5B /r
+	vcvtps2dq	ymm1,[esi]
+	vcvtps2dq	ymm1,[bx]
         vcvtps2pd	xmm1,xmm2			; 0F 5A /r
+	vcvtps2pd	xmm1,[esi]
+	vcvtps2pd	xmm1,[bx]
         vcvtps2pd	ymm1,xmm2			; 0F 5A /r
+	vcvtps2pd	ymm1,[esi]
+	vcvtps2pd	ymm1,[bx]
         vcvtsd2si	eax,xmm2			; F2 0F 2D /r
+	vcvtsd2si	eax,[esi]
+	vcvtsd2si	eax,[bx]
         vcvtsd2ss	xmm1,xmm2			; F2 0F 5A /r
+	vcvtsd2ss	xmm1,[esi]
+	vcvtsd2ss	xmm1,[bx]
         vcvtsi2sd	xmm1,eax			; F2 0F 2A /r
+	vcvtsi2sd	xmm1,[esi]
+	vcvtsi2sd	xmm1,[bx]
         vcvtsi2ss	xmm1,ebx			; F3 0F 2A /r
+	vcvtsi2ss	xmm1,[esi]
+	vcvtsi2ss	xmm1,[bx]
         vcvtss2sd	xmm1,xmm2			; F3 0F 5A /r
+	vcvtss2sd	xmm1,[esi]
+	vcvtss2sd	xmm1,[bx]
         vcvtss2si	eax,xmm1			; F3 0F 2D /r
+	vcvtss2si	eax,[esi]
+	vcvtss2si	eax,[bx]
         vcvttpd2dq	xmm1,xmm2			; 66 0F E6
+	vcvttpd2dq	xmm1,[esi]
+	vcvttpd2dq	xmm1,[bx]
         vcvttps2dq	xmm1,xmm2			; F3 0F 5B /r
+	vcvttps2dq	xmm1,[esi]
+	vcvttps2dq	xmm1,[bx]
         vcvttsd2si	eax,xmm1			; F2 0F 2C /r
+	vcvttsd2si	eax,[esi]
+	vcvttsd2si	eax,[bx]
         vcvttss2si	eax,xmm1			; F3 0F 2C /r
+	vcvttss2si	eax,[esi]
+	vcvttss2si	eax,[bx]
 
         vdivpd	xmm1,xmm2,xmm3			; 66 0F 5E /r
 	vdivpd	xmm1,xmm2,[si]
@@ -1904,7 +1958,11 @@ bits 16
  
         vdppd	xmm1,xmm2,xmm3,1			; 66 0F 3A 41 /r ib
         vdppd	xmm1,xmm2,xmm3,4			; 66 0F 3A 41 /r ib
+	vdppd	xmm1,xmm2,[esi],1			; 66 0F 3A 41 /r ib
+	vdppd	xmm1,xmm2,[bx],1
         vdpps	xmm1,xmm2,xmm3,2			; 66 0F 3A 40 /r ib
+	vdpps	xmm1,xmm2,[esi],2
+	vdpps	xmm1,xmm2,[bx],3
         vdpps	xmm1,xmm2,xmm3,5			; 66 0F 3A 40 /r ib
 
         vhaddpd	xmm1,xmm2,xmm3			; 66 0F 7C /r
