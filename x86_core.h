@@ -3324,13 +3324,14 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 
 				case FPU_CODE(0xDA,0xE9): ins->opcode = MXOP_FUCOMPP; break;
 
-				COVER_4ROW(FPU_CODE(0xDB,0x00)): { ins->argc = 1; ARGV *d=&ins->argv[0];
+				COVER_4ROW(FPU_CODE(0xDB,0x00)): { ins->argc = 2; ARGV *d=&ins->argv[1];
 					const unsigned int which = (fpu_code>>3)&7; static unsigned int table[8*2] = {
 						MXOP_FILD,	4,	MXOP_FISTTP,	4,
 						MXOP_FIST,	4,	MXOP_FISTP,	4,
 						MXOP_FBLD,	0,	MXOP_FLD,	10,
 						MXOP_FBSTP,	0,	MXOP_FSTP,	10
-					}; d->size = table[(which*2)+1]; if (d->size == 0) break; cip--;
+					}; d->size = table[(which*2)+1]; if (d->size == 0) break;
+					ARGV *s=&ins->argv[0];set_fpu_register(s,MX86_ST(0));cip--;
 					decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); ins->opcode = table[which*2];
 				} break;
 
