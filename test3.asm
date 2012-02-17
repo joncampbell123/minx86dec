@@ -805,7 +805,11 @@ call1:	call	dword call1			; E8 id              CALL rel32
      haddps	xmm1,[bx]
         hlt					; F4
      hsubpd	xmm1,xmm2			; 66 0F 7D /r
+     hsubpd	xmm1,[esi]
+     hsubpd	xmm1,[bx]
      hsubps	xmm1,xmm2			; F2 0F 7D /r
+     hsubps	xmm1,[esi]
+     hsubps	xmm1,[bx]
        idiv	al				; F6 /7
        idiv	ch				; F6 /7
        idiv	bx				; F6 /7
@@ -1976,7 +1980,11 @@ bits 16
 	vhaddps	xmm1,xmm2,[esi]
 	vhaddps	xmm1,xmm2,[bx]
         vhsubpd	xmm1,xmm2,xmm3			; 66 0F 7D /r
+	vhsubpd	xmm1,xmm2,[esi]
+	vhsubpd	xmm1,xmm2,[bx]
         vhsubps	xmm1,xmm2,xmm3			; F2 0F 7D /r
+	vhsubps	xmm1,xmm2,[esi]
+	vhsubps	xmm1,xmm2,[bx]
 
 	vlddqu	xmm1,[esi]			; F2 0F F0 /r
 	vlddqu	xmm2,[ebx*4+ecx+8]		; F2 0F F0 /r

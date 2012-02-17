@@ -949,7 +949,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 									if (v.f.v == 0) {/* VBROADCASTF128 */
 										ARGV *d=&ins->argv[0],
 										     *s=&ins->argv[1];
-										ins->opcode = MXOP_BROADCASTSD;
+										ins->opcode = MXOP_BROADCASTF128;
 										ins->argc=2; d->size=32; s->size=16;
 										INS_MRM mrm = decode_rm_(s,ins,
 											s->size,PLUSR_TRANSFORM);
