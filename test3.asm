@@ -521,13 +521,29 @@ call1:	call	dword call1			; E8 id              CALL rel32
    cvtdq2ps	xmm1,[bx]
    cvtpd2dq	xmm1,xmm2			; F2 0F E6
    cvtpd2pi	mm1,xmm2			; 66 0F 2D /r
+   cvtpd2pi	mm1,[esi]
+   cvtpd2pi	mm1,[bx]
    cvtpd2ps	xmm1,xmm2			; 66 0F 5A /r
+   cvtpd2ps	xmm1,[esi]
+   cvtpd2ps	xmm1,[bx]
    cvtpi2pd	xmm1,mm2			; 66 0F 2A /r
+   cvtpi2pd	xmm1,[esi]
+   cvtpi2pd	xmm1,[bx]
    cvtpi2ps	xmm1,mm2			; 0F 2A /r
+   cvtpi2ps	xmm1,[esi]
+   cvtpi2ps	xmm1,[bx]
    cvtps2dq	xmm1,xmm2			; 66 0F 5B /r
+   cvtps2dq	xmm1,[esi]
+   cvtps2dq	xmm1,[bx]
    cvtps2pd	xmm1,xmm2			; 0F 5A /r
+   cvtps2pd	xmm1,[esi]
+   cvtps2pd	xmm1,[bx]
    cvtps2pi	mm1,xmm2			; 0F 2D /r
+   cvtps2pi	mm1,[esi]
+   cvtps2pi	mm1,[bx]
    cvtsd2si	eax,xmm2			; F2 0F 2D /r
+   cvtsd2si	eax,[esi]
+   cvtsd2si	eax,[bx]
    cvtsd2ss	xmm1,xmm2			; F2 0F 5A /r
    cvtsi2sd	xmm1,eax			; F2 0F 2A /r
    cvtsi2ss	xmm1,ebx			; F3 0F 2A /r
