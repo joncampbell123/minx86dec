@@ -4936,6 +4936,23 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				}
 			}
 		} break;
+		case MXOP_MOVBE: { /*====================MOV=====================*/
+			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
+			unsigned char word = (a->size >= 2) ? 1 : 0;
+			/* it doesn't matter if it's reg-reg, reg-r/m, r/m-reg, etc
+			 * instruction encoding covers them all */
+
+			if (a->regtype == MX86_RT_REG && b->regtype == MX86_RT_NONE) {
+				o = minx86enc_seg_overrides(b,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(b,est,o,1);
+				*o++ = 0x0F; *o++ = 0x38; *o++ = 0xF0; o = minx86enc_encode_memreg(b,o,a->reg);
+			}
+			else if (a->regtype == MX86_RT_NONE && b->regtype == MX86_RT_REG) {
+				o = minx86enc_seg_overrides(a,est,o,ins->segment >= 0);
+				o = minx86enc_32_overrides(a,est,o,1);
+				*o++ = 0x0F; *o++ = 0x38; *o++ = 0xF1; o = minx86enc_encode_memreg(a,o,b->reg);
+			}
+		} break;
 	}
 
 	est->write_ip = o;
