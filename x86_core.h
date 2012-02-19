@@ -793,9 +793,9 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 								const unsigned int which = (second_byte >> 4) & 1;
 								ARGV *re = &ins->argv[which],*rm = &ins->argv[which^1];
 								ins->opcode = MXOP_MOVD; ins->argc = 2; rm->size = 4;
-								re->size = dataprefix32 ? vector_size : 8;
+								re->size = vector_size;
 								INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM);
-								set_mmx_register(re,mrm.f.reg);
+								set_sse_register(re,mrm.f.reg);
 							}
 						} break;
 						case 0x6F: case 0x7F: {
