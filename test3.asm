@@ -967,9 +967,13 @@ l4:
       maxss	xmm1,[ebx]			; F3 0F 5F /r
      mfence					; 0F AE /6
       minpd	xmm1,xmm2			; 66 0F 5D /r
+      minpd	xmm1,[ebx]
       minps	xmm1,xmm2			; 0F 5D /r
+      minps	xmm1,[ebx]
       minsd	xmm1,xmm2			; F2 0F 5D /r
+      minsd	xmm1,[ebx]
       minss	xmm1,xmm2			; F3 0F 5D /r
+      minss	xmm1,[ebx]
     monitor					; 0F 01 C8
 ; oh boy! all the various flavors of MOV
 	mov	cl,ch				; 88 /r
@@ -2006,12 +2010,18 @@ bits 16
         vmaxps	ymm1,ymm2,[ebx]			; 0F 5F /r
 
         vminpd	xmm1,xmm2,xmm3			; 66 0F 5D /r
+	vminpd	xmm1,xmm2,[ebx]
         vminps	xmm1,xmm2,xmm3			; 0F 5D /r
+	vminps	xmm1,xmm2,[ebx]
         vminsd	xmm1,xmm2,xmm3			; F2 0F 5D /r
+	vminsd	xmm1,xmm2,[ebx]
         vminss	xmm1,xmm2,xmm3			; F3 0F 5D /r
+	vminss	xmm1,xmm2,[ebx]
 
         vminpd	ymm1,ymm2,ymm3			; 66 0F 5D /r
+	vminpd	ymm1,ymm2,[ebx]
         vminps	ymm1,ymm2,ymm3			; 0F 5D /r
+	vminps	ymm1,ymm2,[ebx]
 
 	vmovapd	xmm1,xmm2			; 66 0F 28 /r
 	vmovapd	xmm1,[ebx]			; 66 0F 28 /r
