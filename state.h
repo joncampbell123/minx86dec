@@ -140,6 +140,7 @@ struct minx86dec_instruction {
 	uint8_t				addr32:1;	/* 32-bit addr */
 	uint8_t				data32:1;	/* 32-bit data */
 	uint8_t				fwait:1;	/* FWAIT prefix */
+	uint8_t				altopcode:1;	/* some instructions: this is used to preserve whether alternate encoding was involved */
 };
 
 /* decoded instruction operand (64-bit) */
@@ -191,6 +192,7 @@ struct minx86dec_instruction_x64 {
 	uint8_t				data32:1;	/* 32-bit data */
 	uint8_t				data64:1;	/* 64-bit operand override */
 	uint8_t				fwait:1;	/* FWAIT prefix */
+	uint8_t				altopcode:1;	/* some instructions: this is used to preserve whether alternate encoding was involved */
 };
 
 /* instruction encoding */

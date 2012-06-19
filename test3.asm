@@ -490,9 +490,36 @@ call1:	call	dword call1			; E8 id              CALL rel32
       divss	xmm1,[bx+si]			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
       divss	xmm1,[eax]
 
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+
+; NTS: The 486a core is NOT expected to decode this, because 486 Step A-B0 used an alternate opcode
     cmpxchg	al,ah				; 0F B0 /r           CMPXCHG
     cmpxchg	[bx+si],cx			; 0F B0 /r           CMPXCHG
     cmpxchg     [ebx],esi			; 0F B0 /r           CMPXCHG
+
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+
+; NTS: Nobody except the 486a core is expected to decode this, only 486 step A-B0 has this opcode
+ cmpxchg486	al,ah				; 0F A6 /r           CMPXCHG [early 486s]
+ cmpxchg486	[bx+si],cx			; 0F A6 /r           CMPXCHG [early 486s]
+ cmpxchg486	[ebx],esi			; 0F A6 /r           CMPXCHG [early 486s]
+
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
 
   cmpxchg8b	[si]				; 0F C7 /1           CMPXCHG8B
   cmpxchg8b	[ebx]				; 0F C7 /1           CMPXCHG8B

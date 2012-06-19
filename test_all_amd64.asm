@@ -102,8 +102,18 @@ _start:
 	movnti	[esi],eax
 	movsb
 	movsw
-	movsx	eax,ax
-	movzx	eax,ax
+	movsx	bx,al
+	movsx	ebx,al
+	movsx	ebx,ax
+	movzx	bx,al
+	movzx	ebx,al
+	movzx	ebx,ax
+	movsx	bx,byte [si]
+	movsx	ebx,byte [si]
+	movsx	ebx,word [si]
+	movzx	bx,byte [si]
+	movzx	ebx,byte [si]
+	movzx	ebx,word [si]
 	mul	ax
 	neg	ax
 	nop

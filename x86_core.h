@@ -2486,9 +2486,9 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				if (second_byte & 1) set_register(imm,MX86_REG_CL); else set_immediate(imm,fetch_u8());
 			} break;
 # endif
-# if core_level == 4 && !defined(everything)
+# if core_level == 4 && !defined(everything) && defined(step_A)
 			COVER_2(0xA6): { /* the original CMPXCHG */
-				ins->opcode = MXOP_CMPXCHG; ins->argc = 2;
+				ins->opcode = MXOP_CMPXCHG; ins->argc = 2; ins->altopcode = 1;
 				ARGV *d = &ins->argv[0],*s = &ins->argv[1];
 				d->size = s->size = (second_byte & 1) ? datawordsize : 1;
 				INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
@@ -2577,9 +2577,9 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			} break;
 # endif
 
-# if core_level >= 4
+# if core_level >= 4 && !defined(step_A)
 			COVER_2(0xB0): {
-				ins->opcode = MXOP_CMPXCHG; ins->argc = 2;
+				ins->opcode = MXOP_CMPXCHG; ins->argc = 2; ins->altopcode = 0;
 				ARGV *d = &ins->argv[0],*s = &ins->argv[1];
 				d->size = s->size = (second_byte & 1) ? datawordsize : 1;
 				INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
