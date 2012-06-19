@@ -25,6 +25,16 @@
           did *NOT* have MMX decoding. a 586mmx core was added instead (#define pentium_mmx).
           This code should be modified NOT to decode MMX unless the core supports it */
 
+/* see [http://oopweb.com/Assembly/Documents/InterList/Volume/OPCODES.LST] */
+/* TODO: IBM 486SLC core */
+/* TODO: Intel Itanium x86 decoding including Merced "JMPX" instruction */
+/* TODO: Cyrix 6x86 instructions you missed: PDISTIB PMACHRIW PMAGW PSUBIW */
+/* TODO: Cyrix SMM instructions: RDSHR, WRSHR */
+/* TODO: AMD Am386 core, instructions: RES3, SMI */
+/* TODO: AMD Am486 core, instructions: RES4, SMI */
+/* TODO: NEC V20 instructions: RETRBI, RETXA, STOP, TSKSW */
+/* TODO: Cyrix/IBM/TI 486-compatible, instructions: RSDC, RSLDT, RSTS, SMI, SVDC, SVLDT, SVTS */
+
 #define data32wordsize (isdata32 ? 4 : 2)
 #define addr32wordsize (isaddr32 ? 4 : 2)
 #define data64wordsize (isdata64 ? 8 : data32wordsize)
@@ -1427,6 +1437,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			case 0x06: ins->opcode = MXOP_CLTS; break;
 # endif
 # if core_level == 3 || (defined(everything) && core_level == 4)
+			/* TODO: The IBM 486SLC2 is said to have "ICERET" which happens to have the same opcode, can we make an IBM 486SLC2 core? */
 			case 0x07: ins->opcode = MXOP_LOADALL_386; break;
 # endif
 # if core_level >= 5 && (defined(pentiumpro) || pentium >= 2)
@@ -3398,6 +3409,8 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				COVER_8(FPU_CODE(0xDB,0xD8)): ins->argc = 1; ins->opcode = MXOP_FCMOVNU;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 
+				/* TODO: The IIT FPU chip (387-level) defines custom instructions that conflict with
+					 the P6 Pentium level instructions defined here */
 				COVER_8(FPU_CODE(0xDB,0xE8)): ins->argc = 1; ins->opcode = MXOP_FUCOMI;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 				COVER_8(FPU_CODE(0xDB,0xF0)): ins->argc = 1; ins->opcode = MXOP_FCOMI;

@@ -80,6 +80,8 @@ _start:
 	db	0x0F,0x25		; MOVSPA
 	db	0x0F,0x95,0xF8		; MOVSPB AX
 
+	; TODO: BITCLR [http://impactstudiopro.com/videos/20120619-0930-gd.php]
+
 	nop
 	lea	bx,[si+3]
 	lea	cx,[bx+di+33h]
