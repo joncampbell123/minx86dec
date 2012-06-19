@@ -30,9 +30,6 @@
 /* TODO: Intel Itanium x86 decoding including Merced "JMPX" instruction */
 /* TODO: Cyrix 6x86 instructions you missed: PDISTIB PMACHRIW PMAGW PSUBIW */
 /* TODO: Cyrix SMM instructions: RDSHR, WRSHR */
-/* TODO: AMD Am386 core, instructions: RES3, SMI */
-/* TODO: AMD Am486 core, instructions: RES4, SMI */
-/* TODO: NEC V20 instructions: RETRBI, RETXA, STOP, TSKSW */
 /* TODO: Cyrix/IBM/TI 486-compatible, instructions: RSDC, RSLDT, RSTS, SMI, SVDC, SVLDT, SVTS */
 
 #define data32wordsize (isdata32 ? 4 : 2)
@@ -1306,7 +1303,9 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			rdx->size = 2; set_register(rax,MX86_REG_AX); set_register(rdx,MX86_REG_DX);
 		} break;
 		case 0xF0: ins->lock = 1; goto decode_next;
-#if !defined(no_icebp) && (core_level >= 3) && !defined(x64_mode)
+#if (core_level == 3 || core_level == 4) && (defined(am386) || defined(am486))
+		case 0xF1: ins->opcode = MXOP_SMI; break;
+#elif !defined(no_icebp) && (core_level >= 3) && !defined(x64_mode)
 		case 0xF1: ins->opcode = MXOP_ICEBP; break;
 #endif
 # if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
@@ -1436,8 +1435,11 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 # if core_level >= 2
 			case 0x06: ins->opcode = MXOP_CLTS; break;
 # endif
-# if core_level == 3 || (defined(everything) && core_level == 4)
-			/* TODO: The IBM 486SLC2 is said to have "ICERET" which happens to have the same opcode, can we make an IBM 486SLC2 core? */
+# if core_level == 3 && defined(am386)
+			case 0x07: ins->opcode = MXOP_RES3; break;
+# elif core_level == 4 && defined(am486)
+			case 0x07: ins->opcode = MXOP_RES4; break;
+# elif core_level == 3 || (defined(everything) && core_level == 4)
 			case 0x07: ins->opcode = MXOP_LOADALL_386; break;
 # endif
 # if core_level >= 5 && (defined(pentiumpro) || pentium >= 2)
@@ -2503,8 +2505,18 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			} break;
 # endif
 # if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+			case 0x91: { /* RETRBI */
+				ins->opcode = MXOP_RETRBI; 
+			} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
 			case 0x92: { /* FINT */
 				ins->opcode = MXOP_FINT;
+			} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+			case 0x94: { /* TSKSW */
+				ins->opcode = MXOP_TSKSW;
 			} break;
 # endif
 # if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
@@ -2550,7 +2562,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				set_register(s,mrm.f.reg);
 			} break;
 # endif
-# if core_level == 3 && !defined(everything)
+# if core_level == 3 && !defined(everything) && !defined(am386)
 			case 0xA6: {
 				ins->opcode = MXOP_XBTS; ins->argc = 2;
 				ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = datawordsize;
@@ -2567,7 +2579,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					{ ins->opcode = MXOP_XSHA256;   cip++; }
 			} break;
 # endif
-# if core_level == 3 && !defined(everything)
+# if core_level == 3 && !defined(everything) && !defined(am386)
 			case 0xA7: {
 				ins->opcode = MXOP_IBTS; ins->argc = 2;
 				ARGV *d = &ins->argv[1],*s = &ins->argv[0]; d->size = s->size = datawordsize;
@@ -2727,6 +2739,12 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				ARGV *re = &ins->argv[0],*rm = &ins->argv[1]; ins->opcode = MXOP_MOVSX; ins->argc = 2;
 				re->size = datawordsize; rm->size = (second_byte & 1) + 1;
 				INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM); set_register(re,mrm.f.reg);
+			} break;
+# endif
+
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+			case 0xBE: { /* STOP */
+				ins->opcode = MXOP_STOP;
 			} break;
 # endif
 
@@ -3143,6 +3161,12 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = 16;
 				INS_MRM mrm = decode_rm_ex_(s,ins,s->size,PLUSR_TRANSFORM,MX86_RT_SSE);
 				set_sse_register(d,mrm.f.reg);
+			} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+			case 0xF0: { /* RETXA */
+	 			ins->opcode = MXOP_RETXA; ins->argc = 1;
+				ARGV *d = &ins->argv[0]; set_immediate(d,fetch_u8());
 			} break;
 # endif
 # if core_level >= 5 && sse_level >= 2

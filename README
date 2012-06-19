@@ -6,8 +6,10 @@ core8086.c             8086/8088 decoding engine
 corenecv20.c           80186 NEC V20/V30 decoding engine
 core286.c              286 decoding engine
 core386.c              386 decoding engine
+core386am.c            AMD Am386 decoding engine
 core486.c              486 decoding engine
 core486a.c             486 Step A decoding engine
+core486am.c            AMD Am486 decoding engine
 core486cyrix.c         Cyrix decodign engine 486 level
 core586.c              Pentium decoding engine
 core5x86_cyrix.c       Cyrix decoding engine 5x86

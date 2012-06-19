@@ -942,6 +942,15 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x348-0x34B */
 	"MOVSPB",
 	"#OUD",
+	"RES3",
+	"RES4",
+/* 0x34C-0x34F */
+	"SMI",
+	"RETRBI",
+	"RETXA",
+	"STOP",
+/* 0x350-0x353 */
+	"TSKSW",
 
 	NULL
 };

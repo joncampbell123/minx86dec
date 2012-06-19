@@ -4,12 +4,8 @@
 static minx86_read_ptr_t cip;
 #include "minx86dec/x86_core_macros.h"
 
-/* General 386-level decoder.
-   Includes decoding of IBTS/XBTS undocumented instructions, which the downstream decoder
-   is free to handle, or ignore depending on which "stepping" of the i386 you are emulating.
-   Extensions added by others that are in conflict with Intel's decoder are not handled by this core. */
-
-void minx86dec_decode386(struct minx86dec_state *state,struct minx86dec_instruction *ins) {
+/* AMD Am386-level decoder. */
+void minx86dec_decode386am(struct minx86dec_state *state,struct minx86dec_instruction *ins) {
 	unsigned int dataprefix32 = 0,addrprefix32 = 0;
 	register unsigned int patience = 6;
 	cip = state->read_ip;
@@ -17,6 +13,7 @@ void minx86dec_decode386(struct minx86dec_state *state,struct minx86dec_instruct
 #define isdata32 ins->data32
 #define isaddr32 ins->addr32
 #define fpu_level 3
+#define am386 1
 
 	ins->data32 = state->data32;
 	ins->addr32 = state->addr32;
