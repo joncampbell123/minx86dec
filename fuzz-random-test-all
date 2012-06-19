@@ -9,7 +9,7 @@ trap die sigint
 trap die sigquit
 trap die sigterm
 
-for cmd in all 8086 necv20 286 386 486 586 586pro 686 6x86_cyrix all_x64; do
+for cmd in all 8086 necv20 286 386 486 486a 586 586pro 686 6x86_cyrix all_x64; do
 	echo Testing $cmd
 	timeout 1m ./fuzz-random-test $cmd >/dev/null 2>&1 </dev/null; X=$?
 	if [[ "$X" == 124 || "$X" == 0 ]]; then true; else exit 1; fi
