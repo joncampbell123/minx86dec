@@ -712,6 +712,12 @@ call1:	call	dword call1			; E8 id              CALL rel32
 
      fsetpm					; <- LOL so you had to set the 286 FPU into protected mode separately?
 
+        nop
+        nop
+         db	0xDB,0xE5			; undocumented FRSTPM (i287)
+        nop
+        nop
+
       fdivr	dword [si]			; D8 /7
       fdivr	qword [si]			; DC /7
       fdivr	st0,st2				; D8 F8+i

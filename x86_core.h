@@ -323,6 +323,12 @@ decode_next:
 		}
 		break;
 #endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+		case 0x63: { /* BRKN <int> */
+			ins->opcode = MXOP_BRKN; ins->argc = 1;
+			ARGV *r = &ins->argv[0]; set_immediate(r,fetch_u8());
+		} break;
+# endif
 #if core_level >= 3
 		COVER_2(0x64): ins->segment = (first_byte & 1) + MX86_SEG_FS; if (--patience) goto decode_next; break;
 #endif
@@ -1293,6 +1299,12 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 #if !defined(no_icebp) && (core_level >= 3) && !defined(x64_mode)
 		case 0xF1: ins->opcode = MXOP_ICEBP; break;
 #endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+		case 0xF1: { /* BRKS <int> */
+			ins->opcode = MXOP_BRKS; ins->argc = 1;
+			ARGV *r = &ins->argv[0]; set_immediate(r,fetch_u8());
+		} break;
+# endif
 		COVER_2(0xF2): ins->rep = (first_byte & 1) + MX86_REPE; goto decode_next;
 		case 0xF4: ins->opcode = MXOP_HLT; break;
 		case 0xF5: ins->opcode = MXOP_CMC; break;
@@ -1725,6 +1737,15 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				else {
 					ins->opcode = MXOP_CVTPS2PI + (dataprefix32 & 1); d->size = 8;
 					set_mmx_register(d,mrm.f.reg);
+				}
+			} break;
+# endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+			case 0x2D: { /* BRKCS <reg16> */
+				INS_MRM mrm = fetch_modregrm();
+				if (mrm.f.mod == 3 && mrm.f.reg == 7) {
+					ins->opcode = MXOP_BRKCS; ins->argc = 1;
+					ARGV *r = &ins->argv[0]; set_register(r,mrm.f.rm); r->size = 2;
 				}
 			} break;
 # endif
@@ -2465,6 +2486,11 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				INS_MRM mrm = decode_rm_(r,ins,r->size,PLUSR_TRANSFORM);
 			} break;
 # endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+			case 0x92: { /* FINT */
+				ins->opcode = MXOP_FINT;
+			} break;
+# endif
 # if core_level >= 3
 			COVER_2(0xA0): {
 				ins->opcode = MXOP_PUSH + (second_byte & 1); ins->argc = 1;
@@ -2931,6 +2957,12 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				if (dataprefix32) set_sse_register(d,mrm.f.reg); else set_mmx_register(d,mrm.f.reg);
 			} break;
 # endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+			case 0xE0: { /* BRKXA <int> */
+				ins->opcode = MXOP_BRKXA; ins->argc = 1;
+				ARGV *r = &ins->argv[0]; set_immediate(r,fetch_u8());
+			} break;
+# endif
 # if core_level >= 5 && sse_level >= 2
 			case 0xE1: {
 				ins->opcode = MXOP_PSRAW; ins->argc = 2;
@@ -3358,8 +3390,16 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				case FPU_CODE(0xDB,0xE2): ins->opcode = MXOP_FCLEX; break;
 				case FPU_CODE(0xDB,0xE3): ins->opcode = MXOP_FINIT; break;
 #if fpu_level >= 2 || defined(everything)
-				case FPU_CODE(0xDB,0xE4): ins->opcode = MXOP_FSETPM; break;
+				case FPU_CODE(0xDB,0xE4): ins->opcode = MXOP_FSETPM; break; /* <- i287 only, later CPUs/FPUs ignore it */
 #endif
+#if fpu_level == 2 || defined(everything) /* <- FIXME: remove "everything" match if some future instruction takes this opcode */
+				case FPU_CODE(0xDB,0xE5): ins->opcode = MXOP_FRSTPM; break; /* <- Undocumented i287 FPU opcode, dropped for i387,
+												  modern CPUs unlikely to even know what it is! */
+#endif
+# if (core_level >= 4 && cyrix_level == 4) || defined(everything) /* FIXME: Did Cyrix keep this for their 586 and 686 clone CPUs? Do any new opcodes conflict? */
+				case FPU_CODE(0xDB,0xFC): ins->argc = 1; ins->opcode = MXOP_FRINT2;
+					set_fpu_register(&ins->argv[0],0); break;
+# endif
 				COVER_4ROW(FPU_CODE(0xDD,0x00)): COVER_4ROW(FPU_CODE(0xDD,0x40)):
 				COVER_4ROW(FPU_CODE(0xDD,0x80)): { /* 0xDD00...0xDDBF */
 					const unsigned char in = (fpu_code >> 3) & 7; ins->argc = 1; ARGV *d = &ins->argv[0]; cip--;
@@ -3383,6 +3423,10 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 				COVER_8(FPU_CODE(0xDD,0xE8)): ins->opcode=MXOP_FUCOMP; ins->argc=1;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+# if (core_level >= 4 && cyrix_level == 4) || defined(everything) /* FIXME: Did Cyrix keep this for their 586 and 686 clone CPUs? Do any new opcodes conflict? */
+				case FPU_CODE(0xDD,0xFC): ins->argc = 1; ins->opcode = MXOP_FRICHOP;
+					set_fpu_register(&ins->argv[0],0); break;
+# endif
 				COVER_4ROW(FPU_CODE(0xDE,0x00)): COVER_4ROW(FPU_CODE(0xDE,0x40)): 
 				COVER_4ROW(FPU_CODE(0xDE,0x80)): { ins->argc = 1; ARGV *d = &ins->argv[0]; cip--;
 					switch ((fpu_code>>3)&7) {
@@ -3420,7 +3464,10 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					ARGV *s=&ins->argv[0];set_fpu_register(s,MX86_ST(0));cip--;
 					decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); ins->opcode = table[which*2];
 				} break;
-
+# if (core_level >= 4 && cyrix_level == 4) || defined(everything) /* FIXME: Did Cyrix keep this for their 586 and 686 clone CPUs? Do any new opcodes conflict? */
+				case FPU_CODE(0xDF,0xFC): ins->argc = 1; ins->opcode = MXOP_FRINEAR;
+					set_fpu_register(&ins->argv[0],0); break;
+# endif
 				COVER_8(FPU_CODE(0xDF,0xE0)): ins->argc = 1; ins->opcode = MXOP_FSTSW; ins->argv[0].size = 2;
 					set_register(&ins->argv[0],MX86_REG_AX); break;
 

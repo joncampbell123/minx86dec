@@ -927,6 +927,17 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x33C-0x33F */
 	"CQO",
 	"CDQE",
+	"BRKCS",
+	"BRKN",
+/* 0x340-0x343 */
+	"BRKS",
+	"BRKXA",
+	"FINT",
+	"FRSTPM",
+/* 0x344-0x347 */
+	"FRICHOP",
+	"FRINEAR",
+	"FRINT2",
 
 	NULL
 };

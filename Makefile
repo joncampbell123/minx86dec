@@ -15,7 +15,7 @@ else
 CFLAGS += -march=i686
 endif
 
-all: test-headers decode8086 decodenecv20 decode286 decode386 decode486 decode486a decode586 decode586pro decode586mmx decode686 decode6x86_cyrix decodeall decodeall_x64 test1.bin test2.bin test3.bin test3_32.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin test_evolution.bin test_all_amd64.bin recode8086 recodenecv20 recode286 recode386 recode486 recode486a recode586 recodeall recode1.bin all-cputest testemu8086
+all: test-headers decode8086 decodenecv20 decode286 decode386 decode486 decode486a decode586 decode586pro decode586mmx decode686 decode5x86_cyrix decode6x86_cyrix decode486cyrix decodeall decodeall_x64 test1.bin test2.bin test3.bin test3_32.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin test_evolution.bin test_all_amd64.bin recode8086 recodenecv20 recode286 recode386 recode486 recode486a recode586 recodeall recode1.bin all-cputest testemu8086
 	+$(MAKE) -C bioses
 
 all-cputest:
@@ -83,9 +83,19 @@ decode686: decode686.o core686.o string.o
 	rm -f decode-pentium2
 	ln -s decode686 decode-pentium2
 
+core5x86_cyrix.o: x86_core.h x86_core_macros.h
+
+decode5x86_cyrix: decode5x86_cyrix.o core5x86_cyrix.o string.o
+	gcc $(CFLAGS) -o $@ $^
+
 core6x86_cyrix.o: x86_core.h x86_core_macros.h
 
 decode6x86_cyrix: decode6x86_cyrix.o core6x86_cyrix.o string.o
+	gcc $(CFLAGS) -o $@ $^
+
+core486cyrix.o: x86_core.h x86_core_macros.h
+
+decode486cyrix: decode486cyrix.o core486cyrix.o string.o
 	gcc $(CFLAGS) -o $@ $^
 
 coreall.o: x86_core.h x86_core_macros.h
@@ -132,7 +142,7 @@ cputest-clean:
 	+$(MAKE) -C cputest clean
 
 clean: cputest-clean
-	rm -f *.o *~ test-headers decode8086 decodenecv20 *.bin decode8086 decode286 decode386 decode486 decode486a decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode6x86_cyrix decode-pentium2 decode586pro decode586mmx decode-pentiumpro decode-pentiummmx random.bin.results recodeall testemu8086 recode8086 recode286 recode386 recode486 recode486a recode586 recodenecv20
+	rm -f *.o *~ test-headers decode8086 decodenecv20 *.bin decode8086 decode286 decode386 decode486 decode486a decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode5x86_cyrix decode6x86_cyrix decode486cyrix decode-pentium2 decode586pro decode586mmx decode-pentiumpro decode-pentiummmx random.bin.results recodeall testemu8086 recode8086 recode286 recode386 recode486 recode486a recode586 recodenecv20
 	find -name \*~ -delete
 	+$(MAKE) -C bioses clean
 

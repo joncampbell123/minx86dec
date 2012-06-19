@@ -12,6 +12,20 @@ _start:
 	bsr	dx,[ebx]
 	bsr	edx,eax
 
+	nop
+	nop
+
+	db	0xDD,0xFC		; FRICHOP
+	db	0xDF,0xFC		; FRINEAR
+	db	0xDB,0xFC		; FRINT2
+
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+
 	cmpsb
 	cmpsw
 	cmpsd
