@@ -7,6 +7,7 @@ corenecv20.c           80186 NEC V20/V30 decoding engine
 core286.c              286 decoding engine
 core386.c              386 decoding engine
 core486.c              486 decoding engine
+core486a.c             486 Step A decoding engine
 core586.c              Pentium decoding engine
 core586pro.c           Pentium Pro decoding engine
 core686.c              686 or higher-level (Pentium II or higher) decoding engine
