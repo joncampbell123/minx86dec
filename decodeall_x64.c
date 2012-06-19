@@ -51,7 +51,7 @@ int main(int argc,char **argv) {
 		printf("0x%04X  ",(unsigned int)(i.start - buffer));
 		for (c=0,iptr=i.start;iptr != i.end;c++)
 			printf("%02X ",*iptr++);
-		for (;c < 8;c++)
+		for (;c < 12;c++)
 			printf("   ");
 		printf("%-8s ",opcode_string[i.opcode]);
 		for (c=0;c < i.argc;) {

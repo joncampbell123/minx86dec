@@ -33,11 +33,30 @@ bits 64
 	push		word 0x1234
 	push		qword 0x12345678
 
-	mov		word [0x12345678],ax
-	mov		dword [0x12345678],eax
-	mov		qword [0x12345678],rax
+	mov		byte [abs 0x12345678],al
+	mov		word [abs 0x12345678],ax
+	mov		dword [abs 0x12345678],eax
+	mov		qword [abs 0x12345678],rax
 
-	mov		qword [0xFFFFFFFFEDCBA987],rax
+	mov		al,byte [abs dword a32 0x12345678]
+	mov		ax,word [abs dword a32 0x12345678]
+	mov		eax,dword [abs dword a32 0x12345678]
+	mov		rax,qword [abs dword a32 0x12345678]
+
+	mov		byte [abs dword a32 0x12345678],al
+	mov		word [abs dword a32 0x12345678],ax
+	mov		dword [abs dword a32 0x12345678],eax
+	mov		qword [abs dword a32 0x12345678],rax
+
+	mov		al,byte [abs qword a64 0x123456789ABCDEF]
+	mov		ax,word [abs qword a64 0x123456789ABCDEF]
+	mov		eax,dword [abs qword a64 0x123456789ABCDEF]
+	mov		rax,qword [abs qword a64 0x123456789ABCDEF]
+
+	mov		byte [abs qword a64 0x123456789ABCDEF],al
+	mov		word [abs qword a64 0x123456789ABCDEF],ax
+	mov		dword [abs qword a64 0x123456789ABCDEF],eax
+	mov		qword [abs qword a64 0x123456789ABCDEF],rax
 
 	pop		word [rsi]
 	pop		qword [rsi]

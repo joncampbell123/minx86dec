@@ -576,7 +576,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			areg->size=mref->size=(first_byte&1)?datawordsize:1; set_register(areg,MX86_REG_AX);
 			mref->segment = (ins->segment >= 0 ? ins->segment : MX86_SEG_DS);
 #ifdef x64_mode
-			set_mem_ref_imm(mref,(uint64_t)((int32_t)fetch_u32()));
+			set_mem_ref_imm(mref,isaddr32 ? ((uint64_t)((int32_t)fetch_u32())) : fetch_u64());
 #else
 			set_mem_ref_imm(mref,isaddr32 ? fetch_u32() : fetch_u16());
 #endif
