@@ -21,6 +21,10 @@
 #define isdata64 (0)
 #endif
 
+/* FIXME: A lot of MMX decoding is enabled for the 586pro core, when it turns out the Pentium Pro
+          did *NOT* have MMX decoding. a 586mmx core was added instead (#define pentium_mmx).
+          This code should be modified NOT to decode MMX unless the core supports it */
+
 #define data32wordsize (isdata32 ? 4 : 2)
 #define addr32wordsize (isaddr32 ? 4 : 2)
 #define data64wordsize (isdata64 ? 8 : data32wordsize)
