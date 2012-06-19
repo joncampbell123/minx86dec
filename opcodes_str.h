@@ -938,6 +938,10 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"FRICHOP",
 	"FRINEAR",
 	"FRINT2",
+	"MOVSPA",
+/* 0x348-0x34B */
+	"MOVSPB",
+	"#OUD",
 
 	NULL
 };

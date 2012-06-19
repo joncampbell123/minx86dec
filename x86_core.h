@@ -1650,6 +1650,11 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				set_mem_ref_reg(s,MX86_REG_SI); set_mem_ref_reg(d,MX86_REG_DI);
 			} break;
 # endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+			case 0x25: { /* MOVSPA */
+				ins->opcode = MXOP_MOVSPA;
+			} break;
+# endif
 # if core_level >= 3 && !defined(x64_mode)
 			case 0x24: case 0x26: { /* (mod == 3, apparently mod != 3 is illegal) */
 				const int which = (second_byte >> 1) & 1;
@@ -2491,6 +2496,15 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				ins->opcode = MXOP_FINT;
 			} break;
 # endif
+# if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */
+			case 0x95: { /* MOVSPB <reg16> */
+				INS_MRM mrm = fetch_modregrm();
+				if (mrm.f.mod == 3 && mrm.f.reg == 7) {
+					ins->opcode = MXOP_MOVSPB; ins->argc = 1;
+					ARGV *r = &ins->argv[0]; set_register(r,mrm.f.rm); r->size = 2;
+				}
+			} break;
+# endif
 # if core_level >= 3
 			COVER_2(0xA0): {
 				ins->opcode = MXOP_PUSH + (second_byte & 1); ins->argc = 1;
@@ -3238,6 +3252,10 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				ins->opcode = MXOP_BRKEM; ins->argc = 1; 
 				ARGV *r = &ins->argv[0]; set_immediate(r,fetch_u8());
 			} break;
+# endif
+# if defined(enable_oio) /* Cyrix 6x86 "Official Invalid Opcode", which everyone else also leaves undefined */
+/* TODO: Amd 586 also defines this */
+			case 0xFF: ins->opcode = MXOP_OIO; break;
 # endif
 		} break; }
 #endif /* core > 0 */

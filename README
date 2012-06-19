@@ -8,10 +8,12 @@ core286.c              286 decoding engine
 core386.c              386 decoding engine
 core486.c              486 decoding engine
 core486a.c             486 Step A decoding engine
+core486cyrix.c         Cyrix decodign engine 486 level
 core586.c              Pentium decoding engine
+core5x86_cyrix.c       Cyrix decoding engine 5x86
 core586pro.c           Pentium Pro decoding engine
 core686.c              686 or higher-level (Pentium II or higher) decoding engine
-core6x86_cyrix.c       Cyrix decoding engine (including Cyrix MMX)
+core6x86_cyrix.c       Cyrix decoding engine 6x86 (including Cyrix MMX)
 coreall.c              General-purpose x86 decoding engine (all instructions, except those replaced by newer instructions)
 coreall_x64.c          General-purpose x86-64 decoding engine (for decoding instructions in 64-bit long mode)
 

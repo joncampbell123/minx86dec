@@ -18,6 +18,7 @@ _start:
 	db	0xDD,0xFC		; FRICHOP
 	db	0xDF,0xFC		; FRINEAR
 	db	0xDB,0xFC		; FRINT2
+	db	0x0F,0xFF		; "Official Undefined Opcode"
 
 	nop
 	nop

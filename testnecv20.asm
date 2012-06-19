@@ -2,24 +2,7 @@
 org 0
 
 _start:
-;	add	bl,[bp]
-;	add	bl,[1234h]
-;	add	bl,[1234h+si+bx]
-;	add	bl,[bp]
-;	add	bl,[bp+42h]
-
 	db	0x0F,0x20		; NASM doesn't know ADD4S
-
-;	idiv	ax
-;	idiv	bx
-;	idiv	cx
-;	idiv	dx
-;	idiv	si
-;	idiv	di
-;	idiv	word [bx]
-;	idiv	word [si]
-;	idiv	word [di]
-
 	db	0x0F,0xFF,34		; NASM doesn't know this either (BRKEM)
 	db	0x0F,0x2D,0xF8		; BRKCS AX NASM doesn't know this either (BRKCS)
 	db	0x63,34			; BRKN
@@ -94,6 +77,8 @@ _start:
 	db	0x0F,0x19,0xC2,2	; TEST1 DX,2
 	db	0x0F,0x22		; SUB4S
 	db	0x0F,0x92		; FINT
+	db	0x0F,0x25		; MOVSPA
+	db	0x0F,0x95,0xF8		; MOVSPB AX
 
 	nop
 	lea	bx,[si+3]

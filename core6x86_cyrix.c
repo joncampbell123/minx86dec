@@ -15,6 +15,7 @@ void minx86dec_decode6x86_cyrix(struct minx86dec_state *state,struct minx86dec_i
 #define fpu_level 5
 #define pentium 1
 #define cyrix_level 6
+#define enable_oio 1
 //#define pentiumpro 1
 #define cpuid
 #define mmx 1
