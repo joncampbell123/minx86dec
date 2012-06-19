@@ -79,6 +79,10 @@
 #define COVER_8ROW(x) COVER_4ROW(x): COVER_4ROW(x+0x40)
 #define COVER_16ROW(x) COVER_8ROW(x): COVER_8ROW(x+0x80)
 
+#ifndef ibmslc_level
+# define ibmslc_level 0
+#endif
+
 /* defaults */
 #ifndef core_level
 #  define core_level 0
@@ -1439,6 +1443,10 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			case 0x07: ins->opcode = MXOP_RES3; break;
 # elif core_level == 4 && defined(am486)
 			case 0x07: ins->opcode = MXOP_RES4; break;
+# elif core_level == 4 && ibmslc_level == 1 /* TODO: I'm guessing the 486SLC doesn't support it */
+			/* nothing */
+# elif core_level == 4 && ibmslc_level == 2 /* IBM 486SLC2 */
+			case 0x07: ins->opcode = MXOP_ICERET; break;
 # elif core_level == 3 || (defined(everything) && core_level == 4)
 			case 0x07: ins->opcode = MXOP_LOADALL_386; break;
 # endif
@@ -1781,7 +1789,12 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				ins->opcode = MXOP_COMISS + (dataprefix32 ? 1 : 0); d->reg = mrm.f.reg;
 			} break;
 # endif
-# if core_level >= 5
+# if (core_level == 3 || core_level == 4) && ibmslc_level == 1 /* IBM 386SLC/486SLC */
+			case 0x32: ins->opcode = MXOP_RDMSR; break;
+# elif core_level == 4 && ibmslc_level >= 2 /* IBM 486SLC2 */
+			case 0x30: ins->opcode = MXOP_WRMSR; break;
+			case 0x32: ins->opcode = MXOP_RDMSR; break;
+# elif core_level >= 5
 			case 0x30: ins->opcode = MXOP_WRMSR; break;
 			case 0x31: case 0x32: /* RDTSC, RDMSR */
 #  if defined(pentiumpro) || pentium >= 2 

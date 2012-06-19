@@ -946,6 +946,7 @@ enum {
 	MXOP_STOP,
 /* 0x350-0x353 */
 	MXOP_TSKSW,
+	MXOP_ICERET,
 
 	MXOP_LAST
 };

@@ -1528,6 +1528,12 @@ prefetchnta	[esi]				; 0F 18 /0
 
       rcpps	xmm1,xmm2			;    0F 53 /r
       rcpss	xmm1,xmm2			; F3 0F 53 /r
+
+	nop
+	nop
+	nop
+	nop
+
       rdmsr					; 0F 32
       rdpmc					; 0F 33
       rdtsc					; 0F 31
@@ -1725,6 +1731,11 @@ bits 16
 	fwait					; 9B
 
 	wbinvd					; 0F 09
+
+	nop
+	nop
+	nop
+
 	wrmsr					; 0F 30
 	xadd	cl,ch				; 0F C0 /r
 	xadd	bx,cx				; 0F C1 /r

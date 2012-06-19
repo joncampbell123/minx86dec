@@ -951,6 +951,7 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"STOP",
 /* 0x350-0x353 */
 	"TSKSW",
+	"ICERET",
 
 	NULL
 };

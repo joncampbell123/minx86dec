@@ -11,7 +11,7 @@ void minx86dec_decode486ibmslc(struct minx86dec_state *state,struct minx86dec_in
 #define core_level 4
 #define isdata32 ins->data32
 #define isaddr32 ins->addr32
-#define ibmslc_level 0
+#define ibmslc_level 1
 #define fpu_level 4
 
 	ins->data32 = state->data32;
