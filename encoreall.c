@@ -1438,6 +1438,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			*o++ = 0x0F;
 			*o++ = 0x05;
 		} break;
+		case MXOP_RES3:
+		case MXOP_RES4:
 		case MXOP_LOADALL_386: {
 			*o++ = 0x0F;
 			*o++ = 0x07;
