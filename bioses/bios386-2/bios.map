@@ -1,0 +1,307 @@
+
+Discarded input sections
+
+ .note.GNU-stack
+                0x00000000        0x0 entry_c.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+Address of section .text set to 0x0
+Address of section .cpuentry set to 0xfff00
+LOAD entry_c.o
+LOAD entry.o
+                0x08048000                PROVIDE (__executable_start, 0x8048000)
+                0x08048074                . = (0x8048000 + SIZEOF_HEADERS)
+
+.interp
+ *(.interp)
+
+.note.gnu.build-id
+ *(.note.gnu.build-id)
+
+.hash
+ *(.hash)
+
+.gnu.hash
+ *(.gnu.hash)
+
+.dynsym
+ *(.dynsym)
+
+.dynstr
+ *(.dynstr)
+
+.gnu.version
+ *(.gnu.version)
+
+.gnu.version_d
+ *(.gnu.version_d)
+
+.gnu.version_r
+ *(.gnu.version_r)
+
+.rel.dyn
+ *(.rel.init)
+ *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)
+ *(.rel.fini)
+ *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)
+ *(.rel.data.rel.ro* .rel.gnu.linkonce.d.rel.ro.*)
+ *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)
+ *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)
+ *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)
+ *(.rel.ctors)
+ *(.rel.dtors)
+ *(.rel.got)
+ *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)
+ *(.rel.ifunc)
+
+.rel.plt        0x08048074        0x0
+ *(.rel.plt)
+                0x08048074                PROVIDE (__rel_iplt_start, .)
+ *(.rel.iplt)
+ .rel.iplt      0x00000000        0x0 entry_c.o
+                0x08048074                PROVIDE (__rel_iplt_end, .)
+
+.init
+ *(.init)
+
+.plt            0x08048080        0x0
+ *(.plt)
+ *(.iplt)
+ .iplt          0x00000000        0x0 entry_c.o
+
+.text           0x00000000       0xac
+ *(.text.unlikely .text.*_unlikely)
+ *(.text.exit .text.exit.*)
+ *(.text.startup .text.startup.*)
+ *(.text.hot .text.hot.*)
+ *(.text .stub .text.* .gnu.linkonce.t.*)
+ .text          0x00000000       0xac entry_c.o
+                0x00000000                _asm_realcall_prepare
+                0x0000000f                _asm_realcall_leave
+                0x00000025                int10_putc
+                0x0000003c                int10_setmode
+                0x0000004d                int10_puts
+                0x00000077                _cpu_c_entry
+ .text          0x000000ac        0x0 entry.o
+ *(.gnu.warning)
+
+.fini
+ *(.fini)
+                0x000000ac                PROVIDE (__etext, .)
+                0x000000ac                PROVIDE (_etext, .)
+                0x000000ac                PROVIDE (etext, .)
+
+.rodata         0x000000ac        0xe
+ *(.rodata .rodata.* .gnu.linkonce.r.*)
+ .rodata.str1.1
+                0x000000ac        0xe entry_c.o
+
+.rodata1
+ *(.rodata1)
+
+.eh_frame_hdr
+ *(.eh_frame_hdr)
+
+.eh_frame       0x000000bc       0x7c
+ *(.eh_frame)
+ .eh_frame      0x000000bc       0x7c entry_c.o
+
+.gcc_except_table
+ *(.gcc_except_table .gcc_except_table.*)
+
+.exception_ranges
+ *(.exception_ranges .exception_ranges*)
+                0x00000138                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
+                0x00001138                . = DATA_SEGMENT_ALIGN (0x1000, 0x1000)
+
+.eh_frame
+ *(.eh_frame)
+
+.gcc_except_table
+ *(.gcc_except_table .gcc_except_table.*)
+
+.exception_ranges
+ *(.exception_ranges .exception_ranges*)
+
+.tdata
+ *(.tdata .tdata.* .gnu.linkonce.td.*)
+
+.tbss
+ *(.tbss .tbss.* .gnu.linkonce.tb.*)
+ *(.tcommon)
+
+.preinit_array  0x00001138        0x0
+                0x00001138                PROVIDE (__preinit_array_start, .)
+ *(.preinit_array)
+                0x00001138                PROVIDE (__preinit_array_end, .)
+
+.init_array     0x00001138        0x0
+                0x00001138                PROVIDE (__init_array_start, .)
+ *(SORT(.init_array.*) SORT(.ctors.*))
+ *(.init_array)
+ *(EXCLUDE_FILE(*crtend?.o *crtend.o *crtbegin?.o *crtbegin.o) .ctors)
+                0x00001138                PROVIDE (__init_array_end, .)
+
+.fini_array     0x00001138        0x0
+                0x00001138                PROVIDE (__fini_array_start, .)
+ *(SORT(.fini_array.*) SORT(.dtors.*))
+ *(.fini_array)
+ *(EXCLUDE_FILE(*crtend?.o *crtend.o *crtbegin?.o *crtbegin.o) .dtors)
+                0x00001138                PROVIDE (__fini_array_end, .)
+
+.ctors
+ *crtbegin.o(.ctors)
+ *crtbegin?.o(.ctors)
+ *(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
+ *(SORT(.ctors.*))
+ *(.ctors)
+
+.dtors
+ *crtbegin.o(.dtors)
+ *crtbegin?.o(.dtors)
+ *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
+ *(SORT(.dtors.*))
+ *(.dtors)
+
+.jcr
+ *(.jcr)
+
+.data.rel.ro
+ *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*)
+ *(.data.rel.ro* .gnu.linkonce.d.rel.ro.*)
+
+.dynamic
+ *(.dynamic)
+
+.got
+ *(.got)
+ *(.igot)
+                0x00001138                . = DATA_SEGMENT_RELRO_END (., 0xc)
+
+.got.plt        0x00001138        0x0
+ *(.got.plt)
+ *(.igot.plt)
+ .igot.plt      0x00000000        0x0 entry_c.o
+
+.data           0x00001138        0x0
+ *(.data .data.* .gnu.linkonce.d.*)
+ .data          0x00001138        0x0 entry_c.o
+ .data          0x00001138        0x0 entry.o
+
+.data1
+ *(.data1)
+                0x00001138                _edata = .
+                0x00001138                PROVIDE (edata, .)
+                0x00001138                __bss_start = .
+
+.bss            0x00001138        0x0
+ *(.dynbss)
+ *(.bss .bss.* .gnu.linkonce.b.*)
+ .bss           0x00001138        0x0 entry_c.o
+ .bss           0x00001138        0x0 entry.o
+ *(COMMON)
+                0x00001138                . = ALIGN ((. != 0x0)?0x4:0x1)
+                0x00001138                . = ALIGN (0x4)
+                0x00001138                . = ALIGN (0x4)
+                0x00001138                _end = .
+                0x00001138                PROVIDE (end, .)
+                0x00001138                . = DATA_SEGMENT_END (.)
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x00000000       0x11
+ *(.comment)
+ .comment       0x00000000       0x11 entry_c.o
+                                 0x12 (size before relaxing)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges
+ *(.debug_aranges)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info
+ *(.debug_info .gnu.linkonce.wi.*)
+
+.debug_abbrev
+ *(.debug_abbrev)
+
+.debug_line
+ *(.debug_line)
+
+.debug_frame
+ *(.debug_frame)
+
+.debug_str
+ *(.debug_str)
+
+.debug_loc
+ *(.debug_loc)
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+
+.debug_pubtypes
+ *(.debug_pubtypes)
+
+.debug_ranges
+ *(.debug_ranges)
+
+.gnu.attributes
+ *(.gnu.attributes)
+
+/DISCARD/
+ *(.note.GNU-stack)
+ *(.gnu_debuglink)
+ *(.gnu.lto_*)
+OUTPUT(rombios.o elf32-i386)
+
+.cpuentry       0x000fff00      0x100
+ .cpuentry      0x000fff00      0x100 entry.o
+                0x000ffff0                _cpu_entry

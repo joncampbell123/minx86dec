@@ -1,8 +1,8 @@
 all:
-	make -C bios386-1
-	make -C bios386-2
+	+$(MAKE) $(MAKEFLAGS) -C bios386-1
+	+$(MAKE) $(MAKEFLAGS) -C bios386-2
 
 clean:
-	make -C bios386-1 clean
-	make -C bios386-2 clean
+	+$(MAKE) $(MAKEFLAGS) -C bios386-1 clean
+	+$(MAKE) $(MAKEFLAGS) -C bios386-2 clean
 
