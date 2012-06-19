@@ -346,9 +346,10 @@ bits 64
 	test	rax,12345678h
 	test	rax,0FFFFFFFFFFFFFFFFh
 
-	lea	rsi,[rel 0]
-	lea	esi,[rel 0]
-	lea	si,[rel 0]
+	lea	rsi,[rel mark2]
+	lea	esi,[rel mark2]
+	lea	si,[rel mark2]
+mark2:
 
 	lea	eax,[abs 1234h]
 	lea	eax,[rax-3]
@@ -529,11 +530,12 @@ bits 64
 	add	ax,cx
 	add	ax,r9w
 	add	r10w,r15w
-	add	r13w,[rel 0x100]
-	add	rbx,[rel 0x100000]
-	add	rbx,[rel 0x80000000]
-	add	rbx,[rel 0x90000000]	; OOPS! NASM will happily encode this, even though it now makes a negative number!
-	add	rbx,[rel 0x100000000]	; NASM will happily let this overflow, giving a relative addr of 0
+	add	r13w,[rel mark1]
+	add	rbx,[rel mark1 + rax]	; NTS: Apparently this becomes [offset mark1 + rax]
+	add	rbx,[rel mark1]
+	add	rbx,[rel mark1]
+	add	rbx,[rel mark1]
+mark1:
 	add	bl,[r8]
 	add	bl,[r13]
 	add	bl,[r15]

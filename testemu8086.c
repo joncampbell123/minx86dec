@@ -314,10 +314,6 @@ uint8_t my_memio_r(struct emu8086_memio *m) {
 }
 
 int main(int argc,char **argv) {
-	char arg_c[101];
-	int sz=0;
-	int c;
-
 	/* init random */
 	srand(time(NULL)^getpid());
 

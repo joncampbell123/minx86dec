@@ -97,7 +97,7 @@ minx86_write_ptr_t minx86enc_seg_overrides_es(struct minx86dec_argv *a,struct mi
 }
 
 minx86_write_ptr_t minx86enc_encode_memreg_far(struct minx86dec_argv *a,minx86_write_ptr_t o,unsigned int regval) {
-	int mod = 0,sib = -1,memref = 0;
+	int mod = 0,memref = 0;
 
 	if (a->memref_base != 0) {
 		if (	(a->memregsz == 4 && (int32_t)a->memref_base >= -0x80 && (int32_t)a->memref_base < 0x80) ||
@@ -187,7 +187,7 @@ minx86_write_ptr_t minx86enc_encode_memreg_far(struct minx86dec_argv *a,minx86_w
 }
 
 minx86_write_ptr_t minx86enc_encode_memreg(struct minx86dec_argv *a,minx86_write_ptr_t o,unsigned int regval) {
-	int mod = 0,sib = -1,memref = 0;
+	int mod = 0,memref = 0;
 
 	if (a->memref_base != 0) {
 		if (	(a->memregsz == 4 && (int32_t)a->memref_base >= -0x80 && (int32_t)a->memref_base < 0x80) ||
@@ -4946,7 +4946,6 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 		} break;
 		case MXOP_MOVBE: { /*====================MOV=====================*/
 			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
-			unsigned char word = (a->size >= 2) ? 1 : 0;
 			/* it doesn't matter if it's reg-reg, reg-r/m, r/m-reg, etc
 			 * instruction encoding covers them all */
 

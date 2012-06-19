@@ -60,9 +60,11 @@ struct x64_mrm {
 	uint32_t	raw;
 };
 
+#if 0/*UNUSED*/
 static int rm_addr16_mapping[8] = {
 	MX86_REG_BX,	MX86_REG_BX,	MX86_REG_BP,	MX86_REG_BP,
 	MX86_REG_SI,	MX86_REG_DI,	MX86_REG_BP,	MX86_REG_BX	};
+#endif
 
 /* read immediate, 64-bit if 64-bit enabled */
 static inline uint64_t imm64bysize(struct minx86dec_instruction_x64 *s) {

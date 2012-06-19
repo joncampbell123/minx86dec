@@ -1636,7 +1636,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 
 # if core_level >= 5 && (defined(pentiumpro) || pentium >= 2)
 			case 0x1F: {
-				ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = data32wordsize;
+				ARGV *d = &ins->argv[0]/*,*s = &ins->argv[1]*/; d->size = data32wordsize;
 				INS_MRM mrm = decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
 				switch (mrm.f.reg) {
 					case 0:	ins->opcode = MXOP_NOP; ins->argc = 1; break;
@@ -2514,7 +2514,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			COVER_ROW(0x90): {
 				ins->opcode = MXOP_SETO+(second_byte&0xF); ins->argc = 1;
 				ARGV *r = &ins->argv[0]; r->size = 1;
-				INS_MRM mrm = decode_rm_(r,ins,r->size,PLUSR_TRANSFORM);
+				/*INS_MRM mrm = */decode_rm_(r,ins,r->size,PLUSR_TRANSFORM);
 			} break;
 # endif
 # if defined(do_necv20) && !defined(x64_mode) /* NEC V20/V30 */

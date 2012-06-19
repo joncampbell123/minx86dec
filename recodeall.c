@@ -59,7 +59,6 @@ int main(int argc,char **argv) {
 	else if (argc > 2 && (!strcmp(argv[2],"/32x16") || !strcmp(argv[2],"-32x16"))) { st.data32 = st.addr32 = 1; est.data32 = est.addr32 = 0; }
 
 	while (st.read_ip < st.fence) {
-		unsigned char mark = 1;
 		struct minx86dec_instruction i;
 		minx86dec_init_instruction(&i);
 		st.ip_value = (uint32_t)(st.read_ip - buffer); rst = st;

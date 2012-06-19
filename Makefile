@@ -6,7 +6,7 @@ CFLAGS=-I. -I.. -std=c99
 ifeq ($(DEBUG),1)
 CFLAGS += -g3 -O0
 else
-CFLAGS += -g0 -Os -fomit-frame-pointer -fexpensive-optimizations
+CFLAGS += -g0 -Os -fomit-frame-pointer -fexpensive-optimizations -Wall -Wno-long-long -std=gnu99
 endif
 
 ifeq ($(HOSTA),x86_64)
