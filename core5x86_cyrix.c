@@ -14,7 +14,6 @@ void minx86dec_decode5x86_cyrix(struct minx86dec_state *state,struct minx86dec_i
 #define fpu_level 5
 #define pentium 1
 #define cyrix_level 5
-//#define pentiumpro 1
 #define cpuid
 
 	ins->data32 = state->data32;
