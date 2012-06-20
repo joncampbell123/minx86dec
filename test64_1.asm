@@ -399,9 +399,17 @@ mark2:
 	xchg	[edi],si
 
 	mov	al,12h
+	mov	ah,12h
+	mov	bl,34h
 	mov	bh,34h
+	mov	cl,34h
+	mov	ch,34h
+	mov	dl,34h
 	mov	dh,34h
 	mov	sil,23h
+	mov	dil,23h
+	mov	spl,23h
+	mov	bpl,23h
 	mov	r8b,24h
 	mov	r14b,24h
 	mov	ax,1234h
@@ -427,6 +435,85 @@ mark2:
 	mov	ecx,edx
 	mov	rax,rbx
 	mov	rcx,rdx
+
+	mov	al,ah
+	mov	sil,al
+	mov	r8,r9
+
+	mov	al,[rax]
+	mov	ax,[rax]
+	mov	eax,[rax]
+	mov	rax,[rax]
+	mov	rax,[rax]
+	mov	rax,[rax+rbx]
+	mov	rax,[rax+r8]
+	mov	rax,[rax*8+r8]
+	mov	rax,[rax*8+r8+4]
+	mov	rax,[rax*8+r8+55555]
+	mov	rax,[rsi+rdi]
+	mov	rax,[rsi+rdi]
+	mov	rax,[rsp+rax]
+	mov	rax,[rax+rsp]
+
+	mov	al,[r8]
+	mov	ax,[r9]
+	mov	eax,[r10]
+	mov	rax,[r11]
+	mov	rax,[r12]
+	mov	rax,[r8+r9]
+	mov	rax,[r8*4+r9]
+	mov	rax,[r8*4+r9+44]
+	mov	rax,[r8*4+r9+5555]
+	mov	rax,[r11+r8]
+	mov	rax,[r8+r11]
+	mov	rax,[r12+r8]
+	mov	rax,[r8+r12]
+	mov	rax,[r8*8+r8+44]
+	mov	rax,[r8*8+r9+44]
+	mov	rax,[r8*8+r10+44]
+	mov	rax,[r8*8+r11+44]
+	mov	rax,[r8*8+r12+44]
+	mov	rax,[r8*8+r13+44]
+	mov	rax,[r8*8+r14+44]
+	mov	rax,[r8*8+r15+44]
+	mov	rax,[r13*8+r8+44]
+	mov	rax,[r13*8+r9+44]
+	mov	rax,[r13*8+r10+44]
+	mov	rax,[r13*8+r11+44]
+	mov	rax,[r13*8+r12+44]
+	mov	rax,[r13*8+r13+44]
+	mov	rax,[r13*8+r14+44]
+	mov	rax,[r13*8+r15+44]
+
+	add	al,[r8]
+	add	ax,[r9]
+	add	eax,[r10]
+	add	rax,[r11]
+	add	rax,[r12]
+	add	rax,[r8+r9]
+	add	rax,[r8*4+r9]
+	add	rax,[r8*4+r9+44]
+	add	rax,[r8*4+r9+5555]
+	add	rax,[r11+r8]
+	add	rax,[r8+r11]
+	add	rax,[r12+r8]
+	add	rax,[r8+r12]
+	add	rax,[r8*8+r8+44]
+	add	rax,[r8*8+r9+44]
+	add	rax,[r8*8+r10+44]
+	add	rax,[r8*8+r11+44]
+	add	rax,[r8*8+r12+44]
+	add	rax,[r8*8+r13+44]
+	add	rax,[r8*8+r14+44]
+	add	rax,[r8*8+r15+44]
+	add	rax,[r13*8+r8+44]
+	add	rax,[r13*8+r9+44]
+	add	rax,[r13*8+r10+44]
+	add	rax,[r13*8+r11+44]
+	add	rax,[r13*8+r12+44]
+	add	rax,[r13*8+r13+44]
+	add	rax,[r13*8+r14+44]
+	add	rax,[r13*8+r15+44]
 
 	test	byte [esi],al
 	test	byte [esi],ah
@@ -494,6 +581,7 @@ mark2:
 	add	r8b,r9b
 	add	r8w,r9w
 	add	r8d,r9d
+	add	r8,r9
 
 	add	bl,[rax]
 	add	bl,[rbx]

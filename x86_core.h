@@ -425,7 +425,7 @@ decode_next:
 		} break;
 		case 0x8D: { /* LEA reg,mem */
 			ins->opcode = MXOP_LEA; ins->argc = 2;
-			ARGV *reg = &ins->argv[0],*rm = &ins->argv[1]; rm->size = reg->size = data32wordsize;
+			ARGV *reg = &ins->argv[0],*rm = &ins->argv[1]; rm->size = reg->size = data64wordsize;
 			INS_MRM mrm = decode_rm_(rm,ins,rm->size,PLUSR_TRANSFORM); set_register(reg,mrm.f.reg);
 		} break;
 		case 0x8F:
@@ -598,7 +598,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 		COVER_ROW(0xB0): {
 			ins->opcode = MXOP_MOV; ins->argc = 2;
 			ARGV *r = &ins->argv[0],*imm = &ins->argv[1]; r->size = imm->size = (first_byte&8)?datawordsize:1;
-			set_immediate(imm,(first_byte & 8) ? imm64bysize(ins) : fetch_u8()); set_register(r,first_byte & 7);
+			set_immediate(imm,(first_byte & 8) ? imm64bysize(ins) : fetch_u8()); set_register(r,x64_translate_rm3b(r->size,first_byte&7,ins));
 		} break;
 		COVER_2(0xC0): {
 			ARGV *d=&ins->argv[0],*imm=&ins->argv[1]; d->size = (first_byte&1)?datawordsize:1;imm->size=1;
@@ -1298,7 +1298,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 		} break;
 		COVER_2(0xEC): {
 			ins->opcode = MXOP_IN; ins->argc = 2;
-			ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = data32wordsize,s->size = 2;
+			ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = (first_byte & 1) ? data32wordsize : 1,s->size = 2;
 			set_register(d,MX86_REG_AX); set_register(s,MX86_REG_DX);
 		} break;
 		COVER_2(0xEE): {

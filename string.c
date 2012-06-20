@@ -8,7 +8,7 @@ const char *regnames[9][32+1] = {
 /* 0 */	{	NULL								},
 /* 1 */	{	"AL",	"CL",	"DL",	"BL",	"AH",	"CH",	"DH",	"BH",
 		"R8B",	"R9B",	"R10B",	"R11B",	"R12B",	"R13B",	"R14B",	"R15B",
-		"SPL",	"BPL",	"SIL",	"DIL"					},
+		"?",	"?",	"?",	"?",	"SPL",	"BPL",	"SIL",	"DIL",	},
 /* 2 */	{	"AX",	"CX",	"DX",	"BX",	"SP",	"BP",	"SI",	"DI",
 		"R8W",	"R9W",	"R10W",	"R11W",	"R12W",	"R13W",	"R14W",	"R15W"	},
 /* 3 */	{	NULL								},

@@ -170,6 +170,18 @@ static inline uint32_t plusr_transform_rex(union minx86dec_rex_x64 rex,uint32_t 
 	return reg;
 }
 
+static inline uint8_t x64_translate_rm3b(unsigned char regsz,unsigned char x,struct minx86dec_instruction_x64 *ins) {
+	if (ins->rex.f.b) return (x | (ins->rex.f.b<<3));
+	else if (ins->rex.f.prefix && regsz == 1) return (x+0x10);
+	return x;
+}
+
+static inline uint8_t x64_translate_reg3b(unsigned char regsz,unsigned char x,struct minx86dec_instruction_x64 *ins) {
+	if (ins->rex.f.r) return (x | (ins->rex.f.r<<3));
+	else if (ins->rex.f.prefix && regsz == 1) return (x+0x10);
+	return x;
+}
+
 #define PLUSR_TRANSFORM 1
 
 static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct minx86dec_instruction_x64 *s,uint32_t size,int transform,int typ) {
@@ -218,8 +230,8 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 		mrm.f.index = sib.f.index | (rex.f.x << 3);
 		mrm.f.base = sib.f.base | (rex.f.b << 3);
 
-		if (sib.f.index == 4) {
-			if (sib.f.base != 5) {
+		if (mrm.f.index == 4) {
+			if (mrm.f.base != 5) {
 				a->memregs = 1;
 				a->memreg[0] = mrm.f.base;
 			}
@@ -228,7 +240,7 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 			}
 		}
 		else {
-			if (sib.f.base != 5) {
+			if (mrm.f.base != 5) {
 				a->memregs = 2;
 				a->scalar = mrm.f.scale;
 				a->memreg[0] = mrm.f.index;
@@ -241,7 +253,7 @@ static inline struct x64_mrm decode_rm_x64(struct minx86dec_argv_x64 *a,struct m
 			}
 		}
 
-		if (sib.f.base == 5 && mrm.f.mod == 0)
+		if (mrm.f.base == 5 && mrm.f.mod == 0)
 			a->memref_base = (uint64_t)((int32_t)fetch_u32());
 
 		if (s->segment >= 0)

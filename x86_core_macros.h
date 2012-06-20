@@ -291,6 +291,9 @@ static inline uint64_t data32_64_zeroextend(int is64,uint32_t x) {
 	return (uint32_t)x;
 }
 
+#define x64_translate_rm3b(rsz,x,ins) (x)
+#define x64_translate_reg3b(rsz,x,ins) (x)
+
 /* warning: intended for use in x86_core.h */
 #define string_instruction_typical(opcode) string_instruction(opcode,ins,(first_byte & 1) ? data32wordsize : 1,addr32wordsize,ins->segment >= 0 ? ins->segment : MX86_SEG_DS)
 
