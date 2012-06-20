@@ -2196,3 +2196,16 @@ bits 16
 	vpermil2pd	ymm0,ymm1,ymm2,ymm3,1
 	vpermil2pd	ymm0,ymm1,[esi],ymm3,1
 %endif
+
+	nop
+	nop
+	nop
+	nop
+	nop
+
+; Mmmm... IIT 387 extensions
+	db 0xDB,0xF1			; F4X4
+	db 0xDB,0xE8			; FSBP0
+	db 0xDB,0xEB			; FSBP1
+	db 0xDB,0xEA			; FSBP2
+

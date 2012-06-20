@@ -3,6 +3,9 @@
 #include "minx86dec/opcodes.h"
 #include "minx86dec/core386am.h"
 #include "minx86dec/opcodes_str.h"
+#ifdef IIT_FPU
+# include "minx86dec/iit387.h"
+#endif
 #include <string.h>
 #include <stdio.h>
 
@@ -45,6 +48,10 @@ int main(int argc,char **argv) {
 		struct minx86dec_instruction i;
 		st.ip_value = (uint32_t)(st.read_ip - buffer);
 		minx86dec_decode386am(&st,&i);
+#ifdef IIT_FPU
+		if (i.opcode == MXOP_UD && i.fpu_code != 0) 
+			minx86dec_auxdecode387iit(&st,&i);
+#endif
 		printf("0x%04X  ",(unsigned int)(i.start - buffer));
 		for (c=0,iptr=i.start;iptr != i.end;c++)
 			printf("%02X ",*iptr++);

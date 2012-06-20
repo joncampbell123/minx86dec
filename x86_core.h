@@ -3415,6 +3415,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					} d->size = 4; decode_rm_(d,ins,d->size,PLUSR_TRANSFORM);
 				} break;
 
+# if defined(everything) || core_level >= 6 || (core_level == 5 && defined(pentiumpro))
 				COVER_8(FPU_CODE(0xDA,0xC0)): ins->argc = 1; ins->opcode = MXOP_FCMOVB;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 				COVER_8(FPU_CODE(0xDA,0xC8)): ins->argc = 1; ins->opcode = MXOP_FCMOVE;
@@ -3423,6 +3424,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 				COVER_8(FPU_CODE(0xDA,0xD8)): ins->argc = 1; ins->opcode = MXOP_FCMOVU;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+# endif
 
 				case FPU_CODE(0xDA,0xE9): ins->opcode = MXOP_FUCOMPP; break;
 
@@ -3437,6 +3439,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					decode_rm_(d,ins,d->size,PLUSR_TRANSFORM); ins->opcode = table[which*2];
 				} break;
 
+# if defined(everything) || core_level >= 6 || (core_level == 5 && defined(pentiumpro))
 				COVER_8(FPU_CODE(0xDB,0xC0)): ins->argc = 1; ins->opcode = MXOP_FCMOVNB;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 				COVER_8(FPU_CODE(0xDB,0xC8)): ins->argc = 1; ins->opcode = MXOP_FCMOVNE;
@@ -3445,13 +3448,17 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 				COVER_8(FPU_CODE(0xDB,0xD8)): ins->argc = 1; ins->opcode = MXOP_FCMOVNU;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+#endif
 
 				/* TODO: The IIT FPU chip (387-level) defines custom instructions that conflict with
 					 the P6 Pentium level instructions defined here */
+
+# if defined(everything) || core_level >= 6 || (core_level == 5 && defined(pentiumpro))
 				COVER_8(FPU_CODE(0xDB,0xE8)): ins->argc = 1; ins->opcode = MXOP_FUCOMI;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 				COVER_8(FPU_CODE(0xDB,0xF0)): ins->argc = 1; ins->opcode = MXOP_FCOMI;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
+# endif
 
 				case FPU_CODE(0xDB,0xE0): ins->opcode = MXOP_FENI; break;
 				case FPU_CODE(0xDB,0xE1): ins->opcode = MXOP_FDISI; break;
@@ -3539,11 +3546,12 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				COVER_8(FPU_CODE(0xDF,0xE0)): ins->argc = 1; ins->opcode = MXOP_FSTSW; ins->argv[0].size = 2;
 					set_register(&ins->argv[0],MX86_REG_AX); break;
 
+# if defined(everything) || core_level >= 6 || (core_level == 5 && defined(pentiumpro))
 				COVER_8(FPU_CODE(0xDF,0xE8)): ins->argc = 1; ins->opcode = MXOP_FUCOMIP;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
 				COVER_8(FPU_CODE(0xDF,0xF0)): ins->argc = 1; ins->opcode = MXOP_FCOMIP;
 					set_fpu_register(&ins->argv[0],fpu_code&7); break;
-
+#endif
 			};
 #undef FPU_CODE
 		} break;

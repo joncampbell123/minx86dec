@@ -952,6 +952,11 @@ const char *opcode_string[MXOP_LAST+1] = {
 /* 0x350-0x353 */
 	"TSKSW",
 	"ICERET",
+	"F4X4",
+	"FSBP0",
+/* 0x354-0x357 */
+	"FSBP1",
+	"FSBP2",
 
 	NULL
 };
