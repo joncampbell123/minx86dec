@@ -878,11 +878,9 @@ mark1:
 	pop	si
 	pop	rsi
 	pop	fs
-	popaq
 	popcnt	ax,ax
 	popcnt	rax,rax
 	popf
-	popfq
 	prefetch [esi]
 	prefetchw [esi]
 	prefetchnta [esi]
@@ -892,8 +890,6 @@ mark1:
 	push	ax
 	push	rax
 	push	fs
-	pushaq
-	pushfq
 	pushf
 	rcl	al,1
 	rcl	al,cl
