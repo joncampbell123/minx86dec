@@ -89,6 +89,10 @@ _start:
 	loopz	$
 	loopnz	$
 	lzcnt	ax,ax
+	lzcnt	ax,[si]
+	lzcnt	eax,eax
+	lzcnt	eax,[si]
+	lzcnt	eax,[esi]
 	mfence
 	mov	al,al
 	movd	mm0,eax
@@ -130,6 +134,10 @@ _start:
 	pop	es
 	popa
 	popcnt	ax,ax
+	popcnt	ax,[si]
+	popcnt	eax,eax
+	popcnt	eax,[si]
+	popcnt	eax,[esi]
 	popf
 	prefetch [esi]
 	prefetchw [esi]
@@ -155,9 +163,21 @@ _start:
 	rol	al,1
 	rol	al,cl
 	rol	al,3
+	rol	ax,1
+	rol	ax,cl
+	rol	ax,3
+	rol	byte [si],1
+	rol	byte [si],cl
+	rol	byte [si],3
 	ror	al,1
 	ror	al,cl
 	ror	al,3
+	ror	ax,1
+	ror	ax,cl
+	ror	ax,3
+	ror	byte [si],1
+	ror	byte [si],cl
+	ror	byte [si],3
 	sahf
 	sal	al,1
 	sal	al,cl
@@ -177,11 +197,15 @@ _start:
 	shl	al,3
 	shld	ax,bx,1
 	shld	ax,bx,cl
+	shld	[si],bx,1
+	shld	[si],bx,cl
 	shr	al,1
 	shr	al,cl
 	shr	al,3
 	shrd	ax,bx,1
 	shrd	ax,bx,cl
+	shrd	[si],bx,1
+	shrd	[si],bx,cl
 	stc
 	std
 	stosb
@@ -192,6 +216,10 @@ _start:
 	test	al,0x10
 	xadd	al,al
 	xadd	ax,ax
+	xadd	eax,eax
+	xadd	[si],al
+	xadd	[si],ax
+	xadd	[si],eax
 	xchg	ax,bx
 	xlat
 	xor	al,al
