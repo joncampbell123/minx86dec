@@ -21,6 +21,8 @@
 #define isdata64 (0)
 #endif
 
+/* TODO: there is code here to look for "defined(merced_itanium_x86)", make an itanium x86 core */
+
 /* FIXME: A lot of MMX decoding is enabled for the 586pro core, when it turns out the Pentium Pro
           did *NOT* have MMX decoding. a 586mmx core was added instead (#define pentium_mmx).
           This code should be modified NOT to decode MMX unless the core supports it */
@@ -1367,6 +1369,9 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					case 2: ins->opcode = MXOP_LLDT; break;
 					case 3: ins->opcode = MXOP_LTR; break;
 					case 4: case 5: ins->opcode = MXOP_VERR + mrm.f.reg - 4; break;
+# if defined(everything) && !defined(x64_mode)
+					case 6: ins->opcode = MXOP_JMPX; break; /* Merced Itanium "jump to IA64" */
+# endif
 				}
 			} break;
 # endif
@@ -2706,7 +2711,13 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			} break;
 # endif
 
-# if core_level >= 5 && sse_level >= 2
+# if defined(merced_itanium_x86) && !defined(x64_mode) && !defined(everything)
+			case 0xB8: { /* Intel merced Itanium */
+				ins->opcode = MXOP_JMPX; ins->argc = 1;
+				ARGV *re = &ins->argv[0]; re->size = addr32wordsize;
+				set_immediate(imm,re->size >= 4 ? fetch_u32() : (uint32_t)((int16_t)fetch_u16()));
+			} break;
+# elif core_level >= 5 && sse_level >= 2
 			case 0xB8: {
 				ins->opcode = MXOP_POPCNT; ins->argc = 2;
 				ARGV *re = &ins->argv[0],*rm = &ins->argv[1]; re->size = rm->size = data32wordsize;
