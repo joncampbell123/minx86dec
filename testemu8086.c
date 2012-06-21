@@ -1,3 +1,8 @@
+/* this code needs to become a CPU-centric emulation design.
+   and when the CPU is fetching memory, it needs to be within
+   one function where the memory I/O and event code is called
+   from the CPU "step" function. */
+
 #include "minx86dec/types.h"
 #include "minx86dec/state.h"
 #include "minx86dec/opcodes.h"
@@ -15,9 +20,32 @@
 
 uint8_t memory[640*1024];
 
-#define DEBUG		1
+#define DEBUG				1
 
-#define PREFETCH_SIZE	5
+#define PREFETCH_SIZE			5
+#define PREFETCH_BUFFER_SIZE		4096
+#define PREFETCH_BUFFER_SAFETY		16
+
+#define MASTER_CLOCK_RATE		14318181		/* ISA BUS "OSC" pin (NTS: Must be divisible by 3!) */
+#define CPU_CLOCK_DIVIDE		3			/* 14.31818Mhz / 3 = 4.77MHz CPU clock */
+
+#define CLOCK_DELAY_LATCH_MEMIO		1			/* 1 clock cycle to latch memory I/O onto bus */
+#define CLOCK_DELAY_FINISH_MEMIO	1			/* 1 clock cycle to respond to ACK, read data bus, unlatch memory I/O */
+
+struct emu8086_clockdomain {
+	uint64_t	clock;
+	uint64_t	last_advance;			/* last number of clocks advanced */
+	uint32_t	rate,rate_den;			/* N/D rate */
+};
+
+/* master clock */
+struct emu8086_clockdomain	clock_master;
+struct emu8086_clockdomain	clock_cpu;
+
+static inline void emu8086_clockdomain_adv(struct emu8086_clockdomain *c,uint32_t s) {
+	c->clock += s;
+	c->last_advance += s;
+}
 
 /* emulator state */
 struct emu8086_segment {
@@ -33,26 +61,10 @@ union emu8086_regs {
 	} __attribute__((packed)) n;
 };
 
-/* We're emulating an 8-bit datapath, else I'd add flags to say whether we
- * are fetching 8 bits or 16 bits */
-struct emu8086_event {
-	unsigned int		event;
-	unsigned int		event_duration;	/* in clocks */
-	union {
-		struct {
-			uint32_t	addr;
-			uint32_t	reason;
-		} mem;
-		uint16_t	io_addr;
-	} e;
-	unsigned char		decoded_ins;
-};
-
 struct emu8086_memio {
 	struct emu8086_state		*cpu;
-	struct emu8086_event		*event;
 	uint32_t			addr;
-	unsigned char			data;
+	unsigned char			data;		/* NTS: We're an 8088, we only have an 8-bit datapath */
 	unsigned char			write;
 };
 
@@ -70,43 +82,16 @@ struct emu8086_state {
 	sliding_window*			prefetch;	/* mimics the prefetch buffer. all decompilation
 							   happens from here, not directly from memory.
 							   just as the CPU must fetch memory to decode */
-	unsigned int			reset;		/* countdown of clocks to carry out reset */
-	unsigned int			reset_clock;
-	uint32_t			clocks;
 	struct minx86dec_state		decoder;
 	struct minx86dec_instruction	last_ins;
 	struct emu8086_memio		prefetch_memio;
+	void				(*on_clockadv)(uint32_t c);
 	uint8_t				(*memio_r)(struct emu8086_memio *m);
-};
-
-enum {
-	EMU86_EV_RESET=0,
-	EMU86_EV_IDLE
-};
-
-enum {
-	EMU86_EV_MEMREASON_NORMAL=0,
-	EMU86_EV_MEMREASON_PREFETCH
 };
 
 void emu8086_segment_set(struct emu8086_segment *s,uint16_t val) {
 	s->base = (uint32_t)val << 4;
 	s->value = val;
-}
-
-void emu8086_state_reset(struct emu8086_state *s) {
-	s->reset_clock = 400;	/* FIXME: how many cycles does it really take? */
-}
-
-void emu8086_state_assert_reset(struct emu8086_state *s) {
-	if (!s->reset) {
-		s->reset = 1;
-		emu8086_state_reset(s);
-	}
-}
-
-void emu8086_state_deassert_reset(struct emu8086_state *s) {
-	s->reset = 0;
 }
 
 void emu8086_state_flush_prefetch(struct emu8086_state *s) {
@@ -128,7 +113,7 @@ void emu8086_state_set_ip(struct emu8086_state *s,uint16_t val) {
 }
 
 void emu8086_state_reset_complete(struct emu8086_state *s) {
-	s->reset_clock = 0;	s->flags = 0;
+	s->flags = 0;
 	s->reg.n.ax = 1;	s->reg.n.bx = 0;
 	s->reg.n.cx = 0;	s->reg.n.dx = 0;
 	s->reg.n.si = 0;	s->reg.n.di = 0;
@@ -145,11 +130,11 @@ int emu8086_state_init(struct emu8086_state *s) {
 
 	/* prefetch buffer is 5 bytes, sliding along 256 bytes
 	   helps avoid overhead of copying bytes back */
-	if ((s->prefetch = sliding_window_create(256)) == NULL)
+	if ((s->prefetch = sliding_window_create(PREFETCH_BUFFER_SIZE)) == NULL)
 		return 1;
 
 	s->prefetch_memio.cpu = s;
-	emu8086_state_reset(s);
+	emu8086_state_reset_complete(s);
 	return 0;
 }
 
@@ -206,7 +191,7 @@ void print_ins(struct minx86dec_instruction *i) {
 }
 
 /* NOTE: mem I/O on this CPU is always 8-bit, no flags needed for word/dword reading */
-void emu8086_state_poke_prefetch(struct emu8086_state *s,unsigned char c) {
+void emu8086_state_add_to_prefetch(struct emu8086_state *s,unsigned char c) {
 	*(s->prefetch->end++) = c;
 	s->ip.prefetch++;
 #ifdef DEBUG
@@ -215,18 +200,18 @@ void emu8086_state_poke_prefetch(struct emu8086_state *s,unsigned char c) {
 	s->decoder.fence = s->prefetch->end;
 }
 
-void emu8086_state_prefetch_cycle(struct emu8086_state *s,struct emu8086_event *e) {
+void emu8086_state_prefetch_cycle(struct emu8086_state *s) {
 	unsigned char c;
 
-	s->prefetch_memio.event = e;
 	do {
-		if ((s->prefetch->data+PREFETCH_SIZE+16) > s->prefetch->fence)
+		if ((s->prefetch->data+PREFETCH_SIZE+PREFETCH_BUFFER_SAFETY) > s->prefetch->fence)
 			sliding_window_flush(s->prefetch);
 
-		/* issue memory read */
-		e->event_duration += 2;
+		/* issue memory read. the program's memio_r function is free to add additional cycles to simulate slow memory */
+		s->on_clockadv(CLOCK_DELAY_LATCH_MEMIO);
 		s->prefetch_memio.addr = s->ip.prefetch;
-		emu8086_state_poke_prefetch(s,c=s->memio_r(&(s->prefetch_memio)));
+		emu8086_state_add_to_prefetch(s,c=s->memio_r(&(s->prefetch_memio)));
+		s->on_clockadv(CLOCK_DELAY_FINISH_MEMIO);
 #ifdef DEBUG
 		fprintf(stderr,"memread(0x%05X) = 0x%02X\n",s->prefetch_memio.addr,c);
 #endif
@@ -234,25 +219,21 @@ void emu8086_state_prefetch_cycle(struct emu8086_state *s,struct emu8086_event *
 
 }
 
-int emu8086_state_event(struct emu8086_state *s,struct emu8086_event *e) {
+int emu8086_fill_prefetch(struct emu8086_state *s) {
+	if ((s->prefetch->data+PREFETCH_SIZE) > s->prefetch->end) {
+		emu8086_state_prefetch_cycle(s);
+		s->decoder.read_ip = s->prefetch->data;
+		s->decoder.prefetch_fence = s->decoder.fence = s->prefetch->end;
+	}
+
+	return 1;
+}
+
+int emu8086_cpu_step_one_instruction(struct emu8086_state *s) {
 	size_t inslen;
 
-	e->decoded_ins = 0;
-	if (s->reset_clock != 0) {
-		e->event = EMU86_EV_RESET;
-		e->event_duration = s->reset_clock;
-		return 1;
-	}
-	/* help keep the prefetch full */
-	else if ((s->prefetch->data+PREFETCH_SIZE) > s->prefetch->end) {
-		e->event = EMU86_EV_IDLE;
-		e->event_duration = 0;
-		emu8086_state_prefetch_cycle(s,e);
-		return 1;
-	}
-
-	e->event = EMU86_EV_IDLE;
-	e->event_duration = 2;
+	s->last_ins.opcode = MXOP_UD;
+	if (!emu8086_fill_prefetch(s)) return 0;
 
 #ifdef DEBUG
 	assert(s->prefetch->data == s->decoder.read_ip);
@@ -265,48 +246,25 @@ int emu8086_state_event(struct emu8086_state *s,struct emu8086_event *e) {
 	s->ip.base += inslen;
 	s->ip.value += inslen;
 	s->prefetch->data += inslen;
-	e->decoded_ins = 1;
-
+#ifdef DEBUG
+	assert(sliding_window_is_sane(s->prefetch));
+#endif
 	return 1;
 }
 
-void emu8086_state_advance(struct emu8086_state *s,struct emu8086_event *e,unsigned int clocks) {
-	if (clocks == 0) return;
-
-	if (s->reset_clock != 0 && s->reset == 0) {
-		if (clocks > e->event_duration) clocks = e->event_duration;
-		s->reset_clock -= clocks;
-		if (s->reset_clock == 0) emu8086_state_reset_complete(s);
-	}
-
-	s->clocks += clocks;
-}
-
-int emu8086_state_in_reset(struct emu8086_state *s) {
-	return (s->reset_clock != 0);
-}
-
-void emu8086_state_event_print(struct emu8086_state *s,struct emu8086_event *e) {
+void my_on_clockadv(uint32_t c) {
 #ifdef DEBUG
-	fprintf(stderr,"[event at clk=%u len=%u]\n",s->clocks,e->event_duration);
-	switch (e->event) {
-		case EMU86_EV_RESET:
-			fprintf(stderr,"  reset\n");
-			break;
-		case EMU86_EV_IDLE:
-			fprintf(stderr,"  idle\n");
-			break;
-	};
+	assert(c < ((uint32_t)0xFFFFFFFFUL / ((uint32_t)CPU_CLOCK_DIVIDE)));
 #endif
-}
 
-void my_event_handler(struct emu8086_state *s,struct emu8086_event *e) {
+	/* add C cycles to CPU */
+	emu8086_clockdomain_adv(&clock_cpu,c);
+
+	/* because of CPU-centric emulation, the master clock must also be emulated according to CPU cycles */
+	emu8086_clockdomain_adv(&clock_master,c * ((uint32_t)CPU_CLOCK_DIVIDE));
 }
 
 uint8_t my_memio_r(struct emu8086_memio *m) {
-	/* let's emulate a system bus that's SLOW :) */
-	m->event->event_duration += 10;
-
 	if (m->addr < sizeof(memory))
 		return memory[m->addr];
 
@@ -319,6 +277,17 @@ int main(int argc,char **argv) {
 
 	/* init memory */
 	memset(memory,0x00,sizeof(memory));
+
+	/* init clocks */
+	clock_master.clock = 0;
+	clock_master.last_advance = 0;
+	clock_master.rate = MASTER_CLOCK_RATE;
+	clock_master.rate_den = 1;
+
+	clock_cpu.clock = 0;
+	clock_cpu.last_advance = 0;
+	clock_cpu.rate = MASTER_CLOCK_RATE/CPU_CLOCK_DIVIDE;
+	assert((MASTER_CLOCK_RATE%CPU_CLOCK_DIVIDE) == 0);
 
 	/* decide where the program goes */
 	unsigned int psp_seg = 0xA00 + (((unsigned int)(rand()*rand())) % 0x4000);
@@ -353,7 +322,6 @@ int main(int argc,char **argv) {
 		(unsigned int)(code_fence - memory));
 
 	/* setup processor */
-	struct emu8086_event event;
 	struct emu8086_state cpu;
 
 	if (emu8086_state_init(&cpu)) {
@@ -361,24 +329,7 @@ int main(int argc,char **argv) {
 		return 1;
 	}
 	cpu.memio_r = my_memio_r;
-
-	/* wait for processor to finish reset */
-	{
-		int patience = 100;
-		do {
-			if (--patience <= 0) {
-				fprintf(stderr,"Ran out of patience during reset process\n");
-				return 1;
-			}
-			if (!emu8086_state_event(&cpu,&event)) {
-				fprintf(stderr,"Event engine had nothing to report\n");
-				return 1;
-			}
-			emu8086_state_event_print(&cpu,&event);
-			emu8086_state_advance(&cpu,&event,event.event_duration);
-		} while (emu8086_state_in_reset(&cpu));
-		fprintf(stderr,"Reset completed in %u clocks\n",cpu.clocks);
-	}
+	cpu.on_clockadv = my_on_clockadv;
 
 	/* setup instruction ptr to the program */
 	{
@@ -397,22 +348,18 @@ int main(int argc,char **argv) {
 	/* run the program */
 	{
 		int count = 0;
-		while (count < 100) {
-			if (!emu8086_state_event(&cpu,&event)) {
-				fprintf(stderr,"Event engine had nothing to report\n");
+		while (count < 1000) {
+			if (!emu8086_cpu_step_one_instruction(&cpu)) {
+				fprintf(stderr,"Failed to step one CPU instruction\n");
 				return 1;
 			}
 
-			emu8086_state_event_print(&cpu,&event);
 #ifdef DEBUG
-			if (event.decoded_ins) {
+			if (cpu.last_ins.opcode != MXOP_UD) {
 				print_ins(&cpu.last_ins);
 				print_state(&cpu);
 			}
 #endif
-
-			my_event_handler(&cpu,&event);
-			emu8086_state_advance(&cpu,&event,event.event_duration);
 
 			count++;
 		}

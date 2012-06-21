@@ -1359,10 +1359,11 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			*o++ = 0xF8;
 		} break;
 		case MXOP_CBW: {
+			if (est->data32) *o++ = 0x66;
 			*o++ = 0x98;
 		} break;
 		case MXOP_CWDE: {
-			*o++ = 0x66;
+			if (!est->data32) *o++ = 0x66;
 			*o++ = 0x98;
 		} break;
 		case MXOP_AAS: {
@@ -1375,10 +1376,11 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			*o++ = 0x2F;
 		} break;
 		case MXOP_CWD: {
+			if (est->data32) *o++ = 0x66;
 			*o++ = 0x99;
 		} break;
 		case MXOP_CDQ: {
-			*o++ = 0x66;
+			if (!est->data32) *o++ = 0x66;
 			*o++ = 0x99;
 		} break;
 		case MXOP_AAA: {
@@ -1400,31 +1402,35 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 			*o++ = 0xC9;
 		} break;
 		case MXOP_POPA: {
+			if (est->data32) *o++ = 0x66;
 			*o++ = 0x61;
 		} break;
 		case MXOP_POPAD: {
-			*o++ = 0x66;
+			if (!est->data32) *o++ = 0x66;
 			*o++ = 0x61;
 		} break;
 		case MXOP_PUSHA: {
+			if (est->data32) *o++ = 0x66;
 			*o++ = 0x60;
 		} break;
 		case MXOP_PUSHAD: {
-			*o++ = 0x66;
+			if (!est->data32) *o++ = 0x66;
 			*o++ = 0x60;
 		} break;
 		case MXOP_PUSHF: {
+			if (est->data32) *o++ = 0x66;
 			*o++ = 0x9C;
 		} break;
 		case MXOP_PUSHFD: {
-			*o++ = 0x66;
+			if (!est->data32) *o++ = 0x66;
 			*o++ = 0x9C;
 		} break;
 		case MXOP_POPF: {
+			if (est->data32) *o++ = 0x66;
 			*o++ = 0x9D;
 		} break;
 		case MXOP_POPFD: {
-			*o++ = 0x66;
+			if (!est->data32) *o++ = 0x66;
 			*o++ = 0x9D;
 		} break;
 		case MXOP_RDTSC: {
@@ -2345,6 +2351,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = (b->size >= 8 ? 0xDC : 0xD8); o = minx86enc_encode_memreg(b,o,3);
 			}
 		} break;
+
+/* FIXME: Some mistake here (or in x86_core.h) causes recodeall.c to flip-flop between FSUB and FSUBR */
 		case MXOP_FSUB: {
 			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
 			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {
@@ -2383,6 +2391,8 @@ void minx86enc_encodeall(struct minx86enc_state *est,struct minx86dec_instructio
 				*o++ = (b->size >= 8 ? 0xDC : 0xD8); o = minx86enc_encode_memreg(b,o,5);
 			}
 		} break;
+/* END FIXME */
+
 		case MXOP_FDIV: {
 			struct minx86dec_argv *a=&ins->argv[0],*b=&ins->argv[1];
 			if (a->regtype == MX86_RT_ST && b->regtype == MX86_RT_ST) {

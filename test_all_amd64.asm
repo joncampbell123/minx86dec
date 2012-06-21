@@ -62,6 +62,7 @@ _start:
 	inc	ax
 	insb
 	insw
+	insd
 	int	0x21
 	into
 	jz	short $
@@ -126,6 +127,7 @@ _start:
 	out	0xCC,al
 	outsb
 	outsw
+	outsd
 	pause
 	pop	ax
 	pop	eax
@@ -133,12 +135,14 @@ _start:
 	pop	esi
 	pop	es
 	popa
+	popad
 	popcnt	ax,ax
 	popcnt	ax,[si]
 	popcnt	eax,eax
 	popcnt	eax,[si]
 	popcnt	eax,[esi]
 	popf
+	popfd
 	prefetch [esi]
 	prefetchw [esi]
 	prefetchnta [esi]
@@ -149,7 +153,9 @@ _start:
 	push	eax
 	push	cs
 	pusha
+	pushad
 	pushf
+	pushfd
 	rcl	al,1
 	rcl	al,cl
 	rcl	al,3
