@@ -124,11 +124,6 @@ _start:
 	mov	dr1,eax
 	mov	eax,dr1
 
-	mov	tr0,eax
-	mov	eax,tr0
-	mov	tr1,eax
-	mov	eax,tr1
-
 	lds	si,[si]
 	les	di,[si]
 
@@ -490,37 +485,6 @@ call1:	call	dword call1			; E8 id              CALL rel32
       divss	xmm1,[bx+si]			; F3 0F C2 /r ib     CMPSS xmm1, xmm2/m128, imm8
       divss	xmm1,[eax]
 
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-
-; NTS: The 486a core is NOT expected to decode this, because 486 Step A-B0 used an alternate opcode
-    cmpxchg	al,ah				; 0F B0 /r           CMPXCHG
-    cmpxchg	[bx+si],cx			; 0F B0 /r           CMPXCHG
-    cmpxchg     [ebx],esi			; 0F B0 /r           CMPXCHG
-
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-
-; NTS: Nobody except the 486a core is expected to decode this, only 486 step A-B0 has this opcode
- cmpxchg486	al,ah				; 0F A6 /r           CMPXCHG [early 486s]
- cmpxchg486	[bx+si],cx			; 0F A6 /r           CMPXCHG [early 486s]
- cmpxchg486	[ebx],esi			; 0F A6 /r           CMPXCHG [early 486s]
-
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-
   cmpxchg8b	[si]				; 0F C7 /1           CMPXCHG8B
   cmpxchg8b	[ebx]				; 0F C7 /1           CMPXCHG8B
 
@@ -711,12 +675,6 @@ call1:	call	dword call1			; E8 id              CALL rel32
       fidiv	word [si]			; DE /6
 
      fsetpm					; <- LOL so you had to set the 286 FPU into protected mode separately?
-
-        nop
-        nop
-         db	0xDB,0xE5			; undocumented FRSTPM (i287)
-        nop
-        nop
 
       fdivr	dword [si]			; D8 /7
       fdivr	qword [si]			; DC /7
@@ -1444,7 +1402,9 @@ l4:
 	popf					; 9D
 	popfd					; 9D
 	por	mm1,mm2				;    0F EB /r
+	por	mm1,[esi]
 	por	xmm1,xmm2			; 66 0F EB /r
+	por	xmm1,[esi]
  prefetcht0	[esi]				; 0F 18 /1
  prefetcht1	[esi]				; 0F 18 /2
  prefetcht2	[esi]				; 0F 18 /3
@@ -1687,16 +1647,6 @@ prefetchnta	[esi]				; 0F 18 /0
       subsd	xmm1,xmm2			; F2 0F 5C /r
       subss	xmm1,xmm2			; F3 0F 5C /r
 
-; this is here for completeness, we're just abusing NASM's trust to get it in here so we can test decoding it.
-; the instruction is not valid in 16- and 32-bit modes, so we have to tell NASM we're assembling 64-bit here.
-bits 64
-     swapgs					; 0F 01 /7
-%ifdef B32
-bits 32
-%else
-bits 16
-%endif
-
     syscall					; 0F 05
    sysenter					; 0F 34
     sysexit					; 0F 35
@@ -1726,9 +1676,6 @@ bits 16
 	verr	[bx]				; 0F 00 /4
 	verw	ax				; 0F 00 /5
 	verw	[bx]				; 0F 00 /5
-
-	wait					; 9B
-	fwait					; 9B
 
 	wbinvd					; 0F 09
 

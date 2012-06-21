@@ -1,0 +1,105 @@
+#!/usr/bin/perl
+
+if (@ARGV < 3) {
+	print STDERR "disasm-cmp <bits> <decompiler> <file>\n";
+	exit 1;
+}
+
+my $bits = (shift @ARGV) + 0;
+my $deco = shift @ARGV;
+my $file = shift @ARGV;
+
+die unless -x $deco;
+die unless -f $file;
+
+open(A,"./$deco '$file' -$bits |") || die;
+open(B,"ndisasm -b $bits '$file' |") || die;
+
+sub ours_filter($) {
+	my @a = split(/ +/,@_[0]);
+	my $ret = '',$x;
+
+	# address
+	$ret .= sprintf("0x%04X ",hex(shift @a));
+
+	# hex opcodes
+	while (@a > 0 && length($a[0]) == 2 && $a[0] =~ m/[0123456789abcdef]{2}/i) {
+		$ret .= shift @a;
+	}
+	$ret .= "  ";
+
+	# pad
+	while (length($ret) < 40) {
+		$ret .= " ";
+	}
+
+	# instructions
+	while (@a > 0) {
+		$x = uc(shift @a);
+#		$x =~ s/(DS|ES|FS|GS|SS):\((BYTE|WORD|DWORD|QWORD)\*\)/$1:/;
+		$x =~ s/0X(0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F)/0x$1/g;
+		$ret .= $x;
+		$ret .= ' ';
+	}
+
+	return $ret;
+}
+
+sub nasm_filter($) {
+	my @a = split(/ +/,@_[0]);
+	my $ret = '';
+
+	# address
+	$ret .= sprintf("0x%04X ",hex(shift @a));
+
+	# hex opcodes
+	$ret .= shift @a;
+	$ret .= "  ";
+
+	# pad
+	while (length($ret) < 40) {
+		$ret .= " ";
+	}
+
+	# instructions
+	while (@a > 0) {
+#		if ($a[0] =~ m/(BYTE|WORD|DWORD|QWORD)/i && $a[1] =~ m/^\[/) {
+#			shift @a;
+#			next;
+#		}
+		$x = uc(shift @a);
+		$x =~ s/0X(0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F)/0x$1/g;
+		$ret .= $x;
+		$ret .= ' ';
+	}
+
+	return $ret;
+}
+
+my $line_A,$line_B;
+while (1) {
+	$line_B = <B>;
+	next if $line_B =~ m/^ +-[0-9a-f]+/i;
+	$line_A = <A>;
+	last if (!$line_A && !$line_B);
+	chomp $line_A; # our decompiler
+	chomp $line_B; # NASM decompiler
+
+# for comparison purposes massage both so they line up
+# example:
+# + OURS:0x0000  8B 04                   MOV      AX,DS:(WORD*)[SI]
+#   NASM:00000000  8B04              mov ax,[si]
+	$line_A = ours_filter($line_A);
+	$line_B = nasm_filter($line_B);
+
+	if ($line_A ne $line_B) {
+		print ">>>>>>>>>>>>>------------------------------\n";
+	}
+
+	print "+ OURS:$line_A\n";
+	print "  NASM:$line_B\n";
+}
+
+close(B);
+close(A);
+

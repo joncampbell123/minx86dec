@@ -839,6 +839,20 @@ mark1:
 	loopz	$
 	loopnz	$
 	lzcnt	ax,ax
+	lzcnt	ax,bx
+	lzcnt	bx,ax
+	lzcnt	si,di
+	lzcnt	eax,eax
+	lzcnt	eax,ebx
+	lzcnt	ebx,eax
+	lzcnt	esi,edi
+	lzcnt	rax,rax
+	lzcnt	rax,rbx
+	lzcnt	r9w,bx
+	lzcnt	r11w,r13w
+	lzcnt	rcx,rsi
+	lzcnt	rax,[rax]
+	lzcnt	rbx,[rsi+rdi]
 	mfence
 	mov	al,al
 	movd	mm0,eax

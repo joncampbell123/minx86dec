@@ -952,6 +952,7 @@ enum {
 /* 0x354-0x357 */
 	MXOP_FSBP1,
 	MXOP_FSBP2,
+	MXOP_LZCNT,
 
 	MXOP_LAST
 };

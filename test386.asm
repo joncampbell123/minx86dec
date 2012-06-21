@@ -2,6 +2,11 @@
 org 0
 
 _start:
+	mov	tr0,eax
+	mov	eax,tr0
+	mov	tr1,eax
+	mov	eax,tr1
+
 	ibts	ax,bx
 	ibts	[si],bx
 	ibts	eax,ebx
@@ -20,4 +25,64 @@ _start:
 	umov	al,[si]
 	umov	ax,[si]
 	umov	eax,[si]
+
+; 486-specific
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+
+; NTS: The 486a core is NOT expected to decode this, because 486 Step A-B0 used an alternate opcode
+    cmpxchg	al,ah				; 0F B0 /r           CMPXCHG
+    cmpxchg	[bx+si],cx			; 0F B0 /r           CMPXCHG
+    cmpxchg     [ebx],esi			; 0F B0 /r           CMPXCHG
+
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+
+; NTS: Nobody except the 486a core is expected to decode this, only 486 step A-B0 has this opcode
+ cmpxchg486	al,ah				; 0F A6 /r           CMPXCHG [early 486s]
+ cmpxchg486	[bx+si],cx			; 0F A6 /r           CMPXCHG [early 486s]
+ cmpxchg486	[ebx],esi			; 0F A6 /r           CMPXCHG [early 486s]
+
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+
+; 286-specific
+
+        nop
+        nop
+         db	0xDB,0xE5			; undocumented FRSTPM (i287)
+        nop
+        nop
+
+; x86-64
+
+; this is here for completeness, we're just abusing NASM's trust to get it in here so we can test decoding it.
+; the instruction is not valid in 16- and 32-bit modes, so we have to tell NASM we're assembling 64-bit here.
+bits 64
+     swapgs					; 0F 01 /7
+%ifdef B32
+bits 32
+%else
+bits 16
+%endif
+
+; other
+
+	wait					; 9B
+	nop
+
+	fwait					; 9B
+	nop
 

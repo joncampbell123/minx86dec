@@ -561,15 +561,13 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 		} break;
 #endif
 		case 0x9B: {
-			if ((cip[0]&0xF8) == 0xD8) { ins->fwait = 1; goto decode_next; }
+			if ((cip[0]&0xF8) == 0xD8 || (cip[0]&0xFE) == 0x66) { ins->fwait = 1; goto decode_next; }
 			else { ins->opcode = MXOP_FWAIT; }
 		} break;
 		case 0x9C: ins->opcode = isdata32?MXOP_PUSHFD:MXOP_PUSHF; break;
 		case 0x9D: ins->opcode = isdata32?MXOP_POPFD:MXOP_POPF; break;
 		case 0x9E: ins->opcode = MXOP_SAHF; break;
-#ifndef x64_mode /* not valid in 64-bit mode */
 		case 0x9F: ins->opcode = MXOP_LAHF; break;
-#endif
 		COVER_4(0xA0): {
 			ins->opcode = MXOP_MOV; ins->argc = 2; const int which = (first_byte>>1)&1;
 			ARGV *areg=&ins->argv[which],*mref=&ins->argv[which^1]; mref->memregsz=addrwordsize;
@@ -2741,6 +2739,14 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 # endif
 # if core_level >= 3
 			COVER_2(0xBC): {
+#  if defined(everything)
+				if (second_byte == 0xBD && ins->rep == MX86_REPNE) {
+					ins->opcode = MXOP_LZCNT; ins->argc = 2;
+					ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = datawordsize;
+					INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
+					break;
+				}
+#  endif
 				ins->opcode = MXOP_BSF + (second_byte & 1); ins->argc = 2;
 				ARGV *d = &ins->argv[0],*s = &ins->argv[1]; d->size = s->size = datawordsize;
 				INS_MRM mrm = decode_rm_(s,ins,s->size,PLUSR_TRANSFORM); set_register(d,mrm.f.reg);
@@ -3126,7 +3132,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					/* who wants to bet Intel will add instructions by overloading this one? >:( */
 				}
 				else {
-					ARGV *rm = &ins->argv[0],*reg = &ins->argv[1];
+					ARGV *reg = &ins->argv[0],*rm = &ins->argv[1];
 					rm->size = reg->size = dataprefix32?16:8; ins->opcode = MXOP_POR; ins->argc = 2;
 					INS_MRM mrm = decode_rm_ex_(rm,ins,rm->size,PLUSR_TRANSFORM,
 						dataprefix32?MX86_RT_SSE:MX86_RT_MMX);
@@ -3332,10 +3338,10 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 						switch ((fpu_code>>3)&7) {
 							case 0x00:ins->opcode = MXOP_FADD;  break; /* 0xDC 0xC0 */
 							case 0x01:ins->opcode = MXOP_FMUL;  break; /* 0xDC 0xC8 */
-							case 0x04:ins->opcode = MXOP_FSUB;  break; /* 0xDC 0xE0 */
-							case 0x05:ins->opcode = MXOP_FSUBR; break; /* 0xDC 0xE8 */
-							case 0x06:ins->opcode = MXOP_FDIV;  break; /* 0xDC 0xF0 */
-							case 0x07:ins->opcode = MXOP_FDIVR; break; /* 0xDC 0xF8 */
+							case 0x04:ins->opcode = MXOP_FSUBR; break; /* 0xDC 0xE0 */
+							case 0x05:ins->opcode = MXOP_FSUB;  break; /* 0xDC 0xE8 */
+							case 0x06:ins->opcode = MXOP_FDIVR; break; /* 0xDC 0xF0 */
+							case 0x07:ins->opcode = MXOP_FDIV;  break; /* 0xDC 0xF8 */
 						}
 					}
 					else {
