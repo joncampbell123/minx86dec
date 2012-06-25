@@ -304,7 +304,7 @@ decode_next:
 		/* REX prefix */
 		COVER_ROW(0x40): {
 			ins->data64 = (first_byte >> 3)&1; ins->rex.raw = first_byte;
-			if (--patience) goto decode_next; goto decode_next;
+			if (--patience) goto decode_next; break;
 		}
 #else
 		/* INC/DEC register */
@@ -343,14 +343,18 @@ decode_next:
 		} break;
 # endif
 #if core_level >= 3
-		COVER_2(0x64): ins->segment = (first_byte & 1) + MX86_SEG_FS; if (--patience) goto decode_next; break;
+		COVER_2(0x64):
+			ins->segment = (first_byte & 1) + MX86_SEG_FS; if (--patience) goto decode_next; break;
 #endif
 #if defined(do_necv20) /* NEC V20/V30 */
-		COVER_2(0x64): ins->rep = (first_byte & 1) + MX86_REPNC; goto decode_next;
+		COVER_2(0x64):
+			ins->rep = (first_byte & 1) + MX86_REPNC; goto decode_next;
 #endif
 #if core_level >= 3
-		case 0x66: ins->data32 ^= 1; dataprefix32++; if (--patience) goto decode_next; break;
-		case 0x67: ins->addr32 ^= 1; addrprefix32++; if (--patience) goto decode_next; break;
+		case 0x66:
+			ins->data32 ^= 1; dataprefix32++; if (--patience) goto decode_next; break;
+		case 0x67:
+			ins->addr32 ^= 1; addrprefix32++; if (--patience) goto decode_next; break;
 #endif
 #if defined(do_necv20) /* NEC V20/V30 */
 		COVER_2(0x66): {
@@ -563,7 +567,9 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 		} break;
 #endif
 		case 0x9B: {
-			if ((cip[0]&0xF8) == 0xD8 || (cip[0]&0xFE) == 0x66) { ins->fwait = 1; goto decode_next; }
+			if ((cip[0]&0xF8) == 0xD8 || (cip[0]&0xFE) == 0x66) {
+				ins->fwait = 1; goto decode_next;
+			}
 			else { ins->opcode = MXOP_FWAIT; }
 		} break;
 		case 0x9C: ins->opcode = isdata32?MXOP_PUSHFD:MXOP_PUSHF; break;
@@ -1306,7 +1312,8 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			ARGV *rdx = &ins->argv[0],*rax = &ins->argv[1]; rax->size = (first_byte & 1) ? data32wordsize : 1;
 			rdx->size = 2; set_register(rax,MX86_REG_AX); set_register(rdx,MX86_REG_DX);
 		} break;
-		case 0xF0: ins->lock = 1; goto decode_next;
+		case 0xF0:
+			ins->lock = 1; goto decode_next;
 #if (core_level == 3 || core_level == 4) && (defined(am386) || defined(am486))
 		case 0xF1: ins->opcode = MXOP_SMI; break;
 #elif !defined(no_icebp) && (core_level >= 3) && !defined(x64_mode)
@@ -1318,7 +1325,8 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			ARGV *r = &ins->argv[0]; set_immediate(r,fetch_u8());
 		} break;
 # endif
-		COVER_2(0xF2): ins->rep = (first_byte & 1) + MX86_REPE; goto decode_next;
+		COVER_2(0xF2):
+			ins->rep = (first_byte & 1) + MX86_REPE; goto decode_next;
 		case 0xF4: ins->opcode = MXOP_HLT; break;
 		case 0xF5: ins->opcode = MXOP_CMC; break;
 		COVER_2(0xF6): {

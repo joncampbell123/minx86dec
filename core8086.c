@@ -15,8 +15,8 @@ void minx86dec_decode8086(struct minx86dec_state *state,struct minx86dec_instruc
 
 	/* default to 8086-style invalid opcode (apparently there was no invalid opcode exception?) */
 	ins->start = state->read_ip;
-	ins->opcode = MXOP_UD_NOP;
 	ins->segment = -1;
+	ins->opcode = MXOP_UD_NOP;
 	ins->argc = 0;
 
 	/* this follows the DOSBox style of core implementation by having one

@@ -3,6 +3,8 @@
    one function where the memory I/O and event code is called
    from the CPU "step" function. */
 
+/* FIXME: This program emulates the 8088, yet you call it "testemu8086.c"?!? */
+
 #include "minx86dec/types.h"
 #include "minx86dec/state.h"
 #include "minx86dec/opcodes.h"
@@ -18,13 +20,13 @@
 
 #include <isp-utils/text/sliding_window.h>
 
-uint8_t memory[640*1024];
+uint8_t memory[1*1024*1024];
 
 #define DEBUG				1
 
-#define PREFETCH_SIZE			5
+#define PREFETCH_SIZE			4
 #define PREFETCH_BUFFER_SIZE		4096
-#define PREFETCH_BUFFER_SAFETY		16
+#define PREFETCH_BUFFER_SAFETY		32
 
 #define MASTER_CLOCK_RATE		14318181		/* ISA BUS "OSC" pin (NTS: Must be divisible by 3!) */
 #define CPU_CLOCK_DIVIDE		3			/* 14.31818Mhz / 3 = 4.77MHz CPU clock */
@@ -144,7 +146,7 @@ void emu8086_state_free(struct emu8086_state *s) {
 }
 
 void print_state(struct emu8086_state *c) {
-	fprintf(stderr,"[st] %04X:%04X A=%04X B=%04X C=%04X D=%04X S=%04X D=%04X BP=%04X\n",
+	fprintf(stderr,"[st] %04X:%04X A=%04X B=%04X C=%04X D=%04X S=%04X D=%04X BP=%04X cpu/mst=%llu/%llu\n",
 		c->sreg[MX86_SEG_CS].value,
 		c->ip.value,
 		c->reg.n.ax,
@@ -153,7 +155,9 @@ void print_state(struct emu8086_state *c) {
 		c->reg.n.dx,
 		c->reg.n.si,
 		c->reg.n.di,
-		c->reg.n.bp);
+		c->reg.n.bp,
+		(unsigned long long)clock_cpu.clock,
+		(unsigned long long)clock_master.clock);
 	fprintf(stderr,"     FL%04X %s %s %s %s %s %s %s %s %s DS=%04X ES=%04X SS:SP=%04X:%04X\n",
 		c->flags,
 		(c->flags & (1<<11)) ? "OF" : "  ",
@@ -213,7 +217,9 @@ void emu8086_state_prefetch_cycle(struct emu8086_state *s) {
 		emu8086_state_add_to_prefetch(s,c=s->memio_r(&(s->prefetch_memio)));
 		s->on_clockadv(CLOCK_DELAY_FINISH_MEMIO);
 #ifdef DEBUG
-		fprintf(stderr,"memread(0x%05X) = 0x%02X\n",s->prefetch_memio.addr,c);
+		fprintf(stderr,"memread(0x%05X) = 0x%02X cpu/mst=%llu/%llu\n",s->prefetch_memio.addr,c,
+			(unsigned long long)clock_cpu.clock,
+			(unsigned long long)clock_master.clock);
 #endif
 	} while ((s->prefetch->data+PREFETCH_SIZE) > s->prefetch->end);
 
@@ -243,12 +249,29 @@ int emu8086_cpu_step_one_instruction(struct emu8086_state *s) {
 	s->decoder.ip_value = (uint32_t)(s->ip.value);
 	minx86dec_decode8086(&s->decoder,&s->last_ins);
 	inslen = (size_t)(s->last_ins.end - s->last_ins.start);
+
+	/* if the decoded instruction is longer than 5 bytes, even if valid, it's counted as an invalid OP by the 8088 */
+	if (inslen > ((size_t)(PREFETCH_SIZE)) || (s->prefetch->data+inslen) > s->prefetch->end) {
+		fprintf(stderr,"Instruction too long, not valid opcode. Prefetch=%d\n",((int)(s->prefetch->data+inslen - s->prefetch->end)));
+		if (s->last_ins.end > s->prefetch->end) s->last_ins.end = s->prefetch->end;
+		inslen = 2;
+		s->last_ins.opcode = MXOP_UD;
+	}
+
 	s->ip.base += inslen;
 	s->ip.value += inslen;
 	s->prefetch->data += inslen;
 #ifdef DEBUG
+	if (1 || s->last_ins.opcode != MXOP_UD) {
+		print_ins(&s->last_ins);
+		print_state(s);
+	}
+#endif
+#ifdef DEBUG
+//	fprintf(stderr,"len=%lu %p/%p/%p/%p\n",(unsigned long)inslen,s->prefetch->buffer,s->prefetch->data,s->prefetch->end,s->prefetch->fence);
 	assert(sliding_window_is_sane(s->prefetch));
 #endif
+
 	return 1;
 }
 
@@ -353,13 +376,6 @@ int main(int argc,char **argv) {
 				fprintf(stderr,"Failed to step one CPU instruction\n");
 				return 1;
 			}
-
-#ifdef DEBUG
-			if (cpu.last_ins.opcode != MXOP_UD) {
-				print_ins(&cpu.last_ins);
-				print_state(&cpu);
-			}
-#endif
 
 			count++;
 		}

@@ -33,6 +33,7 @@ void minx86dec_decodeall_x64(struct minx86dec_state_x64 *state,struct minx86dec_
 	ins->start = state->read_ip;
 	ins->opcode = MXOP_UD;
 	ins->segment = -1;
+	ins->rex.raw = 0;
 	ins->argc = 0;
 
 	/* this follows the DOSBox style of core implementation by having one
