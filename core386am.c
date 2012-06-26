@@ -7,7 +7,6 @@ static minx86_read_ptr_t cip;
 /* AMD Am386-level decoder. */
 void minx86dec_decode386am(struct minx86dec_state *state,struct minx86dec_instruction *ins) {
 	unsigned int dataprefix32 = 0,addrprefix32 = 0;
-	register unsigned int patience = 6;
 	cip = state->read_ip;
 #define core_level 3
 #define isdata32 ins->data32

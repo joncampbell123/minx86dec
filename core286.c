@@ -5,7 +5,6 @@ static minx86_read_ptr_t cip;
 #include "minx86dec/x86_core_macros.h"
 
 void minx86dec_decode286(struct minx86dec_state *state,struct minx86dec_instruction *ins) {
-	register unsigned int patience = 6;
 	cip = state->read_ip;
 #define core_level 2
 #define isdata32 0 /* no 386-style 32-bit */

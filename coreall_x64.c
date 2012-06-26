@@ -8,7 +8,6 @@ static minx86_read_ptr_t cip;
 
 void minx86dec_decodeall_x64(struct minx86dec_state_x64 *state,struct minx86dec_instruction_x64 *ins) {
 	unsigned int dataprefix32 = 0,addrprefix32 = 0;
-	register unsigned int patience = 6;
 	cip = state->read_ip;
 #define isdata64 ins->data64
 #define isdata32 ins->data32

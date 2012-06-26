@@ -959,6 +959,8 @@ const char *opcode_string[MXOP_LAST+1] = {
 	"FSBP2",
 	"LZCNT",
 	"JMPX",
+/* 0x358-0x35B */
+	"#UD (overrun)",
 
 	NULL
 };

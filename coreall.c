@@ -6,7 +6,6 @@ static minx86_read_ptr_t cip;
 
 void minx86dec_decodeall(struct minx86dec_state *state,struct minx86dec_instruction *ins) {
 	unsigned int dataprefix32 = 0,addrprefix32 = 0;
-	register unsigned int patience = 6;
 	cip = state->read_ip;
 #define isdata32 ins->data32
 #define isaddr32 ins->addr32

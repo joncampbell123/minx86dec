@@ -263,7 +263,7 @@ ins->rex.raw = 0;
 ins->rep = MX86_REP_NONE;
 decode_next:
 {
-	const uint8_t first_byte = *cip++;
+	const uint8_t first_byte = fetch_u8();
 	switch (first_byte) {
 		/* group 0x00-0x3F opcodes */
 		COVER_2(0x04):	/* ADD */	COVER_2(0x0C):	/* OR */
@@ -295,7 +295,7 @@ decode_next:
 #endif
 		case 0x26: case 0x2E: case 0x36: case 0x3E: { /* segment overrides */
 			ins->argv[0].segment = ins->argv[1].segment = ins->argv[2].segment = ins->argv[3].segment =
-			ins->segment = (first_byte >> 3) & 3; if (--patience) goto decode_next;
+			ins->segment = (first_byte >> 3) & 3; next_round();
 		} break;
 #ifndef x64_mode /* not valid in 64-bit mode */
 		case 0x27: case 0x2F: case 0x37: case 0x3F: ins->opcode = MXOP_DAA+((first_byte>>3)&3); break;
@@ -303,8 +303,7 @@ decode_next:
 #ifdef x64_mode
 		/* REX prefix */
 		COVER_ROW(0x40): {
-			ins->data64 = (first_byte >> 3)&1; ins->rex.raw = first_byte;
-			if (--patience) goto decode_next; break;
+			ins->data64 = (first_byte >> 3)&1; ins->rex.raw = first_byte; next_round();
 		}
 #else
 		/* INC/DEC register */
@@ -344,17 +343,17 @@ decode_next:
 # endif
 #if core_level >= 3
 		COVER_2(0x64):
-			ins->segment = (first_byte & 1) + MX86_SEG_FS; if (--patience) goto decode_next; break;
+			ins->segment = (first_byte & 1) + MX86_SEG_FS; next_round();
 #endif
 #if defined(do_necv20) /* NEC V20/V30 */
 		COVER_2(0x64):
-			ins->rep = (first_byte & 1) + MX86_REPNC; goto decode_next;
+			ins->rep = (first_byte & 1) + MX86_REPNC; next_round();
 #endif
 #if core_level >= 3
 		case 0x66:
-			ins->data32 ^= 1; dataprefix32++; if (--patience) goto decode_next; break;
+			ins->data32 ^= 1; dataprefix32++; next_round();
 		case 0x67:
-			ins->addr32 ^= 1; addrprefix32++; if (--patience) goto decode_next; break;
+			ins->addr32 ^= 1; addrprefix32++; next_round();
 #endif
 #if defined(do_necv20) /* NEC V20/V30 */
 		COVER_2(0x66): {
@@ -438,7 +437,7 @@ decode_next:
 			if (*cip >= 0xC0) {
 #  if defined(vex_level) || defined(everything)
 				union minx86dec_vex v; v.raw = fetch_u16() ^ 0x78E0; ins->vex = v;
-				unsigned int vector_size = 16 << (v.f.l?1:0); const uint8_t opcode = *cip++;
+				unsigned int vector_size = 16 << (v.f.l?1:0); const uint8_t opcode = fetch_u8();
 				ins->oes = opcode & 3;
 
 				switch (v.f.pp) {
@@ -568,7 +567,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 #endif
 		case 0x9B: {
 			if ((cip[0]&0xF8) == 0xD8 || (cip[0]&0xFE) == 0x66) {
-				ins->fwait = 1; goto decode_next;
+				ins->fwait = 1; next_round();
 			}
 			else { ins->opcode = MXOP_FWAIT; }
 		} break;
@@ -635,7 +634,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				};
 				switch (v.f.m) {
 					case 1: {
-						const uint8_t second_byte = *cip++; switch (second_byte) {
+						const uint8_t second_byte = fetch_u8(); switch (second_byte) {
 						COVER_2(0x12): {
 							const uint8_t which = second_byte&1; ins->argc=2;
 							ARGV *d=&ins->argv[which],*s=&ins->argv[which^1];
@@ -942,7 +941,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					} break; }
 
 					case 2: { /* 0x0F 0x38 */
-						const uint8_t third_byte = *cip++; switch (third_byte) {
+						const uint8_t third_byte = fetch_u8(); switch (third_byte) {
 						case 0x18: { 
 							if (dataprefix32) {
 								if (v.f.v == 0) {/* VBROADCASTSS */
@@ -1010,7 +1009,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 					} break; }
 
 					case 3: { /* 0x0F 0x3A */
-						const uint8_t third_byte = *cip++; switch (third_byte) {
+						const uint8_t third_byte = fetch_u8(); switch (third_byte) {
 						COVER_2(0x0C): {
 							ARGV *d=&ins->argv[0],*s1=&ins->argv[1],
 							     *s2=&ins->argv[2],*i=&ins->argv[3]; ins->argc=4; i->size=1;
@@ -1313,7 +1312,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			rdx->size = 2; set_register(rax,MX86_REG_AX); set_register(rdx,MX86_REG_DX);
 		} break;
 		case 0xF0:
-			ins->lock = 1; goto decode_next;
+			ins->lock = 1; next_round();
 #if (core_level == 3 || core_level == 4) && (defined(am386) || defined(am486))
 		case 0xF1: ins->opcode = MXOP_SMI; break;
 #elif !defined(no_icebp) && (core_level >= 3) && !defined(x64_mode)
@@ -1326,7 +1325,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 		} break;
 # endif
 		COVER_2(0xF2):
-			ins->rep = (first_byte & 1) + MX86_REPE; goto decode_next;
+			ins->rep = (first_byte & 1) + MX86_REPE; next_round();
 		case 0xF4: ins->opcode = MXOP_HLT; break;
 		case 0xF5: ins->opcode = MXOP_CMC; break;
 		COVER_2(0xF6): {
@@ -1366,7 +1365,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 #if core_level > 0
 		/* extended opcode escape */
 		case 0x0F: {
-			const uint8_t second_byte = *cip++; switch (second_byte) {
+			const uint8_t second_byte = fetch_u8(); switch (second_byte) {
 # if core_level >= 2
 			case 0x00: { /* LLDT */
 				ARGV *m = &ins->argv[0]; ins->argc = 1; m->size = 2;
@@ -1493,7 +1492,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 				ins->argc = 2; rm->size = reg->size = 8;
 				INS_MRM mrm = decode_rm_ex_(rm,ins,rm->size,PLUSR_TRANSFORM,MX86_RT_MMX);
 				set_mmx_register(reg,mrm.f.reg);
-				const uint8_t suffix = *cip++;
+				const uint8_t suffix = fetch_u8();
 				switch (suffix) {
 #  if (core_level >= 5 && amd_3dnow >= 2) || defined(everything) /* 3dnow+ aka enhanced, etc. whatever you call it */
 					case 0x0C: ins->opcode = MXOP_PI2FW; break;
@@ -3338,7 +3337,7 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 /*---------------------------------- FPU decoding ------------------------------ */
 		COVER_8(0xD8): {
 #define FPU_CODE(fb,sb)	((((fb)&7)<<8)|(sb))
-			const unsigned char fpu_second_byte = *cip++;
+			const unsigned char fpu_second_byte = fetch_u8();
 			const uint16_t fpu_code = ins->fpu_code = ((first_byte & 7) << 8) | fpu_second_byte;
 			switch (fpu_code) {
 				COVER_16ROW(FPU_CODE(0xD8,0x00)): COVER_16ROW(FPU_CODE(0xDC,0x00)): { /* 0xD800...0xD8FF, 0xDC00...0xDCFF */

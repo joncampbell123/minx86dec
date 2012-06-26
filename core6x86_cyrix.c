@@ -6,7 +6,6 @@ static minx86_read_ptr_t cip;
 
 void minx86dec_decode6x86_cyrix(struct minx86dec_state *state,struct minx86dec_instruction *ins) {
 	unsigned int dataprefix32 = 0,addrprefix32 = 0;
-	register unsigned int patience = 6;
 	cip = state->read_ip;
 /* supposedly the Cyrix 686 is like a Pentium, with MMX but not the newer instructions */
 #define core_level 5

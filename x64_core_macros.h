@@ -32,6 +32,21 @@ static inline uint8_t peek_u8() {
 }
 static inline int8_t peek_s8() { return (int8_t)(peek_u8()); }
 
+/* whether or not the core should stop decoding (at which case it will return an overrun opcode) */
+#define stop_decoding() (cip >= state->prefetch_fence)
+
+/* for most parts of the code that either fetch the next part or stop decoding */
+#define next_round_core(code) \
+	if (stop_decoding()) { \
+		ins->opcode = MXOP_UD_OVERRUN; \
+		code; \
+		break; \
+	} else { \
+		goto decode_next; \
+	}
+
+#define next_round() next_round_core( { } )
+
 union x64_mrm_byte {
 	struct {
 		uint8_t		rm:3;

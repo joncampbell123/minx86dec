@@ -1,12 +1,65 @@
 
-#if defined(ENABLE_64BIT)
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdio.h>
+
+#ifdef streaming_decode
+static inline unsigned int stream_fill(size_t c) {
+	if ((cip+c) > state->prefetch_fence) {
+		register size_t cc = (size_t)((cip+c) - state->prefetch_fence);
+		/* NTS: we CANNOT assume the fetch function will move the prefetch fence. it may have valid reasons for not moving it! */
+		do { streaming_decode_fetch8(state); } while (--cc != (size_t)0);
+		return (cip+c) > state->prefetch_fence;
+	}
+	return 0;
+}
+
+static inline uint32_t fetch_u32() {
+	register uint32_t r;
+	if (stream_fill(4)) { state->fetch_overruns++; return *cip; }
+	r = *((uint32_t*)(cip));
+	cip += 4;
+	return r;
+}
+static inline int32_t fetch_s32() { return (int32_t)(fetch_u32()); }
+
+static inline uint16_t fetch_u16() {
+	register uint16_t r;
+	if (stream_fill(2)) { state->fetch_overruns++; return *cip; }
+	r = *((uint16_t*)(cip));
+	cip += 2;
+	return r;
+}
+static inline int16_t fetch_s16() { return (int16_t)(fetch_u16()); }
+
+static inline uint8_t fetch_u8() {
+	if (stream_fill(1)) { state->fetch_overruns++; return *cip; }
+	return *cip++;
+}
+static inline int8_t fetch_s8() { return (int8_t)(fetch_u8()); }
+
+/* NTS: If the core overrides these to permit streaming-prefetch decodes, it is expected to
+        ensure that *cip is the next opcode byte, and if cip >= end-of-valid-data to extend the window */
+static inline uint8_t peek_u8() {
+	stream_fill(1);
+	return *cip;
+}
+static inline int8_t peek_s8() { return (int8_t)(peek_u8()); }
+
+/* whether or not the core should stop decoding (at which case it will return an overrun opcode) */
+/* NTS: stream_fill() returns nonzero if insufficient room i.o.w if nothing available and it can't fetch more then stop decoding */
+# define stop_decoding() stream_fill(1)
+
+#else
+# if defined(ENABLE_64BIT)
 static inline uint64_t fetch_u64() {
 	const register uint64_t r = *((uint64_t*)(cip));
 	cip += 8;
 	return r;
 }
 static inline int64_t fetch_s64() { return (int64_t)(fetch_u64()); }
-#endif
+# endif
 
 static inline uint32_t fetch_u32() {
 	const register uint32_t r = *((uint32_t*)(cip));
@@ -27,10 +80,29 @@ static inline uint8_t fetch_u8() {
 }
 static inline int8_t fetch_s8() { return (int8_t)(fetch_u8()); }
 
+/* NTS: If the core overrides these to permit streaming-prefetch decodes, it is expected to
+        ensure that *cip is the next opcode byte, and if cip >= end-of-valid-data to extend the window */
 static inline uint8_t peek_u8() {
 	return *cip;
 }
 static inline int8_t peek_s8() { return (int8_t)(peek_u8()); }
+
+/* whether or not the core should stop decoding (at which case it will return an overrun opcode) */
+#define stop_decoding() (cip >= state->prefetch_fence)
+
+#endif
+
+/* for most parts of the code that either fetch the next part or stop decoding */
+#define next_round_core(code) \
+	if (stop_decoding()) { \
+		ins->opcode = MXOP_UD_OVERRUN; \
+		code; \
+		break; \
+	} else { \
+		goto decode_next; \
+	}
+
+#define next_round() next_round_core( { } )
 
 union x86_mrm {
 	struct {

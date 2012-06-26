@@ -8,6 +8,7 @@ struct minx86dec_state {
 	uint32_t		ip_value;	/* IP instruction pointer value */
 	minx86_read_ptr_t	read_ip;	/* decoding reads from here */
 	minx86_read_ptr_t	prefetch_fence,fence; /* decoding stops at prefetch_fence, so that no reads go past fence */
+	uint16_t		fetch_overruns;	/* streaming decode: number of times that reading failed to fill decoding buffer */
 	uint8_t			data32:1;	/* 386+ 32-bit opcode data operand decoding */
 	uint8_t			addr32:1;	/* 386+ 32-bit opcode address operand decoding */
 };

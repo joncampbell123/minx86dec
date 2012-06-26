@@ -72,6 +72,29 @@ putsl:		lodsb
 		pop	si
 		ret
 
+		nop
+		nop
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		db	0x2E
+		add	ax,bx
+
 %include	"8086/imp_seg.inc"		; test8086_imp_seg
 %include	"8086/exp_seg.inc"		; test8086_exp_seg
 

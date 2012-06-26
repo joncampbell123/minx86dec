@@ -8,7 +8,7 @@
 #include "minx86dec/types.h"
 #include "minx86dec/state.h"
 #include "minx86dec/opcodes.h"
-#include "minx86dec/core8086.h"
+#include "minx86dec/score8086.h"
 #include "minx86dec/opcodes_str.h"
 #include <string.h>
 #include <stdlib.h>
@@ -41,8 +41,11 @@ struct emu8086_clockdomain {
 };
 
 /* master clock */
-struct emu8086_clockdomain	clock_master;
-struct emu8086_clockdomain	clock_cpu;
+static struct emu8086_clockdomain	clock_master;
+static struct emu8086_clockdomain	clock_cpu;
+
+/* setup processor */
+static struct emu8086_state cpu;
 
 static inline void emu8086_clockdomain_adv(struct emu8086_clockdomain *c,uint32_t s) {
 	c->clock += s;
@@ -235,6 +238,24 @@ int emu8086_fill_prefetch(struct emu8086_state *s) {
 	return 1;
 }
 
+static void fetch_decode_byte(struct minx86dec_state *ctx) {
+	unsigned char c;
+
+	if ((cpu.prefetch->end+PREFETCH_BUFFER_SAFETY) < cpu.prefetch->fence) {
+		cpu.on_clockadv(CLOCK_DELAY_LATCH_MEMIO);
+		cpu.prefetch_memio.addr = cpu.ip.prefetch;
+		*(cpu.prefetch->end++) = c = cpu.memio_r(&(cpu.prefetch_memio));
+		cpu.decoder.prefetch_fence = cpu.decoder.fence = cpu.prefetch->end;
+		cpu.ip.prefetch++;
+		cpu.on_clockadv(CLOCK_DELAY_FINISH_MEMIO);
+#ifdef DEBUG
+		fprintf(stderr,"memread [fetch] (0x%05X) = 0x%02X cpu/mst=%llu/%llu\n",cpu.prefetch_memio.addr,c,
+			(unsigned long long)clock_cpu.clock,
+			(unsigned long long)clock_master.clock);
+#endif
+	}
+}
+
 int emu8086_cpu_step_one_instruction(struct emu8086_state *s) {
 	size_t inslen;
 
@@ -247,16 +268,8 @@ int emu8086_cpu_step_one_instruction(struct emu8086_state *s) {
 #endif
 
 	s->decoder.ip_value = (uint32_t)(s->ip.value);
-	minx86dec_decode8086(&s->decoder,&s->last_ins);
+	minx86dec_sdecode8086(&s->decoder,&s->last_ins,fetch_decode_byte);
 	inslen = (size_t)(s->last_ins.end - s->last_ins.start);
-
-	/* if the decoded instruction is longer than 5 bytes, even if valid, it's counted as an invalid OP by the 8088 */
-	if (inslen > ((size_t)(PREFETCH_SIZE)) || (s->prefetch->data+inslen) > s->prefetch->end) {
-		fprintf(stderr,"Instruction too long, not valid opcode. Prefetch=%d\n",((int)(s->prefetch->data+inslen - s->prefetch->end)));
-		if (s->last_ins.end > s->prefetch->end) s->last_ins.end = s->prefetch->end;
-		inslen = 2;
-		s->last_ins.opcode = MXOP_UD;
-	}
 
 	s->ip.base += inslen;
 	s->ip.value += inslen;
@@ -343,9 +356,6 @@ int main(int argc,char **argv) {
 	fprintf(stderr,"Code segment:         0x%04X (0x%05X)\n",code_seg,code_seg<<4);
 	fprintf(stderr,"Code range:           0x%05X-0x%05X\n",(unsigned int)(code - memory),
 		(unsigned int)(code_fence - memory));
-
-	/* setup processor */
-	struct emu8086_state cpu;
 
 	if (emu8086_state_init(&cpu)) {
 		fprintf(stderr,"Failed to init CPU\n");

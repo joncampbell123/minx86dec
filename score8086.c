@@ -1,11 +1,18 @@
 #include "minx86dec/state.h"
 #include "minx86dec/opcodes.h"
 
+#define streaming_decode
+#define streaming_decode_fetch8 fetch8
+
 static minx86_read_ptr_t cip;
+static struct minx86dec_state *state;
+static void (*fetch8)(struct minx86dec_state *ctx);
 #include "minx86dec/x86_core_macros.h"
 
-void minx86dec_decode8086(struct minx86dec_state *state,struct minx86dec_instruction *ins) {
+void minx86dec_sdecode8086(struct minx86dec_state *_state,struct minx86dec_instruction *ins,void (*_fetch8)(struct minx86dec_state *ctx)) {
+	state = _state;
 	cip = state->read_ip;
+	fetch8 = _fetch8;
 #define core_level 0
 #define isdata32 0 /* no 386-style 32-bit */
 #define isaddr32 0 /* no 386-style 32-bit */
