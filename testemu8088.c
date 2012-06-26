@@ -23,6 +23,7 @@
 uint8_t memory[1*1024*1024];
 
 #define DEBUG				1
+//#define DEBUG_MEMCYCLES			1
 
 #define PREFETCH_SIZE			4
 #define PREFETCH_BUFFER_SIZE		4096
@@ -31,8 +32,19 @@ uint8_t memory[1*1024*1024];
 #define MASTER_CLOCK_RATE		14318181		/* ISA BUS "OSC" pin (NTS: Must be divisible by 3!) */
 #define CPU_CLOCK_DIVIDE		3			/* 14.31818Mhz / 3 = 4.77MHz CPU clock */
 
-#define CLOCK_DELAY_LATCH_MEMIO		1			/* 1 clock cycle to latch memory I/O onto bus */
-#define CLOCK_DELAY_FINISH_MEMIO	1			/* 1 clock cycle to respond to ACK, read data bus, unlatch memory I/O */
+/* 0     1     2     3     4
+    -----+----  -----+---- 
+   /  ADDRESS \/   DATA   \
+   \__________/\__________/
+
+CLK__    __    __    __    __    __ 
+     \  /  \  /  \  /  \  /  \  /  \
+      --    --    --    --    --   
+
+ALE______
+         \______________________________ */
+#define CLOCK_DELAY_LATCH_MEMIO		2			/* 1 clock cycle to latch memory I/O onto bus */
+#define CLOCK_DELAY_FINISH_MEMIO	2			/* 1 clock cycle to respond to ACK, read data bus, unlatch memory I/O */
 
 struct emu8086_clockdomain {
 	uint64_t	clock;
@@ -219,7 +231,7 @@ void emu8086_state_prefetch_cycle(struct emu8086_state *s) {
 		s->prefetch_memio.addr = s->ip.prefetch;
 		emu8086_state_add_to_prefetch(s,c=s->memio_r(&(s->prefetch_memio)));
 		s->on_clockadv(CLOCK_DELAY_FINISH_MEMIO);
-#ifdef DEBUG
+#ifdef DEBUG_MEMCYCLES
 		fprintf(stderr,"memread(0x%05X) = 0x%02X cpu/mst=%llu/%llu\n",s->prefetch_memio.addr,c,
 			(unsigned long long)clock_cpu.clock,
 			(unsigned long long)clock_master.clock);
@@ -248,7 +260,7 @@ static void fetch_decode_byte(struct minx86dec_state *ctx) {
 		cpu.decoder.prefetch_fence = cpu.decoder.fence = cpu.prefetch->end;
 		cpu.ip.prefetch++;
 		cpu.on_clockadv(CLOCK_DELAY_FINISH_MEMIO);
-#ifdef DEBUG
+#ifdef DEBUG_MEMCYCLES
 		fprintf(stderr,"memread [fetch] (0x%05X) = 0x%02X cpu/mst=%llu/%llu\n",cpu.prefetch_memio.addr,c,
 			(unsigned long long)clock_cpu.clock,
 			(unsigned long long)clock_master.clock);
