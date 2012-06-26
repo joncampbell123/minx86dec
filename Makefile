@@ -15,7 +15,7 @@ else
 CFLAGS += -march=i686
 endif
 
-all: test-headers decode8086 sdecode8086 decodenecv20 decode286 decode386 decode386iit387 decode386am decode386amiit387 decode386ibmslc decode386ibmslciit387 decode486 decode486a decode486am decode486amiit387 decode486ibmslc decode486ibmslciit387 decode486ibmslc2 decode486ibmslc2iit387 decode586 decode586pro decode586mmx decode686 decode5x86_cyrix decode6x86_cyrix decode486cyrix decode486cyrixiit387 decodeall decodeall_x64 test1.bin test2.bin test3.bin test3_32.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin test_evolution.bin test_all_amd64.bin recode8086 recodenecv20 recode286 recode386 recode386am recode486 recode486a recode486am recode586 recodeall recode1.bin all-cputest testemu8086
+all: test-headers decode8086 sdecode8086 decodenecv20 decode286 decode386 decode386iit387 decode386am decode386amiit387 decode386ibmslc decode386ibmslciit387 decode486 decode486a decode486am decode486amiit387 decode486ibmslc decode486ibmslciit387 decode486ibmslc2 decode486ibmslc2iit387 decode586 decode586pro decode586mmx decode686 decode5x86_cyrix decode6x86_cyrix decode486cyrix decode486cyrixiit387 decodeall decodeall_x64 test1.bin test2.bin test3.bin test3_32.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin test_evolution.bin test_all_amd64.bin recode8086 recodenecv20 recode286 recode386 recode386am recode486 recode486a recode486am recode586 recodeall recode1.bin all-cputest testemu8086 testemu8088
 	+$(MAKE) -$(MAKEFLAGS) -C bioses
 
 all-cputest:
@@ -216,11 +216,14 @@ decodeall_x64: decodeall_x64.o coreall_x64.o string.o
 testemu8086: testemu8086.o score8086.o string.o
 	gcc $(CFLAGS) -o $@ $^ -lisp-utils-text
 
+testemu8088: testemu8088.o score8086.o string.o
+	gcc $(CFLAGS) -o $@ $^ -lisp-utils-text
+
 cputest-clean:
 	+$(MAKE) -$(MAKEFLAGS) -C cputest clean
 
 clean: cputest-clean
-	rm -f *.o *~ test-headers decode8086 sdecode8086 decodenecv20 *.bin decode286 decode386 decode386iit387 decode386am decode386amiit387 decode386ibmslc decode386ibmslciit387 decode486 decode486a decode486am decode486amiit387 decode486ibmslc decode486ibmslc2 decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode5x86_cyrix decode6x86_cyrix decode486ibmslciit387 decode486ibmslc2iit387 decode486cyrix decode486cyrixiit387 decode-pentium2 decode586pro decode586mmx decode-pentiumpro decode-pentiummmx random.bin.results recodeall testemu8086 recode8086 recode286 recode386 recode486 recode486a recode486am recode586 recodenecv20 recode386am
+	rm -f *.o *~ test-headers decode8086 sdecode8086 decodenecv20 *.bin decode286 decode386 decode386iit387 decode386am decode386amiit387 decode386ibmslc decode386ibmslciit387 decode486 decode486a decode486am decode486amiit387 decode486ibmslc decode486ibmslc2 decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode5x86_cyrix decode6x86_cyrix decode486ibmslciit387 decode486ibmslc2iit387 decode486cyrix decode486cyrixiit387 decode-pentium2 decode586pro decode586mmx decode-pentiumpro decode-pentiummmx random.bin.results recodeall testemu8088 testemu8086 recode8086 recode286 recode386 recode486 recode486a recode486am recode586 recodenecv20 recode386am
 	find -name \*~ -delete
 	+$(MAKE) -$(MAKEFLAGS) -C bioses clean
 
