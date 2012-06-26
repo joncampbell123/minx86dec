@@ -27,6 +27,11 @@ static inline uint8_t fetch_u8() {
 }
 static inline int8_t fetch_s8() { return (int8_t)(fetch_u8()); }
 
+static inline uint8_t peek_u8() {
+	return *cip;
+}
+static inline int8_t peek_s8() { return (int8_t)(peek_u8()); }
+
 union x86_mrm {
 	struct {
 		uint8_t		rm:3;
