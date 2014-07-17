@@ -1,0 +1,7 @@
+#!/bin/bash
+declare WORKDIR="${1:-.}"
+pushd "${WORKDIR}"
+
+# Clean up the tree
+git clean -dfx
+

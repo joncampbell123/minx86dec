@@ -1,0 +1,50 @@
+#!/bin/bash
+# sort of like svn-update-all
+declare WORKDIR="${1:-.}"
+pushd "${WORKDIR}"
+
+curbranch="$(git rev-parse --abbrev-ref HEAD)"
+if [[ x"$curbranch" == xunknown ]]; then
+	echo Unable to determine current branch
+	exit 1
+fi
+
+# Delete _explicitly_ ignored files (-X)
+git clean -dfX
+
+# CHECK: Are there new .c, .h, or .cpp files I forgot to add?
+# NTS: I would use grep to filter out only .c .cpp .h files but grep
+#      is too much of a pussy to support Perl regular expressions like
+#      m/\\.(c|cpp|h|)/ so we use our hack below instead.
+x=`git clean -n -d {,*/,*/*/,*/*/*/,*/*/*/*/}*.{c,cpp,h,sh,pl,latex,png,jpg,jpeg,version-t,js} | sed -e 's/^Would remove //'`
+if [[ x"$x" != x ]]; then
+	(echo 'Did you forget to add new source files?'; echo 'Quit this pager, then answer the question'; echo '---------------------------'; echo $x) | less
+	echo "Confirm whether or not you want to add the source files."
+	echo 'Type YES to add them, NO to delete them, anything else to quit'
+	read X
+
+	if [[ "$X" == "YES" || "$X" == "yes" ]]; then
+		for xx in $x; do
+			git add "$xx" || exit 1
+		done
+	else
+		if [[ "$X" == "NO" || "$X" == "no" ]]; then
+			echo "Files will be deleted by git upon cleanup stage. Hit CTRL+C to abort now if you don't want that"
+			read TMP
+		else
+			echo "Exiting now."
+			exit 0
+		fi
+	fi
+fi
+
+make clean 2>/dev/null
+make distclean 2>/dev/null
+"$(dirname "$0")"/cleantree 2>/dev/null
+for i in \* \*/\* \*/\*/\*; do git add $i 2>/dev/null; done
+git commit -a
+"$(dirname "$0")"/cleantree 2>/dev/null
+git push origin "$curbranch"
+git pull origin "$curbranch"
+git fetch
+
