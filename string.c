@@ -199,7 +199,7 @@ static void minx86dec_memref_print_x64(struct minx86dec_argv_x64 *a,char *output
 		}
 
 		if (doop++ || sgn == '-') *output++ = sgn;
-		output += sprintf(output,"0x%llX",pofs);
+		output += sprintf(output,"0x%llX",(unsigned long long)pofs);
 	}
 
 	*output++ = ']';
@@ -217,7 +217,7 @@ void minx86dec_regprint_x64(struct minx86dec_argv_x64 *a,char *output) {
 			if (a->segment == MX86_SEG_IMM)
 				output += sprintf(output,"0x%04X:",a->segval);
 
-			sprintf(output,"0x%llX",a->value);
+			sprintf(output,"0x%llX",(unsigned long long)a->value);
 			break;
 		case MX86_RT_REG:
 			if (a->size >= 0 && a->size <= 8 && a->reg >= 0 && a->reg <= 32)
