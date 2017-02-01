@@ -374,10 +374,38 @@ decode_next:
 #endif
 		} break;
 #endif
+#if core_level >= 1
+		case 0x69: {
+			ins->opcode = MXOP_IMUL; ins->argc = 3;
+            ARGV *d = &ins->argv[0];
+            ARGV *s = &ins->argv[1];
+            ARGV *i = &ins->argv[2];
+            d->size = data32wordsize;
+            s->size = data32wordsize;
+            i->size = data32wordsize;
+            INS_MRM mrm=decode_rm_(s,ins,d->size,PLUSR_TRANSFORM);
+            set_register(d,mrm.f.reg);
+            set_immediate(i,isdata32 ? fetch_u32() : fetch_u16());
+		} break;
+#endif
 #if core_level >= 2
 		case 0x6A: {
 			ins->opcode = MXOP_PUSH; ins->argc = 1;
 			ARGV *s = &ins->argv[0]; s->size = 1; set_immediate(s,fetch_u8());
+		} break;
+#endif
+#if core_level >= 1
+		case 0x6B: {
+			ins->opcode = MXOP_IMUL; ins->argc = 3;
+            ARGV *d = &ins->argv[0];
+            ARGV *s = &ins->argv[1];
+            ARGV *i = &ins->argv[2];
+            d->size = data32wordsize;
+            s->size = data32wordsize;
+            i->size = 1;
+            INS_MRM mrm=decode_rm_(s,ins,d->size,PLUSR_TRANSFORM);
+            set_register(d,mrm.f.reg);
+            set_immediate(i,(native_int_t)((signed char)fetch_u8()));
 		} break;
 #endif
 #if core_level >= 1

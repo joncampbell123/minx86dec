@@ -279,3 +279,12 @@ j2:	jno	j2
 	movlps	[esi],xmm4
 	movlps	xmm4,[esi]
 
+    nop
+    nop
+
+; IMUL 69/6B
+    imul    ax,bx,word 0x1234
+    imul    ax,bx,byte 0x12
+    imul    ax,[si],word 0x1234
+    imul    ax,[si],byte 0x12
+
