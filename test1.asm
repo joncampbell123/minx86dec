@@ -288,3 +288,5 @@ j2:	jno	j2
     imul    ax,[si],word 0x1234
     imul    ax,[si],byte 0x12
 
+    imul    ax,[si]
+

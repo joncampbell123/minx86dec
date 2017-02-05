@@ -2695,6 +2695,18 @@ break;	COVER_4(0xC0): if (v.f.pp == 0) {
 			} break;
 # endif
 
+# if core_level >= 3
+            case 0xAF: {
+                ins->opcode = MXOP_IMUL; ins->argc = 2;
+                ARGV *d = &ins->argv[0];
+                ARGV *s = &ins->argv[1];
+                d->size = data32wordsize;
+                s->size = data32wordsize;
+                INS_MRM mrm=decode_rm_(s,ins,d->size,PLUSR_TRANSFORM);
+                set_register(d,mrm.f.reg);
+            } break;
+# endif
+
 # if core_level >= 4 && !defined(step_A)
 			COVER_2(0xB0): {
 				ins->opcode = MXOP_CMPXCHG; ins->argc = 2; ins->altopcode = 0;
