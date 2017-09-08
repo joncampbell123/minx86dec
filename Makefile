@@ -15,7 +15,10 @@ else
 CFLAGS += -march=i686
 endif
 
-all: test-headers decode8086 sdecode8086 decodenecv20 decode286 decode386 decode386iit387 decode386am decode386amiit387 decode386ibmslc decode386ibmslciit387 decode486 decode486a decode486am decode486amiit387 decode486ibmslc decode486ibmslciit387 decode486ibmslc2 decode486ibmslc2iit387 decode586 decode586pro decode586mmx decode686 decode5x86_cyrix decode6x86_cyrix decode486cyrix decode486cyrixiit387 decodeall decodeall_x64 test1.bin test2.bin test3.bin test3_32.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin test_evolution.bin test_all_amd64.bin recode8086 recodenecv20 recode286 recode386 recode386am recode486 recode486a recode486am recode586 recodeall recode1.bin
+all: test-headers decode8086 sdecode8086 decodenecv20 decode286 decode386 decode386iit387 decode386am decode386amiit387 decode386ibmslc decode386ibmslciit387 decode486 decode486a decode486am decode486amiit387 decode486ibmslc decode486ibmslciit387 decode486ibmslc2 decode486ibmslc2iit387 decode586 decode586pro decode586mmx decode686 decode5x86_cyrix decode6x86_cyrix decode486cyrix decode486cyrixiit387 decodeall decodeall_x64 test1.bin test2.bin test3.bin test3_32.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin test_evolution.bin test_all_amd64.bin recode8086 recodenecv20 recode286 recode386 recode386am recode486 recode486a recode486am recode586 recodeall recode1.bin DUMMY
+
+DUMMY:
+	@true
 
 test-headers: test-headers.o
 	gcc -o $@ $<
