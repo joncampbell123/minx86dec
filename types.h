@@ -32,7 +32,12 @@
 #if defined(__GNUC__)
 /* GCC is our compiler. usually that means we can use GLIBC-style headers */
 #  include <stdint.h> /* like this one (standard int types like uint32_t) */
-#  include <endian.h> /* and this one (what endian/byte order we are) */
+
+#if defined(__APPLE__)
+     #include <machine/endian.h>
+#else
+     #include <endian.h> /* and this one (what endian/byte order we are) */
+#endif
 
 #  define ENABLE_64BIT
 
