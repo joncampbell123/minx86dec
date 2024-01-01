@@ -1,6 +1,8 @@
 ; 8086 test code
 org 0
 
+	cpu	all
+
 _start:
 	lea	bx,[si+3]
 	lea	cx,[bx+di+33h]
@@ -223,7 +225,13 @@ j2:	jno	j2
 	mov	[ss:4444h],ax
 	push	cs
 	push	es
+
+	cpu	8086
+
 	pop	cs
+
+	cpu	all
+
 	nop
 	nop
 	nop
