@@ -15,7 +15,15 @@ else
 CFLAGS += -march=i686
 endif
 
-all: test-headers decode8086 sdecode8086 decodenecv20 decode286 decode386 decode386iit387 decode386am decode386amiit387 decode386ibmslc decode386ibmslciit387 decode486 decode486a decode486am decode486amiit387 decode486ibmslc decode486ibmslciit387 decode486ibmslc2 decode486ibmslc2iit387 decode586 decode586pro decode586mmx decode686 decode5x86_cyrix decode6x86_cyrix decode486cyrix decode486cyrixiit387 decodeall decodeall_x64 test1.bin test2.bin test3.bin test3_32.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin test_evolution.bin test_all_amd64.bin recode8086 recodenecv20 recode286 recode386 recode386am recode486 recode486a recode486am recode586 recodeall recode1.bin DUMMY
+DESTDIR =
+PREFIX = /usr/local
+
+all: test-headers libminx86dec.a decode8086 sdecode8086 decodenecv20 decode286 decode386 decode386iit387 decode386am decode386amiit387 decode386ibmslc decode386ibmslciit387 decode486 decode486a decode486am decode486amiit387 decode486ibmslc decode486ibmslciit387 decode486ibmslc2 decode486ibmslc2iit387 decode586 decode586pro decode586mmx decode686 decode5x86_cyrix decode6x86_cyrix decode486cyrix decode486cyrixiit387 decodeall decodeall_x64 test1.bin test2.bin test3.bin test3_32.bin testnecv20.bin test64_1.bin test6x86_cyrix.bin test386.bin test_evolution.bin test_all_amd64.bin recode8086 recodenecv20 recode286 recode386 recode386am recode486 recode486a recode486am recode586 recodeall recode1.bin DUMMY
+
+install: all core286.h core386am.h core386.h core386ibmslc.h core486a.h core486am.h core486cyrix.h core486.h core486ibmslc2.h core486ibmslc.h core586.h core586mmx.h core586pro.h core5x86_cyrix.h core686.h core6x86_cyrix.h core8086.h coreall.h coreall_x64.h corenecv20.h encoreall.h iit387.h opcodes.h opcodes_str.h score8086.h state.h types.h x64_core_macros.h x86_core.h x86_core_macros.h DUMMY
+	mkdir -p -m 755 $(DESTDIR)$(PREFIX)/lib $(DESTDIR)$(PREFIX)/include/minx86dec
+	install -c -m 644 libminx86dec.a $(DESTDIR)$(PREFIX)/lib/
+	install -c -m 644 core286.h core386am.h core386.h core386ibmslc.h core486a.h core486am.h core486cyrix.h core486.h core486ibmslc2.h core486ibmslc.h core586.h core586mmx.h core586pro.h core5x86_cyrix.h core686.h core6x86_cyrix.h core8086.h coreall.h coreall_x64.h corenecv20.h encoreall.h iit387.h opcodes.h opcodes_str.h score8086.h state.h types.h x64_core_macros.h x86_core.h x86_core_macros.h $(DESTDIR)$(PREFIX)/include/minx86dec/
 
 DUMMY:
 	@true
@@ -23,6 +31,10 @@ DUMMY:
 test-headers: test-headers.o
 	gcc -o $@ $<
 	./$@
+
+libminx86dec.a: string.o core8086.o score8086.o corenecv20.o core286.o core386.o iit387.o core386am.o core386ibmslc.o core486.o core486a.o core486am.o core486ibmslc.o core486ibmslc2.o core586.o core586pro.o core586mmx.o core686.o core5x86_cyrix.o core6x86_cyrix.o core486cyrix.o coreall.o encoreall.o coreall_x64.o
+	rm -f $@
+	ar cqs $@ $^
 
 core8086.o: x86_core.h x86_core_macros.h
 
@@ -213,7 +225,7 @@ decodeall_x64: decodeall_x64.o coreall_x64.o string.o
 	gcc $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f *.o *~ test-headers decode8086 sdecode8086 decodenecv20 *.bin decode286 decode386 decode386iit387 decode386am decode386amiit387 decode386ibmslc decode386ibmslciit387 decode486 decode486a decode486am decode486amiit387 decode486ibmslc decode486ibmslc2 decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode5x86_cyrix decode6x86_cyrix decode486ibmslciit387 decode486ibmslc2iit387 decode486cyrix decode486cyrixiit387 decode-pentium2 decode586pro decode586mmx decode-pentiumpro decode-pentiummmx random.bin.results recodeall recode8086 recode286 recode386 recode486 recode486a recode486am recode586 recodenecv20 recode386am
+	rm -f *.[oa] *~ test-headers decode8086 sdecode8086 decodenecv20 *.bin decode286 decode386 decode386iit387 decode386am decode386amiit387 decode386ibmslc decode386ibmslciit387 decode486 decode486a decode486am decode486amiit387 decode486ibmslc decode486ibmslc2 decode586 decodeall decodeall_x64 decodepentium decode-pentium decode686 decode5x86_cyrix decode6x86_cyrix decode486ibmslciit387 decode486ibmslc2iit387 decode486cyrix decode486cyrixiit387 decode-pentium2 decode586pro decode586mmx decode-pentiumpro decode-pentiummmx random.bin.results recodeall recode8086 recode286 recode386 recode486 recode486a recode486am recode586 recodenecv20 recode386am
 	find -name \*~ -delete
 
 test1.bin: test1.asm
