@@ -13,9 +13,7 @@ fi
 git clean -dfX
 
 # CHECK: Are there new .c, .h, or .cpp files I forgot to add?
-# NTS: I would use grep to filter out only .c .cpp .h files but grep
-#      is too much of a pussy to support Perl regular expressions like
-#      m/\\.(c|cpp|h|)/ so we use our hack below instead.
+# NTS: TODO improve regex here, perhaps with -E
 x=`git clean -n -d {,*/,*/*/,*/*/*/,*/*/*/*/}*.{c,cpp,h,sh,pl,latex,png,jpg,jpeg,version-t,js} | sed -e 's/^Would remove //'`
 if [[ x"$x" != x ]]; then
 	(echo 'Did you forget to add new source files?'; echo 'Quit this pager, then answer the question'; echo '---------------------------'; echo $x) | less
